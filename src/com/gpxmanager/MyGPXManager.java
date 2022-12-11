@@ -1,22 +1,12 @@
 package com.gpxmanager;
 
+import com.gpxmanager.component.MergePanel;
 import com.gpxmanager.component.MyPasswordLabel;
+import com.gpxmanager.component.ProgramPanels;
 import com.gpxmanager.launcher.MyGPXManagerServer;
 import net.miginfocom.swing.MigLayout;
 
-import javax.swing.AbstractAction;
-import javax.swing.ButtonGroup;
-import javax.swing.JButton;
-import javax.swing.JFileChooser;
-import javax.swing.JFrame;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JRadioButtonMenuItem;
-import javax.swing.JToolBar;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
@@ -33,10 +23,11 @@ import java.util.Locale;
 import java.util.prefs.Preferences;
 
 import static com.gpxmanager.Utils.getLabel;
+import static com.gpxmanager.component.ProgramPanels.selectOrAddTab;
 
 public final class MyGPXManager extends JFrame {
 
-    public static final String INTERNAL_VERSION = "0.1";
+    public static final String INTERNAL_VERSION = "0.5";
     public static final String VERSION = "1";
     private static final MyPasswordLabel INFO_LABEL = new MyPasswordLabel();
     private final JMenuItem saveFile;
@@ -58,8 +49,8 @@ public final class MyGPXManager extends JFrame {
         JMenuBar menuBar = new JMenuBar();
         JMenu menuFile = new JMenu(getLabel("menu.file"));
         menuBar.add(menuFile);
-        JMenu menuPassword = new JMenu(getLabel("menu.password"));
-        menuBar.add(menuPassword);
+        JMenu menuGpx = new JMenu(getLabel("menu.gpx"));
+        menuBar.add(menuGpx);
         JMenu menuLanguage = new JMenu(getLabel("menu.language"));
         menuBar.add(menuLanguage);
         JMenu menuAbout = new JMenu("?");
@@ -81,6 +72,7 @@ public final class MyGPXManager extends JFrame {
         }
         menuFile.addSeparator();
         menuFile.add(new JMenuItem(new ExitAction()));
+        menuGpx.add(new JMenuItem(new MergeAction()));
         ButtonGroup languageGroup = new ButtonGroup();
         JRadioButtonMenuItem englishMenu = new JRadioButtonMenuItem(new LanguageAction(Locale.ENGLISH));
         englishMenu.setSelected(Locale.ENGLISH.getLanguage().equals(locale));
@@ -98,6 +90,9 @@ public final class MyGPXManager extends JFrame {
         panel.setLayout(new MigLayout("", "grow", "[][grow][]"));
         add(panel, BorderLayout.CENTER);
         // TODO
+        panel.add(new JLabel("update"), "gapleft 20, gaptop 10, hidemode 1, wrap");
+        panel.add(ProgramPanels.getTabbedPane(), "grow, hidemode 3, wrap");
+        ProgramPanels.getTabbedPane().setVisible(false);
 
         JToolBar toolBar = new JToolBar();
         final JButton openButton = new JButton(new OpenFileAction());
@@ -286,6 +281,19 @@ public final class MyGPXManager extends JFrame {
             }
         }
     }
+
+    class MergeAction extends AbstractAction {
+        public MergeAction() {
+            super(getLabel("menu.merge"));
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+
+            selectOrAddTab(new MergePanel(), "LABEL", MyGPXManagerImage.OPEN);
+        }
+    }
+
 
     class ExitAction extends AbstractAction {
         public ExitAction() {
