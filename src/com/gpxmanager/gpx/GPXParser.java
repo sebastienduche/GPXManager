@@ -21,10 +21,7 @@
 
 package com.gpxmanager.gpx;
 
-import com.gpxmanager.gpx.beans.GPX;
-import com.gpxmanager.gpx.beans.Route;
-import com.gpxmanager.gpx.beans.Track;
-import com.gpxmanager.gpx.beans.Waypoint;
+import com.gpxmanager.gpx.beans.*;
 import com.gpxmanager.gpx.extensions.IExtensionParser;
 import com.gpxmanager.gpx.types.FixType;
 import org.apache.log4j.Logger;
@@ -147,6 +144,14 @@ public class GPXParser {
 						if (rte != null) {
 							logger.info("Add route to com.gpxmanager.gpx data. [routeName=" + rte.getName() + "]");
 							gpx.addRoute(rte);
+						}
+					}
+					case GPXConstants.METADATA_NODE -> {
+						logger.debug("Found metadata node. Start parsing...");
+						Metadata rte = parseMetadata(currentNode);
+						if (rte != null) {
+							logger.info("Add metadata to com.gpxmanager.gpx data. [Name=" + rte.getName() + "]");
+							gpx.setMetadata(rte);
 						}
 					}
 				}
@@ -415,6 +420,42 @@ public class GPXParser {
 		}
 		
 		return rte;
+	}
+
+	private Metadata parseMetadata(Node node) {
+		if(node == null) {
+			logger.error("null node received");
+			return null;
+		}
+		Metadata metadata = new Metadata();
+		NodeList nodes = node.getChildNodes();
+		for(int idx = 0; idx < nodes.getLength(); idx++) {
+			Node currentNode = nodes.item(idx);
+			switch (currentNode.getNodeName()) {
+				case GPXConstants.METADATA_NAME -> {
+					logger.debug("node name found");
+					metadata.setName(getNodeValueAsString(currentNode));
+				}
+				case GPXConstants.METADATA_DESCRIPTION -> {
+					logger.debug("node desc found");
+					metadata.setDescription(getNodeValueAsString(currentNode));
+				}
+				case GPXConstants.METADATA_AUTHOR -> {
+					logger.debug("node author found");
+					metadata.setAuthor(getNodeValueAsString(currentNode));
+				}
+				case GPXConstants.METADATA_KEYWORDS -> {
+					logger.debug("node keywords found");
+					metadata.setKeywords(getNodeValueAsString(currentNode));
+				}
+				case GPXConstants.METADATA_TIME -> {
+					logger.debug("node time found");
+					metadata.setTime(getNodeValueAsDate(currentNode));
+				}
+			}
+		}
+
+		return metadata;
 	}
 	
 	private ArrayList<Waypoint> parseTrackSeg(Node node) {

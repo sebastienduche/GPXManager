@@ -65,4 +65,12 @@ public interface GPXConstants {
 	String RTEPT_NODE = "rtept";
 	/*End route nodes*/
 
+	/*Metadata*/
+	String METADATA_NODE = "metadata";
+	String METADATA_NAME = "name";
+	String METADATA_DESCRIPTION = "desc";
+	String METADATA_AUTHOR = "author";
+	String METADATA_TIME = "time";
+	String METADATA_KEYWORDS = "keywords";
+	/*End Metadata*/
 }

@@ -44,6 +44,16 @@ public class GPX extends Extension{
 	private HashSet<Waypoint> waypoints;
 	private HashSet<Track> tracks;
 	private HashSet<Route> routes;
+
+	public Metadata getMetadata() {
+		return metadata;
+	}
+
+	public void setMetadata(Metadata metadata) {
+		this.metadata = metadata;
+	}
+
+	private Metadata metadata;
 	
 	/**
 	 * Returns the version of a com.gpxmanager.gpx object

@@ -1,2 +1,9 @@
 # Project exclude paths
 /bin/
+/.idea/.gitignore
+/.idea/ant.xml
+/.idea/misc.xml
+/.idea/modules.xml
+/.idea/uiDesigner.xml
+/.idea/vcs.xml
+/resources.xml

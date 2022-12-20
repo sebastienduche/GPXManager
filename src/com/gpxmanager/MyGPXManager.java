@@ -1,22 +1,23 @@
 package com.gpxmanager;
 
 import com.gpxmanager.component.MergePanel;
-import com.gpxmanager.component.MyPasswordLabel;
+import com.gpxmanager.component.MyAutoHideLabel;
 import com.gpxmanager.component.ProgramPanels;
+import com.gpxmanager.gpx.GPXParser;
+import com.gpxmanager.gpx.beans.GPX;
 import com.gpxmanager.launcher.MyGPXManagerServer;
 import net.miginfocom.swing.MigLayout;
+import org.xml.sax.SAXException;
 
 import javax.swing.*;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Cursor;
-import java.awt.Dimension;
-import java.awt.HeadlessException;
-import java.awt.Toolkit;
+import javax.xml.parsers.ParserConfigurationException;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.text.MessageFormat;
 import java.time.LocalDateTime;
 import java.util.Locale;
@@ -27,9 +28,9 @@ import static com.gpxmanager.component.ProgramPanels.selectOrAddTab;
 
 public final class MyGPXManager extends JFrame {
 
-    public static final String INTERNAL_VERSION = "0.5";
+    public static final String INTERNAL_VERSION = "1.2";
     public static final String VERSION = "1";
-    private static final MyPasswordLabel INFO_LABEL = new MyPasswordLabel();
+    private static final MyAutoHideLabel INFO_LABEL = new MyAutoHideLabel();
     private final JMenuItem saveFile;
     private final JMenuItem closeFile;
 
@@ -42,7 +43,7 @@ public final class MyGPXManager extends JFrame {
         instance = this;
         prefs = Preferences.userNodeForPackage(getClass());
         String locale = prefs.get("MyGPXManager.locale", "en");
-        Utils.initResources(new Locale(locale));
+        Utils.initResources(new Locale.Builder().setLanguage(locale).build());
         saveFile = new JMenuItem(new SaveFileAction());
         setTitle("MyGPXManager");
         setLayout(new BorderLayout());
@@ -118,9 +119,9 @@ public final class MyGPXManager extends JFrame {
             }
         });
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        setLocation(Integer.parseInt(prefs.get("MyPassworManager.x", "0")), Integer.parseInt(prefs.get("MyPassworManager.y", "0")));
-        int width = Integer.parseInt(prefs.get("MyPassworManager.width", "0"));
-        int height = Integer.parseInt(prefs.get("MyPassworManager.height", "0"));
+        setLocation(Integer.parseInt(prefs.get("MyGPXManager.x", "0")), Integer.parseInt(prefs.get("MyGPXManager.y", "0")));
+        int width = Integer.parseInt(prefs.get("MyGPXManager.width", "0"));
+        int height = Integer.parseInt(prefs.get("MyGPXManager.height", "0"));
         setSize(width != 0 ? width : screenSize.width, height != 0 ? height : screenSize.height);
         setVisible(true);
     }
@@ -186,14 +187,22 @@ public final class MyGPXManager extends JFrame {
             boiteFichier.addChoosableFileFilter(Filtre.FILTRE_GPX);
             if (JFileChooser.APPROVE_OPTION == boiteFichier.showOpenDialog(instance)) {
                 File file = boiteFichier.getSelectedFile();
-                if (file == null) {
-                    setCursor(Cursor.getDefaultCursor());
-                    return;
-
-//                    model.fireTableDataChanged();
-//                    setCursor(Cursor.getDefaultCursor());
+                if (file != null) {
+                    open(file);
                 }
+                setCursor(Cursor.getDefaultCursor());
             }
+        }
+    }
+
+    private void open(File file) {
+        try {
+            GPX gpx = new GPXParser().parseGPX(new FileInputStream(file));
+            ProgramPanels.addTab(file.getName(), null, new GPXPropertiesPanel(gpx));
+            prefs.put("MyGPXManager.file", file.getAbsolutePath());
+            setFileOpened(file);
+        } catch (ParserConfigurationException | SAXException | IOException ex) {
+            throw new RuntimeException(ex);
         }
     }
 
@@ -208,6 +217,10 @@ public final class MyGPXManager extends JFrame {
                 // save;
             } else {
                 setFileOpened(null);
+                if (ProgramPanels.runExit()) {
+                    ProgramPanels.removeAll();
+                    ProgramPanels.getTabbedPane().setVisible(false);
+                }
 //                model.fireTableDataChanged();
             }
         }
@@ -223,8 +236,7 @@ public final class MyGPXManager extends JFrame {
                 return;
             }
             SwingUtilities.invokeLater(() -> {
-
-//                model.fireTableDataChanged();
+                open(file);
                 setCursor(Cursor.getDefaultCursor());
             });
         }
@@ -277,7 +289,7 @@ public final class MyGPXManager extends JFrame {
                 if (!file.getName().toLowerCase().endsWith(Filtre.FILTRE_GPX.toString())) {
                     file = new File(file.getAbsolutePath() + Filtre.FILTRE_GPX);
                 }
-               // save(file, true);
+                // save(file, true);
             }
         }
     }

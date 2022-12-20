@@ -2,7 +2,8 @@
 <project default="copy_resources" name="Copy Resources in bin directory: Dev only">
     <!--ANT 1.7 is required                                        -->
     <target name="copy_resources">
-    	<mkdir dir="./bin/resources"/>
-    	<copydir src="./resources" dest="./bin/resources"/>
+        <mkdir dir="./bin/production/GPXManager/resources"/>
+        <copydir src="./resources" dest="./bin/production/GPXManager/resources"/>
     </target>
+
 </project>
