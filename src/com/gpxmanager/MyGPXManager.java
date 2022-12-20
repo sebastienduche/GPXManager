@@ -2,7 +2,7 @@ package com.gpxmanager;
 
 import com.gpxmanager.component.MergePanel;
 import com.gpxmanager.component.MyAutoHideLabel;
-import com.gpxmanager.component.ProgramPanels;
+import com.gpxmanager.component.MyTabbedPane;
 import com.gpxmanager.gpx.GPXParser;
 import com.gpxmanager.gpx.beans.GPX;
 import com.gpxmanager.launcher.MyGPXManagerServer;
@@ -24,7 +24,6 @@ import java.util.Locale;
 import java.util.prefs.Preferences;
 
 import static com.gpxmanager.Utils.getLabel;
-import static com.gpxmanager.component.ProgramPanels.selectOrAddTab;
 
 public final class MyGPXManager extends JFrame {
 
@@ -37,6 +36,7 @@ public final class MyGPXManager extends JFrame {
     private final MyGPXManager instance;
     private final Preferences prefs;
     private final JButton saveButton;
+    private final MyTabbedPane myTabbedPane;
     private File openedFile = null;
 
     public MyGPXManager() throws HeadlessException {
@@ -92,8 +92,8 @@ public final class MyGPXManager extends JFrame {
         add(panel, BorderLayout.CENTER);
         // TODO
         panel.add(new JLabel("update"), "gapleft 20, gaptop 10, hidemode 1, wrap");
-        panel.add(ProgramPanels.getTabbedPane(), "grow, hidemode 3, wrap");
-        ProgramPanels.getTabbedPane().setVisible(false);
+        panel.add(myTabbedPane = new MyTabbedPane(), "grow, hidemode 3, wrap");
+        myTabbedPane.setVisible(false);
 
         JToolBar toolBar = new JToolBar();
         final JButton openButton = new JButton(new OpenFileAction());
@@ -198,7 +198,7 @@ public final class MyGPXManager extends JFrame {
     private void open(File file) {
         try {
             GPX gpx = new GPXParser().parseGPX(new FileInputStream(file));
-            ProgramPanels.addTab(file.getName(), null, new GPXPropertiesPanel(gpx));
+            myTabbedPane.addTab(file.getName(), null, new GPXPropertiesPanel(gpx));
             prefs.put("MyGPXManager.file", file.getAbsolutePath());
             setFileOpened(file);
         } catch (ParserConfigurationException | SAXException | IOException ex) {
@@ -217,11 +217,10 @@ public final class MyGPXManager extends JFrame {
                 // save;
             } else {
                 setFileOpened(null);
-                if (ProgramPanels.runExit()) {
-                    ProgramPanels.removeAll();
-                    ProgramPanels.getTabbedPane().setVisible(false);
+                if (myTabbedPane.runExit()) {
+                    myTabbedPane.removeAll();
+                    myTabbedPane.setVisible(false);
                 }
-//                model.fireTableDataChanged();
             }
         }
     }
@@ -301,8 +300,7 @@ public final class MyGPXManager extends JFrame {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-
-            selectOrAddTab(new MergePanel(), "LABEL", MyGPXManagerImage.OPEN);
+            myTabbedPane.selectOrAddTab(new MergePanel(), "LABEL", MyGPXManagerImage.OPEN);
         }
     }
 
