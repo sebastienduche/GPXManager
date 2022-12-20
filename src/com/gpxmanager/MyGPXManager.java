@@ -11,13 +11,12 @@ import org.xml.sax.SAXException;
 
 import javax.swing.*;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.text.MessageFormat;
 import java.time.LocalDateTime;
 import java.util.Locale;
@@ -206,6 +205,14 @@ public final class MyGPXManager extends JFrame {
         }
     }
 
+    private void save(GPX gpx, File file) {
+        try {
+            new GPXParser().writeGPX(gpx, new FileOutputStream(file));
+        } catch (ParserConfigurationException | TransformerException | FileNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     class CloseFileAction extends AbstractAction {
         public CloseFileAction() {
             super(getLabel("menu.closeFile"));
@@ -213,8 +220,10 @@ public final class MyGPXManager extends JFrame {
 
         @Override
         public void actionPerformed(ActionEvent e) {
+            // TODO Change openedFile manaagement
             if (openedFile != null && JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(instance, getLabel("question.saveOpenedFile"), getLabel("question"), JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)) {
-                // save;
+                GPXPropertiesPanel selectedComponent = myTabbedPane.getSelectedComponent(GPXPropertiesPanel.class);
+                save(selectedComponent.getGpx(), openedFile);
             } else {
                 setFileOpened(null);
                 if (myTabbedPane.runExit()) {

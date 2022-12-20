@@ -24,6 +24,10 @@ public class GPXPropertiesPanel extends JPanel {
         createPropertiesPanel();
     }
 
+    public GPX getGpx() {
+        return gpx;
+    }
+
     private void createPropertiesPanel() {
         JPanel panel = new JPanel();
         panel.setLayout(new MigLayout("", "[][grow]10px[][grow]10px[][grow]", "grow"));
