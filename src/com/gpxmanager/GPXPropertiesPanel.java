@@ -1,10 +1,14 @@
 package com.gpxmanager;
 
+import com.gpxmanager.component.JModifyFormattedTextField;
+import com.gpxmanager.component.JModifyTextField;
 import com.gpxmanager.gpx.beans.GPX;
 import com.gpxmanager.gpx.beans.Metadata;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
+import java.io.File;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
 import static com.gpxmanager.Utils.getLabel;
@@ -12,13 +16,15 @@ import static com.gpxmanager.Utils.getLabel;
 public class GPXPropertiesPanel extends JPanel {
 
     private final GPX gpx;
-    private final JTextField metadataName = new JTextField();
-    private final JTextField metadataDescription = new JTextField();
-    private final JTextField metadataAuthor = new JTextField();
-    private final JTextField metadataKeywords = new JTextField();
-    private final JFormattedTextField metadataTime = new JFormattedTextField(new SimpleDateFormat("yyyy-MM-dd'T'kk:mm:ss"));
+    private final File file;
+    private final JModifyTextField metadataName = new JModifyTextField();
+    private final JModifyTextField metadataDescription = new JModifyTextField();
+    private final JModifyTextField metadataAuthor = new JModifyTextField();
+    private final JModifyTextField metadataKeywords = new JModifyTextField();
+    private final JModifyFormattedTextField metadataTime = new JModifyFormattedTextField(new SimpleDateFormat("yyyy-MM-dd'T'kk:mm:ss"));
 
-    public GPXPropertiesPanel(GPX gpx) {
+    public GPXPropertiesPanel(File file, GPX gpx) {
+        this.file = file;
         this.gpx = gpx;
         setLayout(new MigLayout("", "[grow]", "[]"));
         createPropertiesPanel();
@@ -26,6 +32,34 @@ public class GPXPropertiesPanel extends JPanel {
 
     public GPX getGpx() {
         return gpx;
+    }
+
+    public File getFile() {
+        return file;
+    }
+
+    public void save() throws ParseException {
+        Metadata metadata = gpx.getMetadata();
+        if (metadata == null) {
+            metadata = new Metadata();
+            gpx.setMetadata(metadata);
+        }
+        if (metadataName.isModified()) {
+            metadata.setName(metadataName.getText());
+        }
+        if (metadataDescription.isModified()) {
+            metadata.setDescription(metadataDescription.getText());
+        }
+        if (metadataAuthor.isModified()) {
+            metadata.setAuthor(metadataAuthor.getText());
+        }
+        if (metadataKeywords.isModified()) {
+            metadata.setKeywords(metadataKeywords.getText());
+        }
+        if (metadataTime.isModified() && metadataTime.isValid()) {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'kk:mm:ss");
+            metadata.setTime(sdf.parse(metadataKeywords.getText()));
+        }
     }
 
     private void createPropertiesPanel() {
