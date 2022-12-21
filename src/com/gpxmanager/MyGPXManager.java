@@ -5,6 +5,7 @@ import com.gpxmanager.component.MyAutoHideLabel;
 import com.gpxmanager.component.MyTabbedPane;
 import com.gpxmanager.gpx.GPXParser;
 import com.gpxmanager.gpx.beans.GPX;
+import com.gpxmanager.gpx.extensions.GarminExtension;
 import com.gpxmanager.launcher.MyGPXManagerServer;
 import net.miginfocom.swing.MigLayout;
 import org.xml.sax.SAXException;
@@ -38,10 +39,13 @@ public final class MyGPXManager extends JFrame {
     private final Preferences prefs;
     private final JButton saveButton;
     private final MyTabbedPane myTabbedPane;
-    private LinkedList<File> openedFiles = new LinkedList<>();
+    private final LinkedList<File> openedFiles = new LinkedList<>();
+
+    private final GPXParser gpxParser = new GPXParser();
 
     public MyGPXManager() throws HeadlessException {
         instance = this;
+        gpxParser.addExtensionParser(new GarminExtension());
         prefs = Preferences.userNodeForPackage(getClass());
         String locale = prefs.get("MyGPXManager.locale", "en");
         Utils.initResources(new Locale.Builder().setLanguage(locale).build());
@@ -201,7 +205,7 @@ public final class MyGPXManager extends JFrame {
 
     private void open(File file) {
         try {
-            GPX gpx = new GPXParser().parseGPX(new FileInputStream(file));
+            GPX gpx = gpxParser.parseGPX(new FileInputStream(file));
             myTabbedPane.addTab(file.getName(), null, new GPXPropertiesPanel(file, gpx));
             prefs.put("MyGPXManager.file", file.getAbsolutePath());
             setFileOpened(file);
@@ -212,7 +216,7 @@ public final class MyGPXManager extends JFrame {
 
     private void save(GPX gpx, File file) {
         try {
-            new GPXParser().writeGPX(gpx, new FileOutputStream(file));
+            gpxParser.writeGPX(gpx, new FileOutputStream(file));
         } catch (ParserConfigurationException | TransformerException | FileNotFoundException e) {
             throw new RuntimeException(e);
         }

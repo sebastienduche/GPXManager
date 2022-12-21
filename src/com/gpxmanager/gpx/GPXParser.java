@@ -108,6 +108,8 @@ public class GPXParser {
                     gpx.setVersion(attr.getNodeValue());
                 } else if (GPXConstants.CREATOR_ATTR.equals(attr.getNodeName())) {
                     gpx.setCreator(attr.getNodeValue());
+                } else {
+                    gpx.addAttribute(attr.getNodeName(), attr.getNodeValue());
                 }
             }
             NodeList nodes = firstChild.getChildNodes();
@@ -204,93 +206,89 @@ public class GPXParser {
         }
 
         NodeList childNodes = node.getChildNodes();
-        if (childNodes != null) {
-            for (int idx = 0; idx < childNodes.getLength(); idx++) {
-                Node currentNode = childNodes.item(idx);
-                switch (currentNode.getNodeName()) {
-                    case GPXConstants.ELE_NODE -> {
-                        logger.debug("found ele node in waypoint data");
-                        w.setElevation(getNodeValueAsDouble(currentNode));
-                    }
-                    case GPXConstants.TIME_NODE -> {
-                        logger.debug("found time node in waypoint data");
-                        w.setTime(getNodeValueAsDate(currentNode));
-                    }
-                    case GPXConstants.NAME_NODE -> {
-                        logger.debug("found name node in waypoint data");
-                        w.setName(getNodeValueAsString(currentNode));
-                    }
-                    case GPXConstants.CMT_NODE -> {
-                        logger.debug("found cmt node in waypoint data");
-                        w.setComment(getNodeValueAsString(currentNode));
-                    }
-                    case GPXConstants.DESC_NODE -> {
-                        logger.debug("found desc node in waypoint data");
-                        w.setDescription(getNodeValueAsString(currentNode));
-                    }
-                    case GPXConstants.SRC_NODE -> {
-                        logger.debug("found src node in waypoint data");
-                        w.setSrc(getNodeValueAsString(currentNode));
-                    }
-                    case GPXConstants.MAGVAR_NODE -> {
-                        logger.debug("found magvar node in waypoint data");
-                        w.setMagneticDeclination(getNodeValueAsDouble(currentNode));
-                    }
-                    case GPXConstants.GEOIDHEIGHT_NODE -> {
-                        logger.debug("found geoidheight node in waypoint data");
-                        w.setGeoidHeight(getNodeValueAsDouble(currentNode));
-                    }
-                    case GPXConstants.LINK_NODE -> logger.debug("found link node in waypoint data");
+        for (int idx = 0; idx < childNodes.getLength(); idx++) {
+            Node currentNode = childNodes.item(idx);
+            switch (currentNode.getNodeName()) {
+                case GPXConstants.ELE_NODE -> {
+                    logger.debug("found ele node in waypoint data");
+                    w.setElevation(getNodeValueAsDouble(currentNode));
+                }
+                case GPXConstants.TIME_NODE -> {
+                    logger.debug("found time node in waypoint data");
+                    w.setTime(getNodeValueAsDate(currentNode));
+                }
+                case GPXConstants.NAME_NODE -> {
+                    logger.debug("found name node in waypoint data");
+                    w.setName(getNodeValueAsString(currentNode));
+                }
+                case GPXConstants.CMT_NODE -> {
+                    logger.debug("found cmt node in waypoint data");
+                    w.setComment(getNodeValueAsString(currentNode));
+                }
+                case GPXConstants.DESC_NODE -> {
+                    logger.debug("found desc node in waypoint data");
+                    w.setDescription(getNodeValueAsString(currentNode));
+                }
+                case GPXConstants.SRC_NODE -> {
+                    logger.debug("found src node in waypoint data");
+                    w.setSrc(getNodeValueAsString(currentNode));
+                }
+                case GPXConstants.MAGVAR_NODE -> {
+                    logger.debug("found magvar node in waypoint data");
+                    w.setMagneticDeclination(getNodeValueAsDouble(currentNode));
+                }
+                case GPXConstants.GEOIDHEIGHT_NODE -> {
+                    logger.debug("found geoidheight node in waypoint data");
+                    w.setGeoidHeight(getNodeValueAsDouble(currentNode));
+                }
+                case GPXConstants.LINK_NODE -> logger.debug("found link node in waypoint data");
 
-                    //TODO: parse link
-                    //w.setGeoidHeight(getNodeValueAsDouble(currentNode));
-                    case GPXConstants.SYM_NODE -> {
-                        logger.debug("found sym node in waypoint data");
-                        w.setSym(getNodeValueAsString(currentNode));
-                    }
-                    case GPXConstants.FIX_NODE -> {
-                        logger.debug("found fix node in waypoint data");
-                        w.setFix(getNodeValueAsFixType(currentNode));
-                    }
-                    case GPXConstants.TYPE_NODE -> {
-                        logger.debug("found type node in waypoint data");
-                        w.setType(getNodeValueAsString(currentNode));
-                    }
-                    case GPXConstants.SAT_NODE -> {
-                        logger.debug("found sat node in waypoint data");
-                        w.setSat(getNodeValueAsInteger(currentNode));
-                    }
-                    case GPXConstants.HDOP_NODE -> {
-                        logger.debug("found hdop node in waypoint data");
-                        w.setHdop(getNodeValueAsDouble(currentNode));
-                    }
-                    case GPXConstants.VDOP_NODE -> {
-                        logger.debug("found vdop node in waypoint data");
-                        w.setVdop(getNodeValueAsDouble(currentNode));
-                    }
-                    case GPXConstants.PDOP_NODE -> {
-                        logger.debug("found pdop node in waypoint data");
-                        w.setPdop(getNodeValueAsDouble(currentNode));
-                    }
-                    case GPXConstants.AGEOFGPSDATA_NODE -> {
-                        logger.debug("found ageofgpsdata node in waypoint data");
-                        w.setAgeOfGPSData(getNodeValueAsDouble(currentNode));
-                    }
-                    case GPXConstants.DGPSID_NODE -> {
-                        logger.debug("found dgpsid node in waypoint data");
-                        w.setDgpsid(getNodeValueAsInteger(currentNode));
-                    }
-                    case GPXConstants.EXTENSIONS_NODE -> {
-                        logger.debug("found extensions node in waypoint data");
-                        for (IExtensionParser parser : extensionParsers) {
-                            Object data = parser.parseWaypointExtension(currentNode);
-                            w.addExtensionData(parser.getId(), data);
-                        }
+                //TODO: parse link
+                //w.setGeoidHeight(getNodeValueAsDouble(currentNode));
+                case GPXConstants.SYM_NODE -> {
+                    logger.debug("found sym node in waypoint data");
+                    w.setSym(getNodeValueAsString(currentNode));
+                }
+                case GPXConstants.FIX_NODE -> {
+                    logger.debug("found fix node in waypoint data");
+                    w.setFix(getNodeValueAsFixType(currentNode));
+                }
+                case GPXConstants.TYPE_NODE -> {
+                    logger.debug("found type node in waypoint data");
+                    w.setType(getNodeValueAsString(currentNode));
+                }
+                case GPXConstants.SAT_NODE -> {
+                    logger.debug("found sat node in waypoint data");
+                    w.setSat(getNodeValueAsInteger(currentNode));
+                }
+                case GPXConstants.HDOP_NODE -> {
+                    logger.debug("found hdop node in waypoint data");
+                    w.setHdop(getNodeValueAsDouble(currentNode));
+                }
+                case GPXConstants.VDOP_NODE -> {
+                    logger.debug("found vdop node in waypoint data");
+                    w.setVdop(getNodeValueAsDouble(currentNode));
+                }
+                case GPXConstants.PDOP_NODE -> {
+                    logger.debug("found pdop node in waypoint data");
+                    w.setPdop(getNodeValueAsDouble(currentNode));
+                }
+                case GPXConstants.AGEOFGPSDATA_NODE -> {
+                    logger.debug("found ageofgpsdata node in waypoint data");
+                    w.setAgeOfGPSData(getNodeValueAsDouble(currentNode));
+                }
+                case GPXConstants.DGPSID_NODE -> {
+                    logger.debug("found dgpsid node in waypoint data");
+                    w.setDgpsid(getNodeValueAsInteger(currentNode));
+                }
+                case GPXConstants.EXTENSIONS_NODE -> {
+                    logger.debug("found extensions node in waypoint data");
+                    for (IExtensionParser parser : extensionParsers) {
+                        Object data = parser.parseWaypointExtension(currentNode);
+                        w.addExtensionData(parser.getId(), data);
                     }
                 }
             }
-        } else {
-            logger.debug("no child nodes found in waypoint");
         }
 
         return w;
@@ -303,51 +301,49 @@ public class GPXParser {
         }
         Track trk = new Track();
         NodeList nodes = node.getChildNodes();
-        if (nodes != null) {
-            for (int idx = 0; idx < nodes.getLength(); idx++) {
-                Node currentNode = nodes.item(idx);
-                switch (currentNode.getNodeName()) {
-                    case GPXConstants.NAME_NODE -> {
-                        logger.debug("node name found");
-                        trk.setName(getNodeValueAsString(currentNode));
-                    }
-                    case GPXConstants.CMT_NODE -> {
-                        logger.debug("node cmt found");
-                        trk.setComment(getNodeValueAsString(currentNode));
-                    }
-                    case GPXConstants.DESC_NODE -> {
-                        logger.debug("node desc found");
-                        trk.setDescription(getNodeValueAsString(currentNode));
-                    }
-                    case GPXConstants.SRC_NODE -> {
-                        logger.debug("node src found");
-                        trk.setSrc(getNodeValueAsString(currentNode));
-                    }
-                    case GPXConstants.LINK_NODE -> logger.debug("node link found");
+        for (int idx = 0; idx < nodes.getLength(); idx++) {
+            Node currentNode = nodes.item(idx);
+            switch (currentNode.getNodeName()) {
+                case GPXConstants.NAME_NODE -> {
+                    logger.debug("node name found");
+                    trk.setName(getNodeValueAsString(currentNode));
+                }
+                case GPXConstants.CMT_NODE -> {
+                    logger.debug("node cmt found");
+                    trk.setComment(getNodeValueAsString(currentNode));
+                }
+                case GPXConstants.DESC_NODE -> {
+                    logger.debug("node desc found");
+                    trk.setDescription(getNodeValueAsString(currentNode));
+                }
+                case GPXConstants.SRC_NODE -> {
+                    logger.debug("node src found");
+                    trk.setSrc(getNodeValueAsString(currentNode));
+                }
+                case GPXConstants.LINK_NODE -> logger.debug("node link found");
 
-                    //TODO: parse link
-                    //trk.setLink(getNodeValueAsLink(currentNode));
-                    case GPXConstants.NUMBER_NODE -> {
-                        logger.debug("node number found");
-                        trk.setNumber(getNodeValueAsInteger(currentNode));
-                    }
-                    case GPXConstants.TYPE_NODE -> {
-                        logger.debug("node type found");
-                        trk.setType(getNodeValueAsString(currentNode));
-                    }
-                    case GPXConstants.TRKSEG_NODE -> {
-                        logger.debug("node trkseg found");
-                        trk.setTrackPoints(parseTrackSeg(currentNode));
-                    }
-                    case GPXConstants.EXTENSIONS_NODE -> {
-                        Iterator<IExtensionParser> it = extensionParsers.iterator();
+                //TODO: parse link
+                //trk.setLink(getNodeValueAsLink(currentNode));
+                case GPXConstants.NUMBER_NODE -> {
+                    logger.debug("node number found");
+                    trk.setNumber(getNodeValueAsInteger(currentNode));
+                }
+                case GPXConstants.TYPE_NODE -> {
+                    logger.debug("node type found");
+                    trk.setType(getNodeValueAsString(currentNode));
+                }
+                case GPXConstants.TRKSEG_NODE -> {
+                    logger.debug("node trkseg found");
+                    trk.setTrackPoints(parseTrackSeg(currentNode));
+                }
+                case GPXConstants.EXTENSIONS_NODE -> {
+                    Iterator<IExtensionParser> it = extensionParsers.iterator();
+                    while (it.hasNext()) {
+                        logger.debug("node extensions found");
                         while (it.hasNext()) {
-                            logger.debug("node extensions found");
-                            while (it.hasNext()) {
-                                IExtensionParser parser = it.next();
-                                Object data = parser.parseTrackExtension(currentNode);
-                                trk.addExtensionData(parser.getId(), data);
-                            }
+                            IExtensionParser parser = it.next();
+                            Object data = parser.parseTrackExtension(currentNode);
+                            trk.addExtensionData(parser.getId(), data);
                         }
                     }
                 }
@@ -797,6 +793,12 @@ public class GPXParser {
             creatorNode.setNodeValue(gpx.getCreator());
             attrs.setNamedItem(creatorNode);
         }
+
+        gpx.getAttributes().forEach((key, value) -> {
+            Node creatorNode = doc.createAttribute(key);
+            creatorNode.setNodeValue(value);
+            attrs.setNamedItem(creatorNode);
+        });
 
         if (gpx.getExtensionsParsed() > 0) {
             Node node = doc.createElement(GPXConstants.EXTENSIONS_NODE);
