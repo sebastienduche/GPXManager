@@ -10,14 +10,36 @@ import com.gpxmanager.launcher.MyGPXManagerServer;
 import net.miginfocom.swing.MigLayout;
 import org.xml.sax.SAXException;
 
-import javax.swing.*;
+import javax.swing.AbstractAction;
+import javax.swing.ButtonGroup;
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JRadioButtonMenuItem;
+import javax.swing.JToolBar;
+import javax.swing.SwingUtilities;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.HeadlessException;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.text.MessageFormat;
 import java.text.ParseException;
 import java.time.LocalDateTime;
@@ -29,7 +51,7 @@ import static com.gpxmanager.Utils.getLabel;
 
 public final class MyGPXManager extends JFrame {
 
-    public static final String INTERNAL_VERSION = "1.2";
+    public static final String INTERNAL_VERSION = "1.8";
     public static final String VERSION = "1";
     private static final MyAutoHideLabel INFO_LABEL = new MyAutoHideLabel();
     private final JMenuItem saveFile;
@@ -176,11 +198,6 @@ public final class MyGPXManager extends JFrame {
         saveFile.setEnabled(opened);
         saveButton.setEnabled(opened);
         closeFile.setEnabled(opened);
-        if (file == null || file.isDirectory()) {
-            setTitle("MyGPXManager");
-        } else {
-            setTitle("MyGPXManager - " + file.getAbsolutePath());
-        }
     }
 
     class OpenFileAction extends AbstractAction {
@@ -206,7 +223,7 @@ public final class MyGPXManager extends JFrame {
     private void open(File file) {
         try {
             GPX gpx = gpxParser.parseGPX(new FileInputStream(file));
-            myTabbedPane.addTab(file.getName(), null, new GPXPropertiesPanel(file, gpx));
+            myTabbedPane.addTab(file.getName(), null, new GPXPropertiesPanel(file, gpx), true);
             prefs.put("MyGPXManager.file", file.getAbsolutePath());
             setFileOpened(file);
         } catch (ParserConfigurationException | SAXException | IOException ex) {

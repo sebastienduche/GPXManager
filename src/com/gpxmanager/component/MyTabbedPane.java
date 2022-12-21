@@ -1,7 +1,12 @@
 package com.gpxmanager.component;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JTabbedPane;
+import java.awt.Component;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -53,11 +58,17 @@ public class MyTabbedPane extends JTabbedPane {
     }
 
     public void insertTab(String title, Icon icon, Component component, int index) {
+        insertTab(title, icon, component, index, false);
+    }
+
+    public void insertTab(String title, Icon icon, Component component, int index, boolean withCloseButton) {
         new MySwingWorker() {
             @Override
             protected void done() {
                 insertTab(title, icon, component, null, index);
-//        addCloseButtonToTab(component, getSelectedTabIndex(), true);
+                if (withCloseButton) {
+                    addCloseButtonToTab(component, getSelectedIndex(), true);
+                }
                 insertTabLabel(index, title);
                 setSelectedIndex(index);
             }
@@ -65,11 +76,17 @@ public class MyTabbedPane extends JTabbedPane {
     }
 
     public void addTab(String title, Icon icon, Component component) {
+        addTab(title, icon, component, false);
+    }
+
+    public void addTab(String title, Icon icon, Component component, boolean withCloseButton) {
         new MySwingWorker() {
             @Override
             protected void done() {
                 addTab(title, icon, component, null);
-//        addCloseButtonToTab(component);
+                if (withCloseButton) {
+                    addCloseButtonToTab(component);
+                }
                 int index = getTabCount() - 1;
                 addTabLabel(index, title);
                 setSelectedIndex(index);
@@ -89,15 +106,61 @@ public class MyTabbedPane extends JTabbedPane {
     }
 
     public void removeTabAt(int index) {
+        if (!doBeforeRemoving(index)) {
+            return;
+        }
         super.removeTabAt(index);
         final List<TabLabel> tabLabels = TAB_LABELS.stream().filter(tabLabel -> tabLabel.getIndex() == index).toList();
         TAB_LABELS.removeAll(tabLabels);
         TAB_LABELS.stream().filter(tabLabel -> tabLabel.getIndex() > index).forEach(TabLabel::decrementIndex);
     }
 
-//  private static void addCloseButtonToTab(final Component component) {
-//    addCloseButtonToTab(component, -1, true);
-//  }
+    /**
+     * Can be overridden to decide if a tab can be closed
+     *
+     * @param index clicked tab
+     * @return
+     */
+    public boolean doBeforeRemoving(int index) {
+        return true;
+    }
+
+
+    private void addCloseButtonToTab(final Component component) {
+        addCloseButtonToTab(component, -1, true);
+    }
+
+    private void addCloseButtonToTab(final Component component, int indexToGoBack, boolean leftTabDirection) {
+        final int index = indexOfComponent(component);
+        if (index != -1) {
+            setTabComponentAt(index, new JButtonTabComponent(this, indexToGoBack));
+        }
+
+        addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if ((e.getKeyCode() == KeyEvent.VK_W)
+                        && (e.getModifiersEx() == InputEvent.CTRL_DOWN_MASK)) {
+
+                    // Ctrl-W permet de fermer les onglets du JTabbedPane
+                    final int selectedIndex = getSelectedIndex();
+                    if ((selectedIndex != -1) && (getSelectedComponent().equals(component))) {
+
+                        // Un onglet est actif, supprimer le composant
+                        removeTabAt(selectedIndex);
+                        int previousIndex = leftTabDirection ? selectedIndex - 1 : indexToGoBack;
+                        if (previousIndex != -1 && getTabCount() > previousIndex) {
+                            setSelectedIndex(previousIndex);
+                        }
+
+                        removeKeyListener(this);
+
+                        e.consume();
+                    }
+                }
+            }
+        });
+    }
 
     public void removeAll() {
         super.removeAll();
@@ -108,7 +171,6 @@ public class MyTabbedPane extends JTabbedPane {
         for (Component c : getComponents()) {
             if (c instanceof ITabListener) {
                 if (!((ITabListener) c).tabWillClose(null)) {
-//          Program.Debug("ProgramPanels: Exiting progam cancelled!");
                     return false;
                 }
             }
