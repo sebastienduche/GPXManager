@@ -223,7 +223,7 @@ public final class MyGPXManager extends JFrame {
     private void open(File file) {
         try {
             GPX gpx = gpxParser.parseGPX(new FileInputStream(file));
-            myTabbedPane.addTab(file.getName(), null, new GPXPropertiesPanel(file, gpx), true);
+            myTabbedPane.addTab(file.getName(), new GPXPropertiesPanel(file, gpx), true);
             prefs.put("MyGPXManager.file", file.getAbsolutePath());
             setFileOpened(file);
         } catch (ParserConfigurationException | SAXException | IOException ex) {

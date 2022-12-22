@@ -44,17 +44,25 @@ public class MyTabbedPane extends JTabbedPane {
         return className.cast(getSelectedComponent());
     }
 
-    public void selectOrAddTab(Component component, String tabLabel, Icon icon) {
+    public void selectOrAddTab(Component component, String title, Icon icon) {
         new MySwingWorker() {
             @Override
             protected void done() {
                 try {
                     setSelectedComponent(component);
                 } catch (IllegalArgumentException e) {
-                    addTab(tabLabel, icon, component);
+                    addTab(title, icon, component);
                 }
             }
         }.execute();
+    }
+
+    public void insertTab(String title, Component component, int index) {
+        insertTab(title, null, component, index, false);
+    }
+
+    public void insertTab(String title, Component component, int index, boolean withCloseButton) {
+        insertTab(title, null, component, index, withCloseButton);
     }
 
     public void insertTab(String title, Icon icon, Component component, int index) {
@@ -77,6 +85,14 @@ public class MyTabbedPane extends JTabbedPane {
 
     public void addTab(String title, Icon icon, Component component) {
         addTab(title, icon, component, false);
+    }
+
+    public void addTab(String title, Component component) {
+        addTab(title, null, component, false);
+    }
+
+    public void addTab(String title, Component component, boolean withCloseButton) {
+        addTab(title, null, component, withCloseButton);
     }
 
     public void addTab(String title, Icon icon, Component component, boolean withCloseButton) {
@@ -119,12 +135,26 @@ public class MyTabbedPane extends JTabbedPane {
      * Can be overridden to decide if a tab can be closed
      *
      * @param index clicked tab
-     * @return
      */
     public boolean doBeforeRemoving(int index) {
         return true;
     }
 
+    public void removeAll() {
+        super.removeAll();
+        TAB_LABELS.clear();
+    }
+
+    public boolean runExit() {
+        for (Component c : getComponents()) {
+            if (c instanceof ITabListener) {
+                if (!((ITabListener) c).tabWillClose(null)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
 
     private void addCloseButtonToTab(final Component component) {
         addCloseButtonToTab(component, -1, true);
@@ -154,28 +184,11 @@ public class MyTabbedPane extends JTabbedPane {
                         }
 
                         removeKeyListener(this);
-
                         e.consume();
                     }
                 }
             }
         });
-    }
-
-    public void removeAll() {
-        super.removeAll();
-        TAB_LABELS.clear();
-    }
-
-    public boolean runExit() {
-        for (Component c : getComponents()) {
-            if (c instanceof ITabListener) {
-                if (!((ITabListener) c).tabWillClose(null)) {
-                    return false;
-                }
-            }
-        }
-        return true;
     }
 
     private void addTabLabel(int index, String label) {
