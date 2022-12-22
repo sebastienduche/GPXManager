@@ -56,7 +56,6 @@ public final class MyGPXManager extends JFrame {
     private static final MyAutoHideLabel INFO_LABEL = new MyAutoHideLabel();
     private final JMenuItem saveFile;
     private final JMenuItem closeFile;
-
     private final MyGPXManager instance;
     private final Preferences prefs;
     private final JButton saveButton;
@@ -84,12 +83,10 @@ public final class MyGPXManager extends JFrame {
         JMenu menuAbout = new JMenu("?");
         menuBar.add(menuAbout);
         menuFile.add(new JMenuItem(new OpenFileAction()));
-        closeFile = new JMenuItem(new CloseFileAction());
-        menuFile.add(closeFile);
+        menuFile.add(closeFile = new JMenuItem(new CloseFileAction()));
         menuFile.addSeparator();
         menuFile.add(saveFile);
         menuFile.add(new JMenuItem(new SaveAsFileAction()));
-        menuFile.addSeparator();
 
         final String file = prefs.get("MyGPXManager.file", "");
         if (!file.isEmpty()) {
