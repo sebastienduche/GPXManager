@@ -19,26 +19,20 @@ import java.awt.Toolkit;
 final class APropos extends JDialog {
     static final long serialVersionUID = 150505;
     private final JButton ok = new JButton("OK");
-    private final JLabel MyCellarLabel1 = new JLabel("MyPasswordManager");
+    private final JLabel MyCellarLabel1 = new JLabel("MyGPXManager");
     private final JLabel MyCellarLabel2 = new JLabel("Copyright: S.Duché");
     private final JLabel MyCellarLabel3 = new JLabel("Release: " + MyGPXManager.INTERNAL_VERSION);
     private final JLabel MyCellarLabel4 = new JLabel("Version: " + MyGPXManager.VERSION);
 
-    /**
-     * APropos: Constructeur pour la fenêtre d'A Propos.
-     */
     APropos() {
         super(new JFrame(), "About", true);
-        jbInit();
+        init();
         pack();
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         setLocation((screenSize.width - getSize().width) / 2, (screenSize.height - getSize().height) / 2);
     }
 
-    /**
-     * jbInit: Fonction d'initialisation de la fenètre.
-     */
-    private void jbInit() {
+    private void init() {
         ok.addActionListener((e) -> dispose());
         MyCellarLabel1.setForeground(Color.red);
         MyCellarLabel1.setHorizontalAlignment(SwingConstants.CENTER);
@@ -56,9 +50,6 @@ final class APropos extends JDialog {
         setResizable(false);
     }
 
-    /**
-     * APropos: Constructeur de l'image.
-     */
     private static class IconPanel extends JPanel {
         static final long serialVersionUID = 1505051;
         private final ImageIcon img;

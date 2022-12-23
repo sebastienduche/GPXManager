@@ -16,10 +16,10 @@ import javax.swing.JPanel;
 import java.io.File;
 import java.text.MessageFormat;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.LinkedList;
 import java.util.List;
 
+import static com.gpxmanager.Utils.TIMESTAMP;
 import static com.gpxmanager.Utils.getLabel;
 
 public class GPXPropertiesPanel extends JPanel {
@@ -32,7 +32,7 @@ public class GPXPropertiesPanel extends JPanel {
     private final JModifyTextField metadataKeywords = new JModifyTextField();
     private final List<JModifyTextField> trackNames = new LinkedList<>();
     private final List<JModifyTextField> trackDescriptions = new LinkedList<>();
-    private final JModifyFormattedTextField metadataTime = new JModifyFormattedTextField(new SimpleDateFormat("yyyy-MM-dd'T'kk:mm:ss"));
+    private final JModifyFormattedTextField metadataTime = new JModifyFormattedTextField(TIMESTAMP);
 
     public GPXPropertiesPanel(File file, GPX gpx) {
         this.file = file;
@@ -68,8 +68,7 @@ public class GPXPropertiesPanel extends JPanel {
             metadata.setKeywords(metadataKeywords.getText());
         }
         if (metadataTime.isModified() && metadataTime.isValid()) {
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'kk:mm:ss");
-            metadata.setTime(sdf.parse(metadataKeywords.getText()));
+            metadata.setTime(TIMESTAMP.parse(metadataKeywords.getText()));
         }
 
         int i = 0;
