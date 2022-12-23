@@ -15,3 +15,6 @@ Will come soon:
 - Display some graphs
 
 Probably the application will never display the GPX file on a map.
+
+The application uses some code from geoCalc:
+https://github.com/grumlimited/geocalc/blob/master/src/test/java/com/grum/geocalc/DistanceTest.java
