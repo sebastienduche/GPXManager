@@ -1,11 +1,11 @@
 package com.gpxmanager;
 
 import com.gpxmanager.component.MergePanel;
-import com.gpxmanager.component.MyAutoHideLabel;
 import com.gpxmanager.gpx.GPXParser;
 import com.gpxmanager.gpx.beans.GPX;
 import com.gpxmanager.gpx.extensions.GarminExtension;
 import com.gpxmanager.launcher.MyGPXManagerServer;
+import com.mycomponents.MyAutoHideLabel;
 import com.mytabbedpane.MyTabbedPane;
 import net.miginfocom.swing.MigLayout;
 import org.xml.sax.SAXException;
