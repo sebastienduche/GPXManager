@@ -21,8 +21,8 @@
 
 package com.gpxmanager.gpx.beans;
 
-import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 
 /**
  * This class holds com.gpxmanager.gpx information from a &lt;com.gpxmanager.gpx&gt; node.
@@ -45,9 +45,9 @@ public class GPX extends Extension {
     private String creator;
 
     private final LinkedHashMap<String, String> attributes = new LinkedHashMap<>();
-    private HashSet<Waypoint> waypoints;
-    private HashSet<Track> tracks;
-    private HashSet<Route> routes;
+    private LinkedList<Waypoint> waypoints;
+    private LinkedList<Track> tracks;
+    private LinkedList<Route> routes;
 
     public void addAttribute(String key, String value) {
         attributes.put(key, value);
@@ -108,52 +108,52 @@ public class GPX extends Extension {
      *
      * @return a HashSet of {@link Waypoint}
      */
-    public HashSet<Waypoint> getWaypoints() {
+    public LinkedList<Waypoint> getWaypoints() {
         return waypoints;
     }
 
     /**
      * Setter for the list of waypoints from a com.gpxmanager.gpx object
      *
-     * @param waypoints a HashSet of {@link Waypoint}
+     * @param waypoints a LinkedList of {@link Waypoint}
      */
-    public void setWaypoints(HashSet<Waypoint> waypoints) {
+    public void setWaypoints(LinkedList<Waypoint> waypoints) {
         this.waypoints = waypoints;
     }
 
     /**
-     * Getter for the list of Tracks from a com.gpxmanager.gpx objecty
+     * Getter for the list of Tracks from a com.gpxmanager.gpx object
      *
-     * @return a HashSet of {@link Track}
+     * @return a LinkedList of {@link Track}
      */
-    public HashSet<Track> getTracks() {
+    public LinkedList<Track> getTracks() {
         return tracks;
     }
 
     /**
      * Setter for the list of tracks from a com.gpxmanager.gpx object
      *
-     * @param tracks a HashSet of {@link Track}
+     * @param tracks a LinkedList of {@link Track}
      */
-    public void setTracks(HashSet<Track> tracks) {
+    public void setTracks(LinkedList<Track> tracks) {
         this.tracks = tracks;
     }
 
     /**
      * Getter for the list of routes from a com.gpxmanager.gpx object
      *
-     * @return a HashSet of {@link Route}
+     * @return a LinkedList of {@link Route}
      */
-    public HashSet<Route> getRoutes() {
+    public LinkedList<Route> getRoutes() {
         return routes;
     }
 
     /**
      * Setter for the list of routes from a com.gpxmanager.gpx object
      *
-     * @param routes a HashSet of {@link Route}
+     * @param routes a LinkedList of {@link Route}
      */
-    public void setRoutes(HashSet<Route> routes) {
+    public void setRoutes(LinkedList<Route> routes) {
         this.routes = routes;
     }
 
@@ -164,7 +164,7 @@ public class GPX extends Extension {
      */
     public void addWaypoint(Waypoint waypoint) {
         if (waypoints == null) {
-            waypoints = new HashSet<>();
+            waypoints = new LinkedList<>();
         }
         waypoints.add(waypoint);
 
@@ -177,7 +177,7 @@ public class GPX extends Extension {
      */
     public void addTrack(Track track) {
         if (tracks == null) {
-            tracks = new HashSet<>();
+            tracks = new LinkedList<>();
         }
         tracks.add(track);
     }
@@ -189,7 +189,7 @@ public class GPX extends Extension {
      */
     public void addRoute(Route route) {
         if (routes == null) {
-            routes = new HashSet<>();
+            routes = new LinkedList<>();
         }
         routes.add(route);
     }

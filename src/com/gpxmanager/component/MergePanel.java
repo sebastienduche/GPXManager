@@ -8,6 +8,7 @@ import com.gpxmanager.gpx.beans.Metadata;
 import com.gpxmanager.gpx.beans.Route;
 import com.gpxmanager.gpx.beans.Track;
 import com.gpxmanager.gpx.beans.Waypoint;
+import com.mycomponents.MyAutoHideLabel;
 import com.mycomponents.tablecomponents.ButtonCellEditor;
 import com.mycomponents.tablecomponents.ButtonCellRenderer;
 import net.miginfocom.swing.MigLayout;
@@ -25,6 +26,7 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
+import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.event.ActionEvent;
 import java.io.File;
@@ -34,15 +36,15 @@ import java.io.IOException;
 import java.text.MessageFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.LinkedList;
 
 import static com.gpxmanager.Utils.getLabel;
 
 public class MergePanel extends JPanel {
-    // TODO MERGE FILE IN RIGHT ORDER
-    private JButton merge = new JButton(new MergeAction());
     private final MergeTableModel model = new MergeTableModel();
     private final PropertiesPanel propertiesPanel = new PropertiesPanel(null);
+
+    private final MyAutoHideLabel infoLabel = new MyAutoHideLabel();
 
     JTable table;
 
@@ -66,10 +68,13 @@ public class MergePanel extends JPanel {
         tc.setMinWidth(25);
         tc.setMaxWidth(25);
         JButton addFile = new JButton(new AddAction());
+        infoLabel.setForeground(Color.red);
         add(addFile, "wrap");
         add(new JScrollPane(table), "grow, wrap");
         add(propertiesPanel, "growx, wrap");
-        add(merge, "center");
+        JButton merge = new JButton(new MergeAction());
+        add(merge, "center, wrap");
+        add(infoLabel, "center");
 
     }
 
@@ -83,10 +88,13 @@ public class MergePanel extends JPanel {
             JFileChooser boiteFichier = new JFileChooser();
             boiteFichier.removeChoosableFileFilter(boiteFichier.getFileFilter());
             boiteFichier.addChoosableFileFilter(Filtre.FILTRE_GPX);
+            boiteFichier.setMultiSelectionEnabled(true);
             if (JFileChooser.APPROVE_OPTION == boiteFichier.showOpenDialog(null)) {
-                File file = boiteFichier.getSelectedFile();
-                if (file != null) {
-                    model.addFile(file);
+                File[] files = boiteFichier.getSelectedFiles();
+                if (files != null) {
+                    for (File file : files) {
+                        model.addFile(file);
+                    }
                 }
                 setCursor(Cursor.getDefaultCursor());
             }
@@ -100,6 +108,10 @@ public class MergePanel extends JPanel {
 
         @Override
         public void actionPerformed(ActionEvent e) {
+            if (model.getFiles().isEmpty()) {
+                JOptionPane.showMessageDialog(null, getLabel("merge.no.files"), getLabel("error"), JOptionPane.ERROR_MESSAGE);
+                return;
+            }
             JFileChooser boiteFichier = new JFileChooser();
             boiteFichier.removeChoosableFileFilter(boiteFichier.getFileFilter());
             boiteFichier.addChoosableFileFilter(Filtre.FILTRE_GPX);
@@ -108,22 +120,22 @@ public class MergePanel extends JPanel {
                 if (file != null) {
                     try {
                         GPX gpx = null;
-                        HashSet<Track> tracks = null;
-                        HashSet<Route> routes = null;
-                        HashSet<Waypoint> waypoints = null;
+                        LinkedList<Track> tracks = null;
+                        LinkedList<Route> routes = null;
+                        LinkedList<Waypoint> waypoints = null;
                         for (File modelFile : model.getFiles()) {
                             if (gpx == null) {
                                 gpx = new GPXParser().parseGPX(new FileInputStream(modelFile));
                                 if (gpx.getTracks() == null) {
-                                    gpx.setTracks(new HashSet<>());
+                                    gpx.setTracks(new LinkedList<>());
                                 }
                                 tracks = gpx.getTracks();
                                 if (gpx.getRoutes() == null) {
-                                    gpx.setRoutes(new HashSet<>());
+                                    gpx.setRoutes(new LinkedList<>());
                                 }
                                 routes = gpx.getRoutes();
                                 if (gpx.getWaypoints() == null) {
-                                    gpx.setWaypoints(new HashSet<>());
+                                    gpx.setWaypoints(new LinkedList<>());
                                 }
                                 waypoints = gpx.getWaypoints();
                             } else {
@@ -147,6 +159,7 @@ public class MergePanel extends JPanel {
                         gpx.setMetadata(metadata);
                         new GPXParser().writeGPX(gpx, new FileOutputStream(file));
 
+                        infoLabel.setText(MessageFormat.format(getLabel("merge.file.saved"), file.getAbsolutePath()), true);
                     } catch (ParserConfigurationException | IOException | TransformerException | SAXException |
                              ParseException ex) {
                         throw new RuntimeException(ex);

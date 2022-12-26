@@ -35,7 +35,7 @@ public class GPXPropertiesPanel extends JPanel {
         setLayout(new MigLayout("", "[grow]", "[]"));
         propertiesPanel = new PropertiesPanel(gpx);
         add(propertiesPanel, "growx, wrap");
-        createPropertiesPanel();
+        createTracksPanel();
     }
 
     public GPX getGpx() {
@@ -67,7 +67,7 @@ public class GPXPropertiesPanel extends JPanel {
 
     }
 
-    private void createPropertiesPanel() {
+    private void createTracksPanel() {
         int i = 0;
         for (Track track : gpx.getTracks()) {
             i++;
