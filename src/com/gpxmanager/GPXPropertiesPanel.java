@@ -13,6 +13,7 @@ import net.miginfocom.swing.MigLayout;
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import java.io.File;
 import java.text.MessageFormat;
 import java.text.ParseException;
@@ -69,11 +70,17 @@ public class GPXPropertiesPanel extends JPanel {
 
     private void createTracksPanel() {
         int i = 0;
+        JPanel tracksPanel = null;
         for (Track track : gpx.getTracks()) {
             i++;
+            if (tracksPanel == null) {
+                tracksPanel = new JPanel();
+                tracksPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), getLabel("properties.track")));
+                tracksPanel.setLayout(new MigLayout("", "grow", "grow"));
+            }
             JPanel trackPanel = new JPanel();
             trackPanel.setLayout(new MigLayout("", "[][grow]10px[][grow]", "grow"));
-            add(trackPanel, "growx, wrap");
+            tracksPanel.add(trackPanel, "growx, wrap");
             trackPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), MessageFormat.format(getLabel("properties.track.number"), i)));
             trackPanel.add(new JLabel(getLabel("properties.track.distance")));
             trackPanel.add(new JLabel(getTrackDistance(track) + " " + getLabel("km")));
@@ -90,6 +97,11 @@ public class GPXPropertiesPanel extends JPanel {
 
             trackName.setModified(false);
             trackDescription.setModified(false);
+        }
+        if (tracksPanel != null) {
+            JScrollPane scrollPane = new JScrollPane(tracksPanel);
+            scrollPane.setBorder(BorderFactory.createEmptyBorder());
+            add(scrollPane, "growx");
         }
 
     }
