@@ -1,5 +1,6 @@
 package com.gpxmanager;
 
+import com.gpxmanager.component.PanelChart;
 import com.gpxmanager.component.PropertiesPanel;
 import com.gpxmanager.geocalc.Degree;
 import com.gpxmanager.geocalc.EarthCalc;
@@ -94,6 +95,7 @@ public class GPXPropertiesPanel extends JPanel {
             trackDescriptions.add(trackDescription);
             trackDescription.setText(track.getDescription());
             trackPanel.add(trackDescription, "span 3, growx, wrap");
+            trackPanel.add(new PanelChart(track), "span 4");
 
             trackName.setModified(false);
             trackDescription.setModified(false);

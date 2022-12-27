@@ -51,7 +51,7 @@ import static com.gpxmanager.Utils.getLabel;
 
 public final class MyGPXManager extends JFrame {
 
-    public static final String INTERNAL_VERSION = "2.9";
+    public static final String INTERNAL_VERSION = "3.1";
     public static final String VERSION = "1";
     private static final MyAutoHideLabel INFO_LABEL = new MyAutoHideLabel();
     private final JMenuItem saveFile;
@@ -115,7 +115,9 @@ public final class MyGPXManager extends JFrame {
         panel.setLayout(new MigLayout("", "grow", "[][grow][]"));
         add(panel, BorderLayout.CENTER);
         // TODO
-        panel.add(new JLabel("update"), "gapleft 20, gaptop 10, hidemode 1, wrap");
+        JLabel update = new JLabel("update");
+        update.setVisible(false);
+        panel.add(update, "gapleft 20, gaptop 10, hidemode 1, wrap");
         panel.add(myTabbedPane = new MyTabbedPane(), "grow, hidemode 3, wrap");
         myTabbedPane.setVisible(false);
 
