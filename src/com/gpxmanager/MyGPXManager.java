@@ -15,7 +15,6 @@ import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -54,7 +53,7 @@ import static com.gpxmanager.Utils.getLabel;
 
 public final class MyGPXManager extends JFrame {
 
-    public static final String INTERNAL_VERSION = "3.1";
+    public static final String INTERNAL_VERSION = "3.2";
     public static final String VERSION = "1";
     private static final MyAutoHideLabel INFO_LABEL = new MyAutoHideLabel();
     private final JMenuItem saveFile;
@@ -130,10 +129,14 @@ public final class MyGPXManager extends JFrame {
         JPanel panel = new JPanel();
         panel.setLayout(new MigLayout("", "grow", "[][grow][]"));
         add(panel, BorderLayout.CENTER);
-        // TODO
-        JLabel update = new JLabel("update");
-        update.setVisible(false);
+        MyAutoHideLabel update = new MyAutoHideLabel();
         panel.add(update, "gapleft 20, gaptop 10, hidemode 1, wrap");
+        if (MyGPXManagerServer.getInstance().hasAvailableUpdate(MyGPXManagerServer.getLocalVersion())) {
+            update.setVisible(true);
+            update.setText(MessageFormat.format(getLabel("Main.UpdateAvailable"), MyGPXManagerServer.getInstance().getAvailableVersion(), VERSION + "-" + INTERNAL_VERSION), true, 30000, false);
+        } else {
+            update.setVisible(false);
+        }
         panel.add(myTabbedPane = new MyTabbedPane(), "grow, hidemode 3, wrap");
         myTabbedPane.setVisible(false);
 

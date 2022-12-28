@@ -1,6 +1,6 @@
-3.1
+3.2
 1
-MyGPXManager.jar@605bd2912f397ac6e902387f0b47fc38
+MyGPXManager.jar@c11241d62794ca4747fb65f6548bf68e
 .DS_Store@194577a7e20bdcc7afbb718f502c134c
 miglayout-4.0-swing.jar@4a1e52aec8d8860dba51bfbe5a43e586
 log4j-1.2.16.jar@4a11e911b2403bb6c6cf5e746497fe7a
