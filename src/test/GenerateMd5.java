@@ -12,6 +12,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.gpxmanager.MyGPXManager.INTERNAL_VERSION;
@@ -48,6 +49,7 @@ public class GenerateMd5 {
             return Files.walk(Path.of("./Build/lib"), 1, FileVisitOption.FOLLOW_LINKS)
                     .map(Path::toFile)
                     .filter(File::isFile)
+                    .filter(Predicate.not(File::isHidden))
                     .map(File::getName)
                     .collect(Collectors.toList());
         } catch (IOException e) {
