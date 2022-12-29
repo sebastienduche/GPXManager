@@ -69,6 +69,7 @@ public final class MyGPXManager extends JFrame {
 
     public MyGPXManager() throws HeadlessException {
         instance = this;
+        MyGPXManagerServer.getInstance().checkVersion();
         gpxParser.addExtensionParser(new GarminExtension());
         prefs = Preferences.userNodeForPackage(getClass());
         reopenedFiles.add(new File(prefs.get("MyGPXManager.file1", "")));
@@ -133,7 +134,7 @@ public final class MyGPXManager extends JFrame {
         panel.add(update, "gapleft 20, gaptop 10, hidemode 1, wrap");
         if (MyGPXManagerServer.getInstance().hasAvailableUpdate(MyGPXManagerServer.getLocalVersion())) {
             update.setVisible(true);
-            update.setText(MessageFormat.format(getLabel("Main.UpdateAvailable"), MyGPXManagerServer.getInstance().getAvailableVersion(), VERSION + "-" + INTERNAL_VERSION), true, 30000, false);
+            update.setText(MessageFormat.format(getLabel("updateAvailable"), MyGPXManagerServer.getInstance().getAvailableVersion(), VERSION + " - " + INTERNAL_VERSION), true, 30000, false);
         } else {
             update.setVisible(false);
         }
