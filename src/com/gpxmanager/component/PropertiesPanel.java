@@ -1,7 +1,9 @@
 package com.gpxmanager.component;
 
+import com.gpxmanager.MyTime;
 import com.gpxmanager.gpx.beans.GPX;
 import com.gpxmanager.gpx.beans.Metadata;
+import com.gpxmanager.gpx.beans.Track;
 import com.mycomponents.JModifyFormattedTextField;
 import com.mycomponents.JModifyTextField;
 import net.miginfocom.swing.MigLayout;
@@ -11,8 +13,11 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import java.text.ParseException;
 
+import static com.gpxmanager.MyTime.getTrackTime;
 import static com.gpxmanager.Utils.TIMESTAMP;
 import static com.gpxmanager.Utils.getLabel;
+import static com.gpxmanager.Utils.getTrackDistance;
+import static com.gpxmanager.Utils.roundValue;
 
 public class PropertiesPanel extends JPanel {
 
@@ -32,6 +37,22 @@ public class PropertiesPanel extends JPanel {
             add(new JLabel(getRouteCount(gpx)));
             add(new JLabel(getLabel("properties.waypointCount")));
             add(new JLabel(getWaypointCount(gpx)), "wrap");
+            add(new JLabel(getLabel("properties.totalDistance")));
+            double totalDistance = 0;
+            for (Track track : gpx.getTracks()) {
+                totalDistance += getTrackDistance(track);
+            }
+            add(new JLabel(roundValue(totalDistance) + " " + getLabel("km")));
+            add(new JLabel(getLabel("properties.totalTime")));
+            MyTime totalTime = new MyTime();
+            for (Track track : gpx.getTracks()) {
+                totalTime.add(getTrackTime(track));
+            }
+            if (totalTime.getTime() != 0) {
+                add(new JLabel(totalTime.toString()), "wrap");
+            } else {
+                add(new JLabel(), "wrap");
+            }
         }
 
         Metadata metadata = gpx != null ? gpx.getMetadata() : new Metadata();

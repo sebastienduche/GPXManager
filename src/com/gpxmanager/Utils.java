@@ -1,14 +1,21 @@
 package com.gpxmanager;
 
+import com.gpxmanager.geocalc.Degree;
+import com.gpxmanager.geocalc.EarthCalc;
+import com.gpxmanager.gpx.beans.Track;
+import com.gpxmanager.gpx.beans.Waypoint;
+
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.LinkedList;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
@@ -64,6 +71,20 @@ public class Utils {
             value = value.substring(0, value.length() - 1);
         }
         return value;
+    }
+
+    public static double getTrackDistance(Track track) {
+        LinkedList<Degree> points = new LinkedList<>();
+        for (Waypoint trackPoint : track.getTrackPoints()) {
+            points.add(new Degree(trackPoint.getLongitude(), trackPoint.getLatitude()));
+        }
+        return EarthCalc.calculateDistance(points) / 1000;
+    }
+
+    public static String roundValue(double value) {
+        NumberFormat nf = NumberFormat.getInstance();
+        nf.setMaximumFractionDigits(2);
+        return nf.format(value);
     }
 
 }

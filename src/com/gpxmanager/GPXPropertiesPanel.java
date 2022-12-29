@@ -2,12 +2,9 @@ package com.gpxmanager;
 
 import com.gpxmanager.component.PanelChart;
 import com.gpxmanager.component.PropertiesPanel;
-import com.gpxmanager.geocalc.Degree;
-import com.gpxmanager.geocalc.EarthCalc;
 import com.gpxmanager.gpx.beans.GPX;
 import com.gpxmanager.gpx.beans.Metadata;
 import com.gpxmanager.gpx.beans.Track;
-import com.gpxmanager.gpx.beans.Waypoint;
 import com.mycomponents.JModifyTextField;
 import net.miginfocom.swing.MigLayout;
 
@@ -21,7 +18,10 @@ import java.text.ParseException;
 import java.util.LinkedList;
 import java.util.List;
 
+import static com.gpxmanager.MyTime.getTrackTime;
 import static com.gpxmanager.Utils.getLabel;
+import static com.gpxmanager.Utils.getTrackDistance;
+import static com.gpxmanager.Utils.roundValue;
 
 public class GPXPropertiesPanel extends JPanel {
 
@@ -84,17 +84,20 @@ public class GPXPropertiesPanel extends JPanel {
             tracksPanel.add(trackPanel, "growx, wrap");
             trackPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), MessageFormat.format(getLabel("properties.track.number"), i)));
             trackPanel.add(new JLabel(getLabel("properties.track.distance")));
-            trackPanel.add(new JLabel(getTrackDistance(track) + " " + getLabel("km")));
+            trackPanel.add(new JLabel(roundValue(getTrackDistance(track)) + " " + getLabel("km")));
             trackPanel.add(new JLabel(getLabel("properties.track.name")));
             JModifyTextField trackName = new JModifyTextField();
             trackNames.add(trackName);
             trackName.setText(track.getName());
             trackPanel.add(trackName, "growx, wrap");
+            trackPanel.add(new JLabel(getLabel("properties.track.time")));
+            MyTime trackTime = getTrackTime(track);
+            trackPanel.add(new JLabel(trackTime == null ? "" : trackTime.toString()));
             trackPanel.add(new JLabel(getLabel("properties.description")));
             JModifyTextField trackDescription = new JModifyTextField();
             trackDescriptions.add(trackDescription);
             trackDescription.setText(track.getDescription());
-            trackPanel.add(trackDescription, "span 3, growx, wrap");
+            trackPanel.add(trackDescription, "span 2, growx, wrap");
             trackPanel.add(new PanelChart(track), "span 4");
 
             trackName.setModified(false);
@@ -106,14 +109,6 @@ public class GPXPropertiesPanel extends JPanel {
             add(scrollPane, "growx");
         }
 
-    }
-
-    private int getTrackDistance(Track track) {
-        LinkedList<Degree> points = new LinkedList<>();
-        for (Waypoint trackPoint : track.getTrackPoints()) {
-            points.add(new Degree(trackPoint.getLongitude(), trackPoint.getLatitude()));
-        }
-        return (int) EarthCalc.calculateDistance(points) / 1000;
     }
 
 }
