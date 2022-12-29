@@ -390,7 +390,7 @@ public final class MyGPXManager extends JFrame {
         @Override
         public void actionPerformed(ActionEvent e) {
             if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(instance, getLabel("question.exit"), getLabel("exit"), JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)) {
-                AtomicInteger i = new AtomicInteger();
+                AtomicInteger i = new AtomicInteger(1);
                 reopenedFiles.stream()
                         .distinct()
                         .sorted(Comparator.reverseOrder())
