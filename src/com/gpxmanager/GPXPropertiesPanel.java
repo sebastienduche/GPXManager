@@ -1,5 +1,6 @@
 package com.gpxmanager;
 
+import com.gpxmanager.component.JBoldLabel;
 import com.gpxmanager.component.PanelChart;
 import com.gpxmanager.component.PropertiesPanel;
 import com.gpxmanager.gpx.beans.GPX;
@@ -84,7 +85,7 @@ public class GPXPropertiesPanel extends JPanel {
             tracksPanel.add(trackPanel, "growx, wrap");
             trackPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), MessageFormat.format(getLabel("properties.track.number"), i)));
             trackPanel.add(new JLabel(getLabel("properties.track.distance")));
-            trackPanel.add(new JLabel(roundValue(getTrackDistance(track)) + " " + getLabel("km")));
+            trackPanel.add(new JBoldLabel(roundValue(getTrackDistance(track)) + " " + getLabel("km")));
             trackPanel.add(new JLabel(getLabel("properties.track.name")));
             JModifyTextField trackName = new JModifyTextField();
             trackNames.add(trackName);
@@ -92,7 +93,7 @@ public class GPXPropertiesPanel extends JPanel {
             trackPanel.add(trackName, "growx, wrap");
             trackPanel.add(new JLabel(getLabel("properties.track.time")));
             MyTime trackTime = getTrackTime(track);
-            trackPanel.add(new JLabel(trackTime == null ? "" : trackTime.toString()));
+            trackPanel.add(new JBoldLabel(trackTime == null ? "" : trackTime.toString()));
             trackPanel.add(new JLabel(getLabel("properties.description")));
             JModifyTextField trackDescription = new JModifyTextField();
             trackDescriptions.add(trackDescription);

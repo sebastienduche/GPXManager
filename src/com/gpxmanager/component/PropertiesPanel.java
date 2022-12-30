@@ -32,24 +32,24 @@ public class PropertiesPanel extends JPanel {
         setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), getLabel("properties.title")));
         if (gpx != null) {
             add(new JLabel(getLabel("properties.trackCount")));
-            add(new JLabel(getTrackCount(gpx)));
+            add(new JBoldLabel(getTrackCount(gpx)));
             add(new JLabel(getLabel("properties.routeCount")));
-            add(new JLabel(getRouteCount(gpx)));
+            add(new JBoldLabel(getRouteCount(gpx)));
             add(new JLabel(getLabel("properties.waypointCount")));
-            add(new JLabel(getWaypointCount(gpx)), "wrap");
+            add(new JBoldLabel(getWaypointCount(gpx)), "wrap");
             add(new JLabel(getLabel("properties.totalDistance")));
             double totalDistance = 0;
             for (Track track : gpx.getTracks()) {
                 totalDistance += getTrackDistance(track);
             }
-            add(new JLabel(roundValue(totalDistance) + " " + getLabel("km")));
+            add(new JBoldLabel(roundValue(totalDistance) + " " + getLabel("km")));
             add(new JLabel(getLabel("properties.totalTime")));
             MyTime totalTime = new MyTime();
             for (Track track : gpx.getTracks()) {
                 totalTime.add(getTrackTime(track));
             }
             if (totalTime.getTime() != 0) {
-                add(new JLabel(totalTime.toString()), "wrap");
+                add(new JBoldLabel(totalTime.toString()), "wrap");
             } else {
                 add(new JLabel(), "wrap");
             }

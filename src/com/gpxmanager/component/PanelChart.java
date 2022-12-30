@@ -22,11 +22,11 @@ public final class PanelChart extends JPanel {
 
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
         AtomicInteger i = new AtomicInteger();
-        track.getTrackPoints().forEach(waypoint -> dataset.addValue(waypoint.getElevation(), getLabel("chart.elevation"), "test" + (i.getAndIncrement())));
+        track.getTrackPoints().forEach(waypoint -> dataset.addValue(waypoint.getElevation(), getLabel("chart.elevation"), "" + (i.getAndIncrement())));
 
         final JFreeChart chart = ChartFactory.createLineChart(getLabel("chart.elevation"),
-                null, getLabel("chart.meter"),
-                dataset, PlotOrientation.VERTICAL, true, true, false);
+                getLabel("km"), getLabel("chart.meter"),
+                dataset, PlotOrientation.VERTICAL, false, true, false);
         ChartPanel chartPanel = new ChartPanel(chart);
         add(chartPanel, "grow");
         updateUI();
