@@ -1,12 +1,12 @@
-3.6
-1
-MyGPXManager.jar@8c6c902395f133eb4bdb39de2e409965
+4.2
+1.1
+MyGPXManager.jar@997440b351f1dbd2d40b1484a35b8cfd
 miglayout-4.0-swing.jar@4a1e52aec8d8860dba51bfbe5a43e586
 log4j-1.2.16.jar@4a11e911b2403bb6c6cf5e746497fe7a
+jfreechart-1.5.3.jar@b4e3884a30da4b8a36ef4e5ba03f23e2
 activation-1.0.2.jar@618e03383015bc1c14e90102361aa33f
 commons-io-2.4.jar@7f97854dc04c119d461fed14f5d8bb96
 MyComponents-1.0.jar@18ca2a1965c4884db94a24db63ab20f5
-jfreechart-1.0.15.jar@62ac2bd5b28c3f15c94c6c828487cf25
 commons-net-3.0.1.jar@920c3efc7f8d4d887936ddc3fc9a8316
 GitHubServer-2.1.jar@2a08a9af68c2ab794519c0475ef77b92
 jcommon-1.0.18.jar@856a2b8ec0fd0755a0816d2d7fe71e25
