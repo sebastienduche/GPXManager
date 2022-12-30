@@ -5,10 +5,12 @@ import net.miginfocom.swing.MigLayout;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.data.category.DefaultCategoryDataset;
 
 import javax.swing.JPanel;
+import java.awt.Color;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.gpxmanager.Utils.getLabel;
@@ -27,6 +29,7 @@ public final class PanelChart extends JPanel {
         final JFreeChart chart = ChartFactory.createLineChart(getLabel("chart.elevation"),
                 getLabel("km"), getLabel("chart.meter"),
                 dataset, PlotOrientation.VERTICAL, false, true, false);
+        ((CategoryPlot) chart.getPlot()).getRenderer().setSeriesPaint(0, Color.BLUE);
         ChartPanel chartPanel = new ChartPanel(chart);
         add(chartPanel, "grow");
         updateUI();
