@@ -11,6 +11,7 @@ import static javax.swing.JOptionPane.showMessageDialog;
 import static org.apache.commons.io.FileUtils.copyFileToDirectory;
 
 public class MyGPXManagerLauncher extends MyLauncher {
+    private static final String VERSION = "1.0";
 
     private MyGPXManagerLauncher() {
         super(MyGPXManagerServer.getInstance(), MyGPXManagerVersion.getLocalVersion(), "MyGPXManager.jar");
@@ -18,6 +19,7 @@ public class MyGPXManagerLauncher extends MyLauncher {
 
     @Override
     public void install(File[] files, File directoryToDelete) {
+        MyGPXManagerServer.Debug("MyGPXManagerLauncher version " + VERSION);
         MyGPXManagerServer.Debug("Installing new version...");
         if (files == null || files.length == 0) {
             MyGPXManagerServer.Debug("ERROR: Unable to list files");
