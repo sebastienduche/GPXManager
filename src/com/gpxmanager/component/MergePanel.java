@@ -136,6 +136,7 @@ public class MergePanel extends JPanel implements ITabListener {
             if (JFileChooser.APPROVE_OPTION == boiteFichier.showSaveDialog(null)) {
                 File file = boiteFichier.getSelectedFile();
                 if (file != null) {
+                    file = parent.checkFile(file);
                     try {
                         GPX gpx = null;
                         LinkedList<Track> tracks = null;

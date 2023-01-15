@@ -1,5 +1,6 @@
 package com.gpxmanager;
 
+import com.gpxmanager.component.InvertPanel;
 import com.gpxmanager.component.MergePanel;
 import com.gpxmanager.gpx.GPXParser;
 import com.gpxmanager.gpx.beans.GPX;
@@ -52,9 +53,8 @@ import java.util.prefs.Preferences;
 import static com.gpxmanager.Utils.getLabel;
 
 public final class MyGPXManager extends JFrame {
-    // TODO Invert route
-    public static final String INTERNAL_VERSION = "4.6";
-    public static final String VERSION = "1.3";
+    public static final String INTERNAL_VERSION = "5.0";
+    public static final String VERSION = "2.0";
     private static final MyAutoHideLabel INFO_LABEL = new MyAutoHideLabel();
     private final JMenuItem saveFile;
     private final JMenuItem saveAsFile;
@@ -116,6 +116,7 @@ public final class MyGPXManager extends JFrame {
         menuFile.addSeparator();
         menuFile.add(new JMenuItem(new ExitAction()));
         menuGpx.add(new JMenuItem(new MergeAction()));
+        menuGpx.add(new JMenuItem(new InvertAction()));
         ButtonGroup languageGroup = new ButtonGroup();
         JRadioButtonMenuItem englishMenu = new JRadioButtonMenuItem(new LanguageAction(Locale.ENGLISH));
         englishMenu.setSelected(Locale.ENGLISH.getLanguage().equals(locale));
@@ -213,6 +214,10 @@ public final class MyGPXManager extends JFrame {
         }
     }
 
+    public GPXParser getGpxParser() {
+        return gpxParser;
+    }
+
     public void closeFile(GPXPropertiesPanel gpxPropertiesPanel) {
         if (!openedFiles.isEmpty() && JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(instance, getLabel("question.saveOpenedFile"), getLabel("question"), JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)) {
             try {
@@ -245,6 +250,16 @@ public final class MyGPXManager extends JFrame {
         saveAsFile.setEnabled(opened);
         saveButton.setEnabled(opened);
         closeFile.setEnabled(opened);
+    }
+
+    public File checkFile(File file) {
+        if (file == null) {
+            return null;
+        }
+        if (!file.getName().toLowerCase().endsWith(Filtre.FILTRE_GPX.toString())) {
+            return new File(file.getAbsolutePath() + Filtre.FILTRE_GPX);
+        }
+        return file;
     }
 
     class OpenFileAction extends AbstractAction {
@@ -372,6 +387,7 @@ public final class MyGPXManager extends JFrame {
             boiteFichier.addChoosableFileFilter(Filtre.FILTRE_GPX);
             if (JFileChooser.APPROVE_OPTION == boiteFichier.showSaveDialog(instance)) {
                 File file = boiteFichier.getSelectedFile();
+                file = checkFile(file);
                 if (file == null) {
                     setCursor(Cursor.getDefaultCursor());
                     return;
@@ -393,6 +409,17 @@ public final class MyGPXManager extends JFrame {
         @Override
         public void actionPerformed(ActionEvent e) {
             myTabbedPane.selectOrAddTab(new MergePanel(instance), getLabel("menu.merge"), MyGPXManagerImage.OPEN, true);
+        }
+    }
+
+    class InvertAction extends AbstractAction {
+        public InvertAction() {
+            super(getLabel("menu.invert"));
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            myTabbedPane.selectOrAddTab(new InvertPanel(instance), getLabel("menu.invert"), MyGPXManagerImage.OPEN, true);
         }
     }
 

@@ -111,4 +111,20 @@ public class PropertiesPanel extends JPanel {
             metadata.setTime(TIMESTAMP.parse(metadataKeywords.getText()));
         }
     }
+
+    public void load(Metadata metadata) {
+        if (metadata == null) {
+            return;
+        }
+        metadataName.setText(metadata.getName());
+        metadataDescription.setText(metadata.getDescription());
+        metadataAuthor.setText(metadata.getAuthor());
+        metadataKeywords.setText(metadata.getKeywords());
+        metadataTime.setValue(metadata.getTime());
+        metadataName.setModified(false);
+        metadataDescription.setModified(false);
+        metadataAuthor.setModified(false);
+        metadataKeywords.setModified(false);
+        metadataTime.setModified(false);
+    }
 }
