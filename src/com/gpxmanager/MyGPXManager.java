@@ -52,11 +52,12 @@ import java.util.prefs.Preferences;
 import static com.gpxmanager.Utils.getLabel;
 
 public final class MyGPXManager extends JFrame {
-
-    public static final String INTERNAL_VERSION = "4.3";
-    public static final String VERSION = "1.2";
+    // TODO Invert route
+    public static final String INTERNAL_VERSION = "4.6";
+    public static final String VERSION = "1.3";
     private static final MyAutoHideLabel INFO_LABEL = new MyAutoHideLabel();
     private final JMenuItem saveFile;
+    private final JMenuItem saveAsFile;
     private final JMenuItem closeFile;
     private final MyGPXManager instance;
     private final Preferences prefs;
@@ -79,6 +80,7 @@ public final class MyGPXManager extends JFrame {
         String locale = prefs.get("MyGPXManager.locale", "en");
         Utils.initResources(new Locale.Builder().setLanguage(locale).build());
         saveFile = new JMenuItem(new SaveFileAction());
+        saveAsFile = new JMenuItem(new SaveAsFileAction());
         setTitle("MyGPXManager");
         setLayout(new BorderLayout());
         JMenuBar menuBar = new JMenuBar();
@@ -94,7 +96,7 @@ public final class MyGPXManager extends JFrame {
         menuFile.add(closeFile = new JMenuItem(new CloseFileAction()));
         menuFile.addSeparator();
         menuFile.add(saveFile);
-        menuFile.add(new JMenuItem(new SaveAsFileAction()));
+        menuFile.add(saveAsFile);
 
         if (!reopenedFiles.isEmpty()) {
             AtomicBoolean hasSeparator = new AtomicBoolean(false);
@@ -205,6 +207,31 @@ public final class MyGPXManager extends JFrame {
         }
     }
 
+    public void updateTabbedPane() {
+        if (myTabbedPane.getTabCount() == 0) {
+            myTabbedPane.setVisible(false);
+        }
+    }
+
+    public void closeFile(GPXPropertiesPanel gpxPropertiesPanel) {
+        if (!openedFiles.isEmpty() && JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(instance, getLabel("question.saveOpenedFile"), getLabel("question"), JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)) {
+            try {
+                gpxPropertiesPanel.save();
+                save(gpxPropertiesPanel.getGpx(), gpxPropertiesPanel.getFile());
+            } catch (ParseException ex) {
+                throw new RuntimeException(ex);
+            }
+        }
+        if (!openedFiles.isEmpty()) {
+            openedFiles.remove(gpxPropertiesPanel.getFile());
+            setFileOpened(null);
+            if (myTabbedPane.runExit()) {
+                myTabbedPane.removeAll();
+                myTabbedPane.setVisible(false);
+            }
+        }
+    }
+
     public static void main(String[] args) {
         SwingUtilities.invokeLater(MyGPXManager::new);
     }
@@ -215,6 +242,7 @@ public final class MyGPXManager extends JFrame {
         }
         boolean opened = !openedFiles.isEmpty();
         saveFile.setEnabled(opened);
+        saveAsFile.setEnabled(opened);
         saveButton.setEnabled(opened);
         closeFile.setEnabled(opened);
     }
@@ -242,7 +270,7 @@ public final class MyGPXManager extends JFrame {
     private void open(File file) {
         try {
             GPX gpx = gpxParser.parseGPX(new FileInputStream(file));
-            myTabbedPane.addTab(file.getName(), new GPXPropertiesPanel(file, gpx), true);
+            myTabbedPane.addTab(file.getName(), new GPXPropertiesPanel(file, gpx, instance), true);
             reopenedFiles.add(file);
             setFileOpened(file);
         } catch (ParserConfigurationException | SAXException | IOException ex) {
@@ -267,21 +295,7 @@ public final class MyGPXManager extends JFrame {
         @Override
         public void actionPerformed(ActionEvent e) {
             GPXPropertiesPanel selectedComponent = myTabbedPane.getSelectedComponent(GPXPropertiesPanel.class);
-            if (!openedFiles.isEmpty() && JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(instance, getLabel("question.saveOpenedFile"), getLabel("question"), JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)) {
-                try {
-                    selectedComponent.save();
-                    save(selectedComponent.getGpx(), selectedComponent.getFile());
-                } catch (ParseException ex) {
-                    throw new RuntimeException(ex);
-                }
-            } else {
-                openedFiles.remove(selectedComponent.getFile());
-                setFileOpened(null);
-                if (myTabbedPane.runExit()) {
-                    myTabbedPane.removeAll();
-                    myTabbedPane.setVisible(false);
-                }
-            }
+            closeFile(selectedComponent);
         }
     }
 
@@ -378,7 +392,7 @@ public final class MyGPXManager extends JFrame {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            myTabbedPane.selectOrAddTab(new MergePanel(), getLabel("menu.merge"), MyGPXManagerImage.OPEN);
+            myTabbedPane.selectOrAddTab(new MergePanel(instance), getLabel("menu.merge"), MyGPXManagerImage.OPEN, true);
         }
     }
 

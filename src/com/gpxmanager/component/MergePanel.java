@@ -1,6 +1,7 @@
 package com.gpxmanager.component;
 
 import com.gpxmanager.Filtre;
+import com.gpxmanager.MyGPXManager;
 import com.gpxmanager.MyGPXManagerImage;
 import com.gpxmanager.gpx.GPXParser;
 import com.gpxmanager.gpx.beans.GPX;
@@ -11,6 +12,8 @@ import com.gpxmanager.gpx.beans.Waypoint;
 import com.mycomponents.MyAutoHideLabel;
 import com.mycomponents.tablecomponents.ButtonCellEditor;
 import com.mycomponents.tablecomponents.ButtonCellRenderer;
+import com.mytabbedpane.ITabListener;
+import com.mytabbedpane.TabEvent;
 import net.miginfocom.swing.MigLayout;
 import org.xml.sax.SAXException;
 
@@ -37,18 +40,20 @@ import java.text.MessageFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.Objects;
 
 import static com.gpxmanager.Utils.getLabel;
 
-public class MergePanel extends JPanel {
+public class MergePanel extends JPanel implements ITabListener {
     private final MergeTableModel model = new MergeTableModel();
     private final PropertiesPanel propertiesPanel = new PropertiesPanel(null);
-
     private final MyAutoHideLabel infoLabel = new MyAutoHideLabel();
+    private final MyGPXManager parent;
+    private JTable table;
+    private static final String MERGE_PANEL = "MERGE_PANEL";
 
-    JTable table;
-
-    public MergePanel() {
+    public MergePanel(MyGPXManager parent) {
+        this.parent = parent;
         setLayout(new MigLayout("", "[grow]", "[][grow]"));
         table = new JTable(model);
         TableColumnModel tcm = table.getColumnModel();
@@ -75,7 +80,20 @@ public class MergePanel extends JPanel {
         JButton merge = new JButton(new MergeAction());
         add(merge, "center, wrap");
         add(infoLabel, "center");
+    }
 
+    public String getIdentifier() {
+        return MERGE_PANEL;
+    }
+
+    @Override
+    public boolean tabWillClose(TabEvent tabEvent) {
+        return true;
+    }
+
+    @Override
+    public void tabClosed() {
+        parent.updateTabbedPane();
     }
 
     private class AddAction extends AbstractAction {
@@ -247,4 +265,18 @@ public class MergePanel extends JPanel {
             return files;
         }
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        MergePanel that = (MergePanel) o;
+        return Objects.equals(getIdentifier(), that.getIdentifier());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(MERGE_PANEL);
+    }
+
 }

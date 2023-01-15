@@ -7,6 +7,8 @@ import com.gpxmanager.gpx.beans.GPX;
 import com.gpxmanager.gpx.beans.Metadata;
 import com.gpxmanager.gpx.beans.Track;
 import com.mycomponents.JModifyTextField;
+import com.mytabbedpane.ITabListener;
+import com.mytabbedpane.TabEvent;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;
@@ -24,17 +26,19 @@ import static com.gpxmanager.Utils.getLabel;
 import static com.gpxmanager.Utils.getTrackDistance;
 import static com.gpxmanager.Utils.roundValue;
 
-public class GPXPropertiesPanel extends JPanel {
+public class GPXPropertiesPanel extends JPanel implements ITabListener {
 
     private final GPX gpx;
     private final File file;
     private final PropertiesPanel propertiesPanel;
     private final List<JModifyTextField> trackNames = new LinkedList<>();
     private final List<JModifyTextField> trackDescriptions = new LinkedList<>();
+    private final MyGPXManager parent;
 
-    public GPXPropertiesPanel(File file, GPX gpx) {
+    public GPXPropertiesPanel(File file, GPX gpx, MyGPXManager parent) {
         this.file = file;
         this.gpx = gpx;
+        this.parent = parent;
         setLayout(new MigLayout("", "[grow]", "[]"));
         propertiesPanel = new PropertiesPanel(gpx);
         add(propertiesPanel, "growx, wrap");
@@ -112,4 +116,13 @@ public class GPXPropertiesPanel extends JPanel {
 
     }
 
+    @Override
+    public boolean tabWillClose(TabEvent tabEvent) {
+        return true;
+    }
+
+    @Override
+    public void tabClosed() {
+        parent.updateTabbedPane();
+    }
 }
