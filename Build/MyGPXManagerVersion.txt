@@ -1,3 +1,3 @@
-5.1
-2.0
-MyGPXManager.jar@380112f1bcfe13aef54746e9f1795f08
+5.7
+3.0
+MyGPXManager.jar@3f8c6af10942c1a3cfd4e8be73e91fe9
