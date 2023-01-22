@@ -9,8 +9,8 @@ Currently, the application allows to:
 
 - Open / Save GPX files
 - Display and edit metadata
-- Display some information about the tracks
-- Display elevation graph for each track
+- Display some information about the tracks and routes
+- Display elevation graph for each track and routes
 - Merge several GPX files in 1
 - Invert the tracks/routes to do it in the opposite direction
 
@@ -19,4 +19,11 @@ Probably the application will never display the GPX file on a map.
 The application uses some code from geoCalc:
 https://github.com/grumlimited/geocalc/blob/master/src/test/java/com/grum/geocalc
 
-Running MyGPXManagerLauncher.jar is enough to run the program. By using this jar, the program will be updated automatically.
+Running MyGPXManagerLauncher.jar is enough to run the program. By using this jar, the program will be updated
+automatically.
+
+Supported languages:
+
+- English
+- Nederlands
+- Français

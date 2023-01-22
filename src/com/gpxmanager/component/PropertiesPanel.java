@@ -40,13 +40,13 @@ public class PropertiesPanel extends JPanel {
             add(new JLabel(getLabel("properties.totalDistance")));
             double totalDistance = 0;
             for (Track track : gpx.getTracks()) {
-                totalDistance += getTrackDistance(track);
+                totalDistance += getTrackDistance(track.getTrackPoints());
             }
             add(new JBoldLabel(roundValue(totalDistance) + " " + getLabel("km")));
             add(new JLabel(getLabel("properties.totalTime")));
             MyTime totalTime = new MyTime();
             for (Track track : gpx.getTracks()) {
-                totalTime.add(getTrackTime(track));
+                totalTime.add(getTrackTime(track.getTrackPoints()));
             }
             if (totalTime.getTime() != 0) {
                 add(new JBoldLabel(totalTime.toString()), "wrap");

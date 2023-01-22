@@ -2,7 +2,6 @@ package com.gpxmanager;
 
 import com.gpxmanager.geocalc.Degree;
 import com.gpxmanager.geocalc.EarthCalc;
-import com.gpxmanager.gpx.beans.Track;
 import com.gpxmanager.gpx.beans.Waypoint;
 
 import java.awt.Toolkit;
@@ -16,6 +15,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
@@ -73,9 +73,9 @@ public class Utils {
         return value;
     }
 
-    public static double getTrackDistance(Track track) {
+    public static double getTrackDistance(List<Waypoint> waypoints) {
         LinkedList<Degree> points = new LinkedList<>();
-        for (Waypoint trackPoint : track.getTrackPoints()) {
+        for (Waypoint trackPoint : waypoints) {
             points.add(new Degree(trackPoint.getLongitude(), trackPoint.getLatitude()));
         }
         return EarthCalc.calculateDistance(points) / 1000;

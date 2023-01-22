@@ -3,8 +3,10 @@ package com.gpxmanager;
 import com.gpxmanager.component.JBoldLabel;
 import com.gpxmanager.component.PanelChart;
 import com.gpxmanager.component.PropertiesPanel;
+import com.gpxmanager.gpx.TrackRoute;
 import com.gpxmanager.gpx.beans.GPX;
 import com.gpxmanager.gpx.beans.Metadata;
+import com.gpxmanager.gpx.beans.Route;
 import com.gpxmanager.gpx.beans.Track;
 import com.mycomponents.JModifyTextField;
 import com.mytabbedpane.ITabListener;
@@ -35,6 +37,8 @@ public class GPXPropertiesPanel extends JPanel implements ITabListener {
     private final List<JModifyTextField> trackDescriptions = new LinkedList<>();
     private final MyGPXManager parent;
 
+    private LinkedList<TrackRoute> trackRoutes;
+
     public GPXPropertiesPanel(File file, GPX gpx, MyGPXManager parent) {
         this.file = file;
         this.gpx = gpx;
@@ -42,6 +46,7 @@ public class GPXPropertiesPanel extends JPanel implements ITabListener {
         setLayout(new MigLayout("", "[grow]", "[]"));
         propertiesPanel = new PropertiesPanel(gpx);
         add(propertiesPanel, "growx, wrap");
+        buildTrackRoutes();
         createTracksPanel();
     }
 
@@ -77,7 +82,7 @@ public class GPXPropertiesPanel extends JPanel implements ITabListener {
     private void createTracksPanel() {
         int i = 0;
         JPanel tracksPanel = null;
-        for (Track track : gpx.getTracks()) {
+        for (TrackRoute track : trackRoutes) {
             i++;
             if (tracksPanel == null) {
                 tracksPanel = new JPanel();
@@ -87,16 +92,17 @@ public class GPXPropertiesPanel extends JPanel implements ITabListener {
             JPanel trackPanel = new JPanel();
             trackPanel.setLayout(new MigLayout("", "[][grow]10px[][grow]", "grow"));
             tracksPanel.add(trackPanel, "growx, wrap");
-            trackPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), MessageFormat.format(getLabel("properties.track.number"), i)));
+            String title = track.isTrack() ? getLabel("properties.track.number") : getLabel("properties.route.number");
+            trackPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), MessageFormat.format(title, track.getIndex() + 1)));
             trackPanel.add(new JLabel(getLabel("properties.track.distance")));
-            trackPanel.add(new JBoldLabel(roundValue(getTrackDistance(track)) + " " + getLabel("km")));
+            trackPanel.add(new JBoldLabel(roundValue(getTrackDistance(track.getRoutePoints())) + " " + getLabel("km")));
             trackPanel.add(new JLabel(getLabel("properties.track.name")));
             JModifyTextField trackName = new JModifyTextField();
             trackNames.add(trackName);
             trackName.setText(track.getName());
             trackPanel.add(trackName, "growx, wrap");
             trackPanel.add(new JLabel(getLabel("properties.track.time")));
-            MyTime trackTime = getTrackTime(track);
+            MyTime trackTime = getTrackTime(track.getRoutePoints());
             trackPanel.add(new JBoldLabel(trackTime == null ? "" : trackTime.toString()));
             trackPanel.add(new JLabel(getLabel("properties.description")));
             JModifyTextField trackDescription = new JModifyTextField();
@@ -125,4 +131,20 @@ public class GPXPropertiesPanel extends JPanel implements ITabListener {
     public void tabClosed() {
         parent.updateTabbedPane();
     }
+
+    private void buildTrackRoutes() {
+        trackRoutes = new LinkedList<>();
+        int i = 0;
+        if (gpx.getTracks() != null) {
+            for (Track track : gpx.getTracks()) {
+                trackRoutes.add(new TrackRoute(track, i++));
+            }
+        }
+        if (gpx.getRoutes() != null) {
+            for (Route route : gpx.getRoutes()) {
+                trackRoutes.add(new TrackRoute(route, i++));
+            }
+        }
+    }
+
 }

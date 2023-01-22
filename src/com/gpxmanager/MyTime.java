@@ -1,6 +1,5 @@
 package com.gpxmanager;
 
-import com.gpxmanager.gpx.beans.Track;
 import com.gpxmanager.gpx.beans.Waypoint;
 
 import java.util.Date;
@@ -41,8 +40,8 @@ public class MyTime {
         return secondes;
     }
 
-    public static MyTime getTrackTime(Track track) {
-        List<Date> times = track.getTrackPoints()
+    public static MyTime getTrackTime(List<Waypoint> waypoints) {
+        List<Date> times = waypoints
                 .stream()
                 .map(Waypoint::getTime)
                 .sorted()
