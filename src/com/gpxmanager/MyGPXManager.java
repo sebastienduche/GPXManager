@@ -53,7 +53,7 @@ import java.util.prefs.Preferences;
 import static com.gpxmanager.Utils.getLabel;
 
 public final class MyGPXManager extends JFrame {
-    public static final String INTERNAL_VERSION = "5.8";
+    public static final String INTERNAL_VERSION = "6.0";
     public static final String VERSION = "3.1";
     private static final MyAutoHideLabel INFO_LABEL = new MyAutoHideLabel();
     private final JMenuItem saveFile;
@@ -128,7 +128,7 @@ public final class MyGPXManager extends JFrame {
         languageGroup.add(frenchMenuItem);
         Locale nl = Locale.of("nl");
         JRadioButtonMenuItem dutchMenuItem = new JRadioButtonMenuItem(new LanguageAction(nl));
-        dutchMenuItem.setSelected(nl.equals(locale));
+        dutchMenuItem.setSelected(nl.getLanguage().equals(locale));
         menuLanguage.add(dutchMenuItem);
         languageGroup.add(dutchMenuItem);
         menuAbout.add(new JMenuItem(new AboutAction()));
@@ -453,7 +453,7 @@ public final class MyGPXManager extends JFrame {
         }
     }
 
-    class AboutAction extends AbstractAction {
+    static class AboutAction extends AbstractAction {
         public AboutAction() {
             super(getLabel("menu.about"));
         }

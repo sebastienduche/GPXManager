@@ -6,6 +6,7 @@ import com.gpxmanager.MyGPXManagerImage;
 import com.gpxmanager.gpx.GPXParser;
 import com.gpxmanager.gpx.beans.GPX;
 import com.gpxmanager.gpx.beans.Metadata;
+import com.gpxmanager.gpx.beans.Waypoint;
 import com.mycomponents.JModifyTextField;
 import com.mycomponents.MyAutoHideLabel;
 import com.mytabbedpane.ITabListener;
@@ -30,6 +31,7 @@ import java.io.IOException;
 import java.text.MessageFormat;
 import java.text.ParseException;
 import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 
 import static com.gpxmanager.Utils.getLabel;
@@ -37,7 +39,7 @@ import static com.gpxmanager.Utils.getLabel;
 public class InvertPanel extends JPanel implements ITabListener {
     private final PropertiesPanel propertiesPanel = new PropertiesPanel(null);
     private final MyAutoHideLabel infoLabel = new MyAutoHideLabel();
-    private final JModifyTextField fileTextfield = new JModifyTextField();
+    private final JModifyTextField fileTextField = new JModifyTextField();
     private final JButton browse = new JButton(new BrowseAction());
     private final MyGPXManager parent;
     private File file;
@@ -48,7 +50,7 @@ public class InvertPanel extends JPanel implements ITabListener {
         this.parent = parent;
         setLayout(new MigLayout("", "[grow]", "[][grow]"));
         infoLabel.setForeground(Color.red);
-        add(fileTextfield, "growx, split 2");
+        add(fileTextField, "growx, split 2");
         add(browse, "wrap");
         add(propertiesPanel, "growx, wrap");
         JButton invert = new JButton(new InvertAction());
@@ -83,7 +85,7 @@ public class InvertPanel extends JPanel implements ITabListener {
             if (JFileChooser.APPROVE_OPTION == boiteFichier.showOpenDialog(null)) {
                 file = boiteFichier.getSelectedFile();
                 if (file != null) {
-                    fileTextfield.setText(file.getAbsolutePath());
+                    fileTextField.setText(file.getAbsolutePath());
                     try {
                         gpx = parent.getGpxParser().parseGPX(new FileInputStream(file));
                         if (gpx != null) {
@@ -93,7 +95,7 @@ public class InvertPanel extends JPanel implements ITabListener {
                         throw new RuntimeException(ex);
                     }
                 } else {
-                    fileTextfield.setText("");
+                    fileTextField.setText("");
                 }
                 setCursor(Cursor.getDefaultCursor());
             }
@@ -119,13 +121,13 @@ public class InvertPanel extends JPanel implements ITabListener {
                 if (file != null) {
                     file = parent.checkFile(file);
                     if (gpx.getTracks() != null) {
-                        gpx.getTracks().forEach(track -> Collections.reverse(track.getTrackPoints()));
+                        gpx.getTracks().forEach(track -> reverseAndCleanTime(track.getTrackPoints()));
                     }
                     if (gpx.getRoutes() != null) {
-                        gpx.getRoutes().forEach(route -> Collections.reverse(route.getRoutePoints()));
+                        gpx.getRoutes().forEach(route -> reverseAndCleanTime(route.getRoutePoints()));
                     }
                     if (gpx.getWaypoints() != null) {
-                        Collections.reverse(gpx.getWaypoints());
+                        reverseAndCleanTime(gpx.getWaypoints());
                     }
                     try {
                         Metadata metadata = new Metadata();
@@ -141,6 +143,11 @@ public class InvertPanel extends JPanel implements ITabListener {
                 }
                 setCursor(Cursor.getDefaultCursor());
             }
+        }
+
+        private void reverseAndCleanTime(List<Waypoint> waypoints) {
+            Collections.reverse(waypoints);
+            waypoints.forEach(waypoint -> waypoint.setTime(null));
         }
     }
 
