@@ -25,7 +25,7 @@ public class PropertiesPanel extends JPanel {
     private final JModifyTextField metadataDescription = new JModifyTextField();
     private final JModifyTextField metadataAuthor = new JModifyTextField();
     private final JModifyTextField metadataKeywords = new JModifyTextField();
-    private final JModifyFormattedTextField metadataTime = new JModifyFormattedTextField(TIMESTAMP);
+    private final JModifyFormattedTextField metadataTime = new JModifyFormattedTextField(TIMESTAMP, true);
 
     public PropertiesPanel(GPX gpx) {
         setLayout(new MigLayout("", "[][grow]10px[][grow]10px[][grow]", "grow"));
@@ -108,7 +108,11 @@ public class PropertiesPanel extends JPanel {
             metadata.setKeywords(metadataKeywords.getText());
         }
         if (metadataTime.isModified() && metadataTime.isValid()) {
-            metadata.setTime(TIMESTAMP.parse(metadataKeywords.getText()));
+            if (metadataTime.getText() == null || metadataTime.getText().isBlank()) {
+                metadata.setTime(null);
+            } else {
+                metadata.setTime(TIMESTAMP.parse(metadataTime.getText()));
+            }
         }
     }
 

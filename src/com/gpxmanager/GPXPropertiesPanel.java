@@ -80,10 +80,8 @@ public class GPXPropertiesPanel extends JPanel implements ITabListener {
     }
 
     private void createTracksPanel() {
-        int i = 0;
         JPanel tracksPanel = null;
         for (TrackRoute track : trackRoutes) {
-            i++;
             if (tracksPanel == null) {
                 tracksPanel = new JPanel();
                 tracksPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), getLabel("properties.track")));
