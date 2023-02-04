@@ -3,6 +3,7 @@ package com.gpxmanager.component;
 import com.gpxmanager.Filtre;
 import com.gpxmanager.MyGPXManager;
 import com.gpxmanager.MyGPXManagerImage;
+import com.gpxmanager.Utils;
 import com.gpxmanager.gpx.GPXParser;
 import com.gpxmanager.gpx.beans.GPX;
 import com.gpxmanager.gpx.beans.Metadata;
@@ -49,13 +50,12 @@ public class MergePanel extends JPanel implements ITabListener {
     private final PropertiesPanel propertiesPanel = new PropertiesPanel(null);
     private final MyAutoHideLabel infoLabel = new MyAutoHideLabel();
     private final MyGPXManager parent;
-    private JTable table;
     private static final String MERGE_PANEL = "MERGE_PANEL";
 
     public MergePanel(MyGPXManager parent) {
         this.parent = parent;
         setLayout(new MigLayout("", "[grow]", "[][grow]"));
-        table = new JTable(model);
+        JTable table = new JTable(model);
         TableColumnModel tcm = table.getColumnModel();
         TableColumn tc = tcm.getColumn(MergeTableModel.UP);
         tc.setCellRenderer(new ButtonCellRenderer(MyGPXManagerImage.ARROW_UP));
@@ -133,9 +133,11 @@ public class MergePanel extends JPanel implements ITabListener {
             JFileChooser boiteFichier = new JFileChooser();
             boiteFichier.removeChoosableFileFilter(boiteFichier.getFileFilter());
             boiteFichier.addChoosableFileFilter(Filtre.FILTRE_GPX);
+            boiteFichier.setCurrentDirectory(Utils.getOpenSaveDirectory());
             if (JFileChooser.APPROVE_OPTION == boiteFichier.showSaveDialog(null)) {
                 File file = boiteFichier.getSelectedFile();
                 if (file != null) {
+                    Utils.setOpenSaveDirectory(file.getParentFile());
                     file = parent.checkFile(file);
                     try {
                         GPX gpx = null;
@@ -216,10 +218,7 @@ public class MergePanel extends JPanel implements ITabListener {
 
         @Override
         public boolean isCellEditable(int row, int column) {
-            if (column < 3) {
-                return true;
-            }
-            return false;
+            return column < 3;
         }
 
         @Override

@@ -53,7 +53,7 @@ import java.util.prefs.Preferences;
 import static com.gpxmanager.Utils.getLabel;
 
 public final class MyGPXManager extends JFrame {
-    public static final String INTERNAL_VERSION = "6.0";
+    public static final String INTERNAL_VERSION = "6.4";
     public static final String VERSION = "3.1";
     private static final MyAutoHideLabel INFO_LABEL = new MyAutoHideLabel();
     private final JMenuItem saveFile;
@@ -277,9 +277,11 @@ public final class MyGPXManager extends JFrame {
             JFileChooser boiteFichier = new JFileChooser();
             boiteFichier.removeChoosableFileFilter(boiteFichier.getFileFilter());
             boiteFichier.addChoosableFileFilter(Filtre.FILTRE_GPX);
+            boiteFichier.setCurrentDirectory(Utils.getOpenSaveDirectory());
             if (JFileChooser.APPROVE_OPTION == boiteFichier.showOpenDialog(instance)) {
                 File file = boiteFichier.getSelectedFile();
                 if (file != null) {
+                    Utils.setOpenSaveDirectory(file.getParentFile());
                     open(file);
                 }
                 setCursor(Cursor.getDefaultCursor());
@@ -390,6 +392,7 @@ public final class MyGPXManager extends JFrame {
             JFileChooser boiteFichier = new JFileChooser();
             boiteFichier.removeChoosableFileFilter(boiteFichier.getFileFilter());
             boiteFichier.addChoosableFileFilter(Filtre.FILTRE_GPX);
+            boiteFichier.setCurrentDirectory(Utils.getOpenSaveDirectory());
             if (JFileChooser.APPROVE_OPTION == boiteFichier.showSaveDialog(instance)) {
                 File file = boiteFichier.getSelectedFile();
                 file = checkFile(file);
@@ -397,6 +400,7 @@ public final class MyGPXManager extends JFrame {
                     setCursor(Cursor.getDefaultCursor());
                     return;
                 }
+                Utils.setOpenSaveDirectory(file.getParentFile());
                 if (!file.getName().toLowerCase().endsWith(Filtre.FILTRE_GPX.toString())) {
                     file = new File(file.getAbsolutePath() + Filtre.FILTRE_GPX);
                 }

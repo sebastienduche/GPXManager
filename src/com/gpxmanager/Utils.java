@@ -18,16 +18,26 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
+import java.util.prefs.Preferences;
 
 public class Utils {
 
     public static final SimpleDateFormat TIMESTAMP = new SimpleDateFormat("yyyy-MM-dd'T'kk:mm:ss");
     private static ResourceBundle labels;
+    private static Preferences prefs = Preferences.userNodeForPackage(Utils.class);
 
     public static void copyToClipboard(String text) {
         Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
         StringSelection contents = new StringSelection(text);
         clipboard.setContents(contents, null);
+    }
+
+    public static File getOpenSaveDirectory() {
+        return new File(prefs.get("dir", System.getProperty("user.home")));
+    }
+
+    public static void setOpenSaveDirectory(File file) {
+        prefs.put("dir", file.getAbsolutePath());
     }
 
     public static void initResources(Locale locale) {

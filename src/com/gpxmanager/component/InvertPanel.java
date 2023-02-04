@@ -3,6 +3,7 @@ package com.gpxmanager.component;
 import com.gpxmanager.Filtre;
 import com.gpxmanager.MyGPXManager;
 import com.gpxmanager.MyGPXManagerImage;
+import com.gpxmanager.Utils;
 import com.gpxmanager.gpx.GPXParser;
 import com.gpxmanager.gpx.beans.GPX;
 import com.gpxmanager.gpx.beans.Metadata;
@@ -82,9 +83,11 @@ public class InvertPanel extends JPanel implements ITabListener {
             JFileChooser boiteFichier = new JFileChooser();
             boiteFichier.removeChoosableFileFilter(boiteFichier.getFileFilter());
             boiteFichier.addChoosableFileFilter(Filtre.FILTRE_GPX);
+            boiteFichier.setCurrentDirectory(Utils.getOpenSaveDirectory());
             if (JFileChooser.APPROVE_OPTION == boiteFichier.showOpenDialog(null)) {
                 file = boiteFichier.getSelectedFile();
                 if (file != null) {
+                    Utils.setOpenSaveDirectory(file.getParentFile());
                     fileTextField.setText(file.getAbsolutePath());
                     try {
                         gpx = parent.getGpxParser().parseGPX(new FileInputStream(file));
@@ -116,9 +119,11 @@ public class InvertPanel extends JPanel implements ITabListener {
             JFileChooser boiteFichier = new JFileChooser();
             boiteFichier.removeChoosableFileFilter(boiteFichier.getFileFilter());
             boiteFichier.addChoosableFileFilter(Filtre.FILTRE_GPX);
+            boiteFichier.setCurrentDirectory(Utils.getOpenSaveDirectory());
             if (JFileChooser.APPROVE_OPTION == boiteFichier.showSaveDialog(null)) {
                 File file = boiteFichier.getSelectedFile();
                 if (file != null) {
+                    Utils.setOpenSaveDirectory(file.getParentFile());
                     file = parent.checkFile(file);
                     if (gpx.getTracks() != null) {
                         gpx.getTracks().forEach(track -> reverseAndCleanTime(track.getTrackPoints()));
