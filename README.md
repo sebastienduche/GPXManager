@@ -19,11 +19,18 @@ Probably the application will never display the GPX file on a map.
 The application uses some code from geoCalc:
 https://github.com/grumlimited/geocalc/blob/master/src/test/java/com/grum/geocalc
 
+### Running the application
+
 Running MyGPXManagerLauncher.jar is enough to run the program. By using this jar, the program will be updated
-automatically.
+automatically. You can download the MyGPXManagerLauncher.jar in the Release page. Then double-click on the jar file
+or execute : java -jar MyGPXManagerLauncher.jar
 
 Supported languages:
 
 - English
 - Nederlands
 - Français
+
+### Java is required
+
+https://www.oracle.com/java/technologies/downloads/
