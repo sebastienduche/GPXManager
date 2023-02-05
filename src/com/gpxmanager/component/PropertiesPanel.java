@@ -138,4 +138,12 @@ public class PropertiesPanel extends JPanel {
         metadataKeywords.setModified(false);
         metadataTime.setModified(false);
     }
+
+    public boolean isModified() {
+        return metadataName.isModified() ||
+                metadataDescription.isModified() ||
+                metadataAuthor.isModified() ||
+                metadataKeywords.isModified() ||
+                metadataTime.isModified();
+    }
 }

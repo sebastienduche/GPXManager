@@ -15,6 +15,7 @@ import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import java.io.File;
@@ -56,6 +57,21 @@ public class GPXPropertiesPanel extends JPanel implements ITabListener {
 
     public File getFile() {
         return file;
+    }
+
+    public boolean isModified() {
+        if (propertiesPanel.isModified()) {
+            return true;
+        }
+        for (int i = 0; i < gpx.getTracks().size(); i++) {
+            if (trackNames.get(i).isModified()) {
+                return true;
+            }
+            if (trackDescriptions.get(i).isModified()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public void save() throws ParseException {
@@ -122,6 +138,16 @@ public class GPXPropertiesPanel extends JPanel implements ITabListener {
 
     @Override
     public boolean tabWillClose(TabEvent tabEvent) {
+        if (isModified()) {
+            if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, MessageFormat.format(getLabel("question.saveOpenedFile"), getFile()), getLabel("question"), JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)) {
+                try {
+                    save();
+                    MyGPXManager.save(getGpx(), getFile());
+                } catch (ParseException ex) {
+                    throw new RuntimeException(ex);
+                }
+            }
+        }
         return true;
     }
 

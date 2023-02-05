@@ -46,7 +46,6 @@ import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -74,12 +73,12 @@ public final class MyGPXManager extends JFrame {
     private static FileWriter oDebugFile = null;
     private static File debugFile = null;
 
-    private final GPXParser gpxParser = new GPXParser();
+    private final static GPXParser GPX_PARSER = new GPXParser();
 
     public MyGPXManager() throws HeadlessException {
         instance = this;
         MyGPXManagerServer.getInstance().checkVersion();
-        gpxParser.addExtensionParser(new GarminExtension());
+        GPX_PARSER.addExtensionParser(new GarminExtension());
         prefs = Preferences.userNodeForPackage(getClass());
         Thread.setDefaultUncaughtExceptionHandler((t, e) -> showException(e, true));
         reopenedFiles.add(new File(prefs.get("MyGPXManager.file1", "")));
@@ -231,15 +230,18 @@ public final class MyGPXManager extends JFrame {
     public void updateTabbedPane() {
         if (myTabbedPane.getTabCount() == 0) {
             myTabbedPane.setVisible(false);
+            saveButton.setEnabled(false);
+            saveFile.setEnabled(false);
+            saveAsFile.setEnabled(false);
         }
     }
 
     public GPXParser getGpxParser() {
-        return gpxParser;
+        return GPX_PARSER;
     }
 
     public void closeFile(GPXPropertiesPanel gpxPropertiesPanel) {
-        if (!openedFiles.isEmpty() && JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(instance, getLabel("question.saveOpenedFile"), getLabel("question"), JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)) {
+        if (gpxPropertiesPanel.isModified() && JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(instance, MessageFormat.format(getLabel("question.saveOpenedFile"), gpxPropertiesPanel.getFile()), getLabel("question"), JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)) {
             try {
                 gpxPropertiesPanel.save();
                 save(gpxPropertiesPanel.getGpx(), gpxPropertiesPanel.getFile());
@@ -250,10 +252,8 @@ public final class MyGPXManager extends JFrame {
         if (!openedFiles.isEmpty()) {
             openedFiles.remove(gpxPropertiesPanel.getFile());
             setFileOpened(null);
-            if (myTabbedPane.runExit()) {
-                myTabbedPane.removeAll();
-                myTabbedPane.setVisible(false);
-            }
+            myTabbedPane.removeSelectedTab();
+            updateTabbedPane();
         }
     }
 
@@ -306,18 +306,18 @@ public final class MyGPXManager extends JFrame {
 
     private void open(File file) {
         try {
-            GPX gpx = gpxParser.parseGPX(new FileInputStream(file));
+            GPX gpx = GPX_PARSER.parseGPX(new FileInputStream(file));
             myTabbedPane.addTab(file.getName(), new GPXPropertiesPanel(file, gpx, instance), true);
-            reopenedFiles.add(file);
+            reopenedFiles.addFirst(file);
             setFileOpened(file);
         } catch (ParserConfigurationException | SAXException | IOException ex) {
             throw new RuntimeException(ex);
         }
     }
 
-    private void save(GPX gpx, File file) {
+    public static void save(GPX gpx, File file) {
         try {
-            gpxParser.writeGPX(gpx, new FileOutputStream(file));
+            GPX_PARSER.writeGPX(gpx, new FileOutputStream(file));
         } catch (ParserConfigurationException | TransformerException | FileNotFoundException e) {
             throw new RuntimeException(e);
         }
@@ -525,8 +525,6 @@ public final class MyGPXManager extends JFrame {
             if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(instance, getLabel("question.exit"), getLabel("exit"), JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)) {
                 AtomicInteger i = new AtomicInteger(1);
                 reopenedFiles.stream()
-                        .distinct()
-                        .sorted(Comparator.reverseOrder())
                         .limit(4)
                         .forEach(file -> prefs.put("MyGPXManager.file" + i.getAndIncrement(), file.getAbsolutePath()));
                 prefs.put("MyGPXManager.x", "" + getLocation().x);
