@@ -166,6 +166,12 @@ public final class MyGPXManager extends JFrame {
         saveButton.setText("");
         toolBar.add(saveButton);
         toolBar.addSeparator();
+        final JButton mergeButton = new JButton(new MergeAction());
+        mergeButton.setText("");
+        toolBar.add(mergeButton);
+        final JButton invertButton = new JButton(new InvertAction());
+        invertButton.setText("");
+        toolBar.add(invertButton);
         toolBar.setFloatable(true);
         setFileOpened(null);
         add(toolBar, BorderLayout.NORTH);
@@ -488,23 +494,23 @@ public final class MyGPXManager extends JFrame {
 
     class MergeAction extends AbstractAction {
         public MergeAction() {
-            super(getLabel("menu.merge"));
+            super(getLabel("menu.merge"), MyGPXManagerImage.MERGE);
         }
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            myTabbedPane.selectOrAddTab(new MergePanel(instance), getLabel("merge.title"), MyGPXManagerImage.OPEN, true);
+            myTabbedPane.selectOrAddTab(new MergePanel(instance), getLabel("merge.title"), MyGPXManagerImage.MERGE, true);
         }
     }
 
     class InvertAction extends AbstractAction {
         public InvertAction() {
-            super(getLabel("menu.invert"));
+            super(getLabel("menu.invert"), MyGPXManagerImage.INVERT);
         }
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            myTabbedPane.selectOrAddTab(new InvertPanel(instance), getLabel("invert.action"), MyGPXManagerImage.OPEN, true);
+            myTabbedPane.selectOrAddTab(new InvertPanel(instance), getLabel("invert.action"), MyGPXManagerImage.INVERT, true);
         }
     }
 

@@ -48,7 +48,12 @@ public class InvertPanel extends JPanel implements ITabListener {
     private static final String INVERT_PANEL = "INVERT_PANEL";
 
     public InvertPanel(MyGPXManager parent) {
+        this(parent, null);
+    }
+
+    public InvertPanel(MyGPXManager parent, File file) {
         this.parent = parent;
+        this.file = file;
         setLayout(new MigLayout("", "[grow]", "[]20px[]20px[][]"));
         infoLabel.setForeground(Color.red);
         add(fileTextField, "growx, split 2");
@@ -57,6 +62,7 @@ public class InvertPanel extends JPanel implements ITabListener {
         JButton invert = new JButton(new InvertAction());
         add(invert, "center, wrap");
         add(infoLabel, "center");
+        loadFile();
     }
 
     public String getIdentifier() {
@@ -75,7 +81,7 @@ public class InvertPanel extends JPanel implements ITabListener {
 
     private class BrowseAction extends AbstractAction {
         public BrowseAction() {
-            super(getLabel("invert.file"), MyGPXManagerImage.ADD);
+            super(getLabel("invert.file"), MyGPXManagerImage.OPEN);
         }
 
         @Override
@@ -88,20 +94,27 @@ public class InvertPanel extends JPanel implements ITabListener {
                 file = boiteFichier.getSelectedFile();
                 if (file != null) {
                     Utils.setOpenSaveDirectory(file.getParentFile());
-                    fileTextField.setText(file.getAbsolutePath());
-                    try {
-                        gpx = parent.getGpxParser().parseGPX(new FileInputStream(file));
-                        if (gpx != null) {
-                            propertiesPanel.load(gpx.getMetadata());
-                        }
-                    } catch (ParserConfigurationException | SAXException | IOException ex) {
-                        throw new RuntimeException(ex);
-                    }
+                    loadFile();
                 } else {
                     fileTextField.setText("");
                 }
                 setCursor(Cursor.getDefaultCursor());
             }
+        }
+    }
+
+    private void loadFile() {
+        if (file == null) {
+            return;
+        }
+        fileTextField.setText(file.getAbsolutePath());
+        try {
+            gpx = parent.getGpxParser().parseGPX(new FileInputStream(file));
+            if (gpx != null) {
+                propertiesPanel.load(gpx.getMetadata());
+            }
+        } catch (ParserConfigurationException | SAXException | IOException ex) {
+            throw new RuntimeException(ex);
         }
     }
 

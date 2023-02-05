@@ -7,14 +7,12 @@ import java.io.IOException;
 import java.net.URL;
 
 /**
- * <p>Titre : Cave à vin</p>
+ * <p>Titre : MyGPXManager</p>
  * <p>Description : Votre description</p>
  * <p>Copyright : Copyright (c) 2003</p>
  * <p>Société : Seb Informatique</p>
  *
  * @author Sébastien Duché
- * @version 0.9
- * @since 07/07/19
  */
 public final class MyGPXManagerImage {
 
@@ -50,6 +48,8 @@ public final class MyGPXManagerImage {
     public static final ImageIcon ERROR = getInstance().getImage("errors.png");
     public static final ImageIcon VALIDATED = getInstance().getImage("check.png");
     public static final ImageIcon WARNING = getInstance().getImage("problem.png");
+    public static final ImageIcon MERGE = getInstance().getImage("merge.png");
+    public static final ImageIcon INVERT = getInstance().getImage("invert.png");
 
     private ImageIcon getImage(final String filename) {
         URL stream = getClass().getClassLoader().getResource("resources/" + filename);
