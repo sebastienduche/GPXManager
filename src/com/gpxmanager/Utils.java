@@ -4,9 +4,6 @@ import com.gpxmanager.geocalc.Degree;
 import com.gpxmanager.geocalc.EarthCalc;
 import com.gpxmanager.gpx.beans.Waypoint;
 
-import java.awt.Toolkit;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.StringSelection;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -23,14 +20,11 @@ import java.util.prefs.Preferences;
 public class Utils {
 
     public static final SimpleDateFormat TIMESTAMP = new SimpleDateFormat("yyyy-MM-dd'T'kk:mm:ss");
+    public static final DateTimeFormatter DATE_FORMATER_DD_MM_YYYY = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+    public static final String DEBUG_DIRECTORY = "MyGPXManagerDebug";
+
     private static ResourceBundle labels;
     private static Preferences prefs = Preferences.userNodeForPackage(Utils.class);
-
-    public static void copyToClipboard(String text) {
-        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-        StringSelection contents = new StringSelection(text);
-        clipboard.setContents(contents, null);
-    }
 
     public static File getOpenSaveDirectory() {
         return new File(prefs.get("dir", System.getProperty("user.home")));
@@ -51,7 +45,7 @@ public class Utils {
         return labels.getString(s);
     }
 
-    public static void saveError(Exception e) {
+    public static void saveError(Throwable e) {
         StackTraceElement[] st = e.getStackTrace();
         String error = "";
         for (StackTraceElement s : st) {
@@ -60,7 +54,7 @@ public class Utils {
         try {
             String sDir = System.getProperty("user.home");
             if (!sDir.isEmpty()) {
-                sDir += File.separator + "MyPasswordManagerDebug";
+                sDir += File.separator + DEBUG_DIRECTORY;
             }
             FileWriter errorFile = new FileWriter(new File(sDir, "Errors.log"), true);
             errorFile.write("[" + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) + "]: " + error + "\n");

@@ -130,6 +130,10 @@ public class MergePanel extends JPanel implements ITabListener {
                 JOptionPane.showMessageDialog(null, getLabel("merge.no.files"), getLabel("error"), JOptionPane.ERROR_MESSAGE);
                 return;
             }
+            if (model.getFiles().size() == 1) {
+                JOptionPane.showMessageDialog(null, getLabel("merge.one.file"), getLabel("error"), JOptionPane.ERROR_MESSAGE);
+                return;
+            }
             JFileChooser boiteFichier = new JFileChooser();
             boiteFichier.removeChoosableFileFilter(boiteFichier.getFileFilter());
             boiteFichier.addChoosableFileFilter(Filtre.FILTRE_GPX);

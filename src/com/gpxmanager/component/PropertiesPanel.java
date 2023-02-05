@@ -10,6 +10,7 @@ import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import java.text.ParseException;
 
@@ -94,7 +95,7 @@ public class PropertiesPanel extends JPanel {
         return gpx.getWaypoints() == null ? "0" : Integer.toString(gpx.getWaypoints().size());
     }
 
-    public void save(Metadata metadata) throws ParseException {
+    public boolean save(Metadata metadata) throws ParseException {
         if (metadataName.isModified()) {
             metadata.setName(metadataName.getText());
         }
@@ -111,9 +112,15 @@ public class PropertiesPanel extends JPanel {
             if (metadataTime.getText() == null || metadataTime.getText().isBlank()) {
                 metadata.setTime(null);
             } else {
-                metadata.setTime(TIMESTAMP.parse(metadataTime.getText()));
+                try {
+                    metadata.setTime(TIMESTAMP.parse(metadataTime.getText()));
+                } catch (ParseException e) {
+                    JOptionPane.showMessageDialog(this, getLabel("error.timestamp"), getLabel("error.title"), JOptionPane.ERROR_MESSAGE);
+                    return false;
+                }
             }
         }
+        return true;
     }
 
     public void load(Metadata metadata) {

@@ -49,7 +49,7 @@ public class InvertPanel extends JPanel implements ITabListener {
 
     public InvertPanel(MyGPXManager parent) {
         this.parent = parent;
-        setLayout(new MigLayout("", "[grow]", "[][grow]"));
+        setLayout(new MigLayout("", "[grow]", "[]20px[]20px[][]"));
         infoLabel.setForeground(Color.red);
         add(fileTextField, "growx, split 2");
         add(browse, "wrap");
@@ -107,7 +107,7 @@ public class InvertPanel extends JPanel implements ITabListener {
 
     private class InvertAction extends AbstractAction {
         public InvertAction() {
-            super(getLabel("invert.action"), MyGPXManagerImage.SAVE);
+            super(getLabel("menu.invert"), MyGPXManagerImage.SAVE);
         }
 
         @Override

@@ -39,10 +39,13 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.text.ParseException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.Locale;
@@ -50,10 +53,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.prefs.Preferences;
 
+import static com.gpxmanager.Utils.DATE_FORMATER_DD_MM_YYYY;
+import static com.gpxmanager.Utils.DEBUG_DIRECTORY;
 import static com.gpxmanager.Utils.getLabel;
 
 public final class MyGPXManager extends JFrame {
-    public static final String INTERNAL_VERSION = "6.4";
+    public static final String INTERNAL_VERSION = "6.8";
     public static final String VERSION = "3.1";
     private static final MyAutoHideLabel INFO_LABEL = new MyAutoHideLabel();
     private final JMenuItem saveFile;
@@ -66,6 +71,9 @@ public final class MyGPXManager extends JFrame {
     private final LinkedList<File> openedFiles = new LinkedList<>();
     private final LinkedList<File> reopenedFiles = new LinkedList<>();
 
+    private static FileWriter oDebugFile = null;
+    private static File debugFile = null;
+
     private final GPXParser gpxParser = new GPXParser();
 
     public MyGPXManager() throws HeadlessException {
@@ -73,6 +81,7 @@ public final class MyGPXManager extends JFrame {
         MyGPXManagerServer.getInstance().checkVersion();
         gpxParser.addExtensionParser(new GarminExtension());
         prefs = Preferences.userNodeForPackage(getClass());
+        Thread.setDefaultUncaughtExceptionHandler((t, e) -> showException(e, true));
         reopenedFiles.add(new File(prefs.get("MyGPXManager.file1", "")));
         reopenedFiles.add(new File(prefs.get("MyGPXManager.file2", "")));
         reopenedFiles.add(new File(prefs.get("MyGPXManager.file3", "")));
@@ -309,6 +318,73 @@ public final class MyGPXManager extends JFrame {
         setInfoLabel(MessageFormat.format(getLabel("file.saved"), file.getAbsolutePath()));
     }
 
+    private void showException(Throwable e, boolean showWindowErrorAndExit) {
+        StackTraceElement[] st = e.getStackTrace();
+        String error = "";
+        for (StackTraceElement s : st) {
+            error = error.concat("\n" + s);
+        }
+
+        if (showWindowErrorAndExit) {
+            JOptionPane.showMessageDialog(this, e.toString(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+        Utils.saveError(e);
+        Debug("Program: ERROR:");
+        Debug("Program: " + e);
+        Debug("Program: " + error);
+        e.printStackTrace();
+        if (debugFile != null) {
+            try {
+                oDebugFile.flush();
+                oDebugFile.close();
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+//            try {
+//                sendErrorToGitHub(e.toString(), debugFile);
+//            } catch (IOException ignored) {
+//            }
+            oDebugFile = null;
+        }
+
+        if (showWindowErrorAndExit) {
+            System.exit(999);
+        }
+    }
+
+    public static void Debug(String sText) {
+        try {
+            if (oDebugFile == null) {
+                String sDir = System.getProperty("user.home");
+                if (!sDir.isEmpty()) {
+                    sDir += File.separator + DEBUG_DIRECTORY;
+                }
+                File f_obj = new File(sDir);
+                if (f_obj.exists() || f_obj.mkdir()) {
+                    String sDate = LocalDate.now().format(DATE_FORMATER_DD_MM_YYYY);
+                    debugFile = new File(sDir, "Debug-" + sDate + ".log");
+                    oDebugFile = new FileWriter(debugFile, true);
+                }
+            }
+            oDebugFile.write("[" + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) + "]: " + sText + "\n");
+            oDebugFile.flush();
+        } catch (IOException ignored) {
+        }
+    }
+
+    private static void closeDebug() {
+        if (oDebugFile == null) {
+            return;
+        }
+
+        try {
+            oDebugFile.flush();
+            oDebugFile.close();
+        } catch (IOException ignored) {
+        }
+
+    }
+
     class CloseFileAction extends AbstractAction {
         public CloseFileAction() {
             super(getLabel("menu.closeFile"));
@@ -417,7 +493,7 @@ public final class MyGPXManager extends JFrame {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            myTabbedPane.selectOrAddTab(new MergePanel(instance), getLabel("menu.merge"), MyGPXManagerImage.OPEN, true);
+            myTabbedPane.selectOrAddTab(new MergePanel(instance), getLabel("merge.title"), MyGPXManagerImage.OPEN, true);
         }
     }
 
@@ -428,7 +504,7 @@ public final class MyGPXManager extends JFrame {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            myTabbedPane.selectOrAddTab(new InvertPanel(instance), getLabel("menu.invert"), MyGPXManagerImage.OPEN, true);
+            myTabbedPane.selectOrAddTab(new InvertPanel(instance), getLabel("invert.action"), MyGPXManagerImage.OPEN, true);
         }
     }
 
@@ -452,6 +528,7 @@ public final class MyGPXManager extends JFrame {
                 prefs.put("MyGPXManager.width", "" + getSize().width);
                 prefs.put("MyGPXManager.height", "" + getSize().height);
                 cleanDebugFiles();
+                closeDebug();
                 System.exit(0);
             }
         }
