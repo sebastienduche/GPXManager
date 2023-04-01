@@ -50,6 +50,7 @@ public final class MyGPXManagerImage {
     public static final ImageIcon WARNING = getInstance().getImage("problem.png");
     public static final ImageIcon MERGE = getInstance().getImage("merge.png");
     public static final ImageIcon INVERT = getInstance().getImage("invert.png");
+    public static final ImageIcon STRAVA = getInstance().getImage("strava.png");
 
     private ImageIcon getImage(final String filename) {
         URL stream = getClass().getClassLoader().getResource("resources/" + filename);

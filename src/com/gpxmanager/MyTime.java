@@ -72,6 +72,14 @@ public class MyTime {
         secondes = (int) (time - (diffMinutes * 60));
     }
 
+    public static MyTime fromSeconds(int totalSeconds) {
+        int diffMinutes = totalSeconds / 60;
+        int hours = totalSeconds / (60 * 60);
+        int minutes = diffMinutes - (hours * 60);
+        int seconds = totalSeconds - (diffMinutes * 60);
+        return new MyTime(totalSeconds, hours, minutes, seconds);
+    }
+
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();

@@ -58,12 +58,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.prefs.Preferences;
 
+import static com.gpxmanager.MyGPXManagerImage.STRAVA;
 import static com.gpxmanager.Utils.DATE_FORMATER_DD_MM_YYYY;
 import static com.gpxmanager.Utils.DEBUG_DIRECTORY;
 import static com.gpxmanager.Utils.getLabel;
 
 public final class MyGPXManager extends JFrame {
-    public static final String INTERNAL_VERSION = "7.4";
+    public static final String INTERNAL_VERSION = "8.3";
     public static final String VERSION = "3.2";
     private static final MyAutoHideLabel INFO_LABEL = new MyAutoHideLabel();
     private static JMenuItem saveFile;
@@ -340,16 +341,14 @@ public final class MyGPXManager extends JFrame {
                 } catch (IOException | URISyntaxException ex) {
                     throw new RuntimeException(ex);
                 }
-                myTabbedPane.addTab(getLabel("menu.strava"), new StravaPanel(stravaConnection.getStrava().getCurrentAthleteActivities()), true);
-
-//                stravaConnection.getStrava().getCurrentAthleteActivities().forEach(System.out::println);
+                myTabbedPane.addTab(getLabel("menu.strava"), new StravaPanel(stravaConnection.getStrava().getCurrentAthleteActivities(1, 50)), true);
             }
         }
     }
 
     static class ConnectToStravaAction extends AbstractAction {
         public ConnectToStravaAction() {
-            super(getLabel("menu.connectStrava"));
+            super(getLabel("menu.connectStrava"), STRAVA);
         }
 
         @Override
@@ -364,7 +363,7 @@ public final class MyGPXManager extends JFrame {
             } catch (IOException | URISyntaxException ex) {
                 throw new RuntimeException(ex);
             }
-            myTabbedPane.addTab(getLabel("menu.strava"), new StravaPanel(stravaConnection.getStrava().getCurrentAthleteActivities()), true);
+            myTabbedPane.addTab(getLabel("menu.strava"), new StravaPanel(stravaConnection.getStrava().getCurrentAthleteActivities(1, 50)), true);
         }
     }
 

@@ -7,6 +7,7 @@ import com.gpxmanager.gpx.beans.Waypoint;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
@@ -28,11 +29,11 @@ public class Utils {
     private static final Preferences prefs = Preferences.userNodeForPackage(Utils.class);
 
     public static File getOpenSaveDirectory() {
-        return new File(prefs.get("dir", System.getProperty("user.home")));
+        return new File(prefs.get("MyGPXManager.dir", System.getProperty("user.home")));
     }
 
     public static void setOpenSaveDirectory(File file) {
-        prefs.put("dir", file.getAbsolutePath());
+        prefs.put("MyGPXManager.dir", file.getAbsolutePath());
     }
 
     public static void initResources(Locale locale) {
@@ -90,6 +91,12 @@ public class Utils {
         NumberFormat nf = NumberFormat.getInstance();
         nf.setMaximumFractionDigits(2);
         return nf.format(value);
+    }
+
+    public static String meterPerSecondToKmH(double value) {
+        NumberFormat instance = DecimalFormat.getInstance();
+        instance.setMaximumFractionDigits(2);
+        return instance.format(value * 3.6);
     }
 
 }

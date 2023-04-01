@@ -3,7 +3,6 @@ package com.gpxmanager.strava;
 import org.jstrava.entities.Activity;
 
 import javax.swing.table.DefaultTableModel;
-import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
@@ -14,11 +13,23 @@ import static com.gpxmanager.Utils.getLabel;
 
 public class StravaTableModel extends DefaultTableModel {
 
-    private static final int COL_DATE = 0;
-    private static final int COL_NAME = 1;
-    private static final int COL_DISTANCE = 2;
+    public static final int COL_DATE = 0;
+    public static final int COL_NAME = 1;
+    public static final int COL_DISTANCE = 2;
+    public static final int COL_TIME = 3;
+    public static final int COL_SPEED_MAX = 4;
+    public static final int COL_SPEED_AVG = 5;
+    public static final int COL_ALTITUDE = 6;
 
-    private final List<String> columns = List.of(getLabel("strava.table.date"), getLabel("strava.table.name"), getLabel("strava.table.distance"));
+    private final List<String> columns = List.of(
+            getLabel("strava.table.date"),
+            getLabel("strava.table.name"),
+            getLabel("strava.table.distance"),
+            getLabel("strava.table.time"),
+            getLabel("strava.table.max"),
+            getLabel("strava.table.avg"),
+            getLabel("strava.table.altitude")
+    );
 
     private final List<Activity> activities;
 
@@ -30,11 +41,6 @@ public class StravaTableModel extends DefaultTableModel {
     public boolean isCellEditable(int row, int column) {
         return false;
     }
-
-//    @Override
-//    public void setValueAt(Object aValue, int row, int column) {
-//        super.setValueAt(aValue, row, column);
-//    }
 
     @Override
     public int getColumnCount() {
@@ -60,7 +66,7 @@ public class StravaTableModel extends DefaultTableModel {
         switch (column) {
             case COL_DATE -> {
                 try {
-                    Date localDateTime = TIMESTAMP.parse(activity.getStartDate());
+                    Date localDateTime = TIMESTAMP.parse(activity.getStartDateLocal());
                     return DATE_HOUR_MINUTE.format(localDateTime);
                 } catch (ParseException e) {
                     return null;
@@ -70,11 +76,37 @@ public class StravaTableModel extends DefaultTableModel {
                 return activity.getName();
             }
             case COL_DISTANCE -> {
-                NumberFormat numberInstance = NumberFormat.getNumberInstance();
-                numberInstance.setMaximumFractionDigits(2);
-                return numberInstance.format(activity.getDistance() / 1000);
+                return activity.getDistance() / 1000;
+            }
+            case COL_TIME -> {
+                return activity.getMovingTime();
+            }
+            case COL_SPEED_MAX -> {
+                return activity.getMaxSpeed();
+            }
+            case COL_SPEED_AVG -> {
+                return activity.getAverageSpeed();
+            }
+            case COL_ALTITUDE -> {
+                return (int) activity.getTotalElevationGain();
             }
         }
         return null;
+    }
+
+    @Override
+    public Class<?> getColumnClass(int columnIndex) {
+        switch (columnIndex) {
+            case COL_DATE, COL_NAME -> {
+                return String.class;
+            }
+            case COL_DISTANCE, COL_TIME, COL_SPEED_MAX, COL_SPEED_AVG -> {
+                return Double.class;
+            }
+            case COL_ALTITUDE -> {
+                return Integer.class;
+            }
+        }
+        return Object.class;
     }
 }
