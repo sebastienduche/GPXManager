@@ -6,9 +6,14 @@ import com.gpxmanager.gpx.GPXParser;
 import com.gpxmanager.gpx.beans.GPX;
 import com.gpxmanager.gpx.extensions.GarminExtension;
 import com.gpxmanager.launcher.MyGPXManagerServer;
+import com.gpxmanager.strava.StravaPanel;
 import com.mycomponents.MyAutoHideLabel;
 import com.mytabbedpane.MyTabbedPane;
 import net.miginfocom.swing.MigLayout;
+import org.jstrava.StravaConnection;
+import org.jstrava.StravaFirstConfigurationDialog;
+import org.jstrava.user.FileIdentificationStorage;
+import org.jstrava.user.IdentificationStorage;
 import org.xml.sax.SAXException;
 
 import javax.swing.AbstractAction;
@@ -41,6 +46,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.text.MessageFormat;
 import java.text.ParseException;
 import java.time.LocalDate;
@@ -57,16 +63,17 @@ import static com.gpxmanager.Utils.DEBUG_DIRECTORY;
 import static com.gpxmanager.Utils.getLabel;
 
 public final class MyGPXManager extends JFrame {
-    public static final String INTERNAL_VERSION = "6.8";
-    public static final String VERSION = "3.1";
+    public static final String INTERNAL_VERSION = "7.4";
+    public static final String VERSION = "3.2";
     private static final MyAutoHideLabel INFO_LABEL = new MyAutoHideLabel();
-    private final JMenuItem saveFile;
-    private final JMenuItem saveAsFile;
+    private static JMenuItem saveFile;
+    private static JMenuItem saveAsFile;
     private final JMenuItem closeFile;
+    private static JMenuItem connectToStravaMenuItem;
     private final MyGPXManager instance;
-    private final Preferences prefs;
-    private final JButton saveButton;
-    private final MyTabbedPane myTabbedPane;
+    private static Preferences prefs;
+    private static JButton saveButton;
+    private static MyTabbedPane myTabbedPane;
     private final LinkedList<File> openedFiles = new LinkedList<>();
     private final LinkedList<File> reopenedFiles = new LinkedList<>();
 
@@ -98,6 +105,12 @@ public final class MyGPXManager extends JFrame {
         menuBar.add(menuGpx);
         JMenu menuLanguage = new JMenu(getLabel("menu.language"));
         menuBar.add(menuLanguage);
+        JMenu menuStrava = new JMenu(getLabel("menu.strava"));
+        menuBar.add(menuStrava);
+        menuStrava.add(new JMenuItem(new FirstConnectionToStravaAction()));
+        connectToStravaMenuItem = new JMenuItem(new ConnectToStravaAction());
+        menuStrava.add(connectToStravaMenuItem);
+        connectToStravaMenuItem.setEnabled(!prefs.get("MyGPXManager.strava", "").isBlank());
         JMenu menuAbout = new JMenu("?");
         menuBar.add(menuAbout);
         menuFile.add(new JMenuItem(new OpenFileAction()));
@@ -227,7 +240,7 @@ public final class MyGPXManager extends JFrame {
         }
     }
 
-    public void updateTabbedPane() {
+    public static void updateTabbedPane() {
         if (myTabbedPane.getTabCount() == 0) {
             myTabbedPane.setVisible(false);
             saveButton.setEnabled(false);
@@ -304,10 +317,62 @@ public final class MyGPXManager extends JFrame {
         }
     }
 
+    static class FirstConnectionToStravaAction extends AbstractAction {
+        public FirstConnectionToStravaAction() {
+            super(getLabel("menu.firstConnectionStrava"));
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            StravaFirstConfigurationDialog stravaFirstConfigurationDialog = new StravaFirstConfigurationDialog();
+
+            IdentificationStorage identificationStorage = stravaFirstConfigurationDialog.getIdentificationStorage();
+            if (identificationStorage != null) {
+                if (identificationStorage instanceof FileIdentificationStorage) {
+                    // The file contains the datas
+                    File fileSaved = ((FileIdentificationStorage) identificationStorage).getFile();
+                    prefs.put("MyGPXManager.strava", fileSaved.getAbsolutePath());
+                    connectToStravaMenuItem.setEnabled(!prefs.get("MyGPXManager.strava", "").isBlank());
+                }
+                StravaConnection stravaConnection;
+                try {
+                    stravaConnection = new StravaConnection(identificationStorage);
+                } catch (IOException | URISyntaxException ex) {
+                    throw new RuntimeException(ex);
+                }
+                myTabbedPane.addTab(getLabel("menu.strava"), new StravaPanel(stravaConnection.getStrava().getCurrentAthleteActivities()), true);
+
+//                stravaConnection.getStrava().getCurrentAthleteActivities().forEach(System.out::println);
+            }
+        }
+    }
+
+    static class ConnectToStravaAction extends AbstractAction {
+        public ConnectToStravaAction() {
+            super(getLabel("menu.connectStrava"));
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            File file = new File(prefs.get("MyGPXManager.strava", ""));
+            FileIdentificationStorage fileIdentificationStorage = new FileIdentificationStorage(file);
+
+            StravaConnection stravaConnection;
+            try {
+                stravaConnection = new StravaConnection(fileIdentificationStorage);
+                setInfoLabel(getLabel("strava.connectionOK"));
+            } catch (IOException | URISyntaxException ex) {
+                throw new RuntimeException(ex);
+            }
+            myTabbedPane.addTab(getLabel("menu.strava"), new StravaPanel(stravaConnection.getStrava().getCurrentAthleteActivities()), true);
+        }
+    }
+
+
     private void open(File file) {
         try {
             GPX gpx = GPX_PARSER.parseGPX(new FileInputStream(file));
-            myTabbedPane.addTab(file.getName(), new GPXPropertiesPanel(file, gpx, instance), true);
+            myTabbedPane.addTab(file.getName(), new GPXPropertiesPanel(file, gpx), true);
             reopenedFiles.addFirst(file);
             setFileOpened(file);
         } catch (ParserConfigurationException | SAXException | IOException ex) {

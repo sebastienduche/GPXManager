@@ -20,11 +20,12 @@ import java.util.prefs.Preferences;
 public class Utils {
 
     public static final SimpleDateFormat TIMESTAMP = new SimpleDateFormat("yyyy-MM-dd'T'kk:mm:ss");
+    public static final SimpleDateFormat DATE_HOUR_MINUTE = new SimpleDateFormat("yyyy-MM-dd kk:mm");
     public static final DateTimeFormatter DATE_FORMATER_DD_MM_YYYY = DateTimeFormatter.ofPattern("dd-MM-yyyy");
     public static final String DEBUG_DIRECTORY = "MyGPXManagerDebug";
 
     private static ResourceBundle labels;
-    private static Preferences prefs = Preferences.userNodeForPackage(Utils.class);
+    private static final Preferences prefs = Preferences.userNodeForPackage(Utils.class);
 
     public static File getOpenSaveDirectory() {
         return new File(prefs.get("dir", System.getProperty("user.home")));

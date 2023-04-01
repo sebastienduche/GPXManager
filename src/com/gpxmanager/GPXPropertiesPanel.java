@@ -36,14 +36,11 @@ public class GPXPropertiesPanel extends JPanel implements ITabListener {
     private final PropertiesPanel propertiesPanel;
     private final List<JModifyTextField> trackNames = new LinkedList<>();
     private final List<JModifyTextField> trackDescriptions = new LinkedList<>();
-    private final MyGPXManager parent;
-
     private LinkedList<TrackRoute> trackRoutes;
 
-    public GPXPropertiesPanel(File file, GPX gpx, MyGPXManager parent) {
+    public GPXPropertiesPanel(File file, GPX gpx) {
         this.file = file;
         this.gpx = gpx;
-        this.parent = parent;
         setLayout(new MigLayout("", "[grow]", "[]"));
         propertiesPanel = new PropertiesPanel(gpx);
         add(propertiesPanel, "growx, wrap");
@@ -153,7 +150,7 @@ public class GPXPropertiesPanel extends JPanel implements ITabListener {
 
     @Override
     public void tabClosed() {
-        parent.updateTabbedPane();
+        MyGPXManager.updateTabbedPane();
     }
 
     private void buildTrackRoutes() {
