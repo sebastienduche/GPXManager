@@ -1,8 +1,12 @@
 package com.gpxmanager.strava;
 
+import org.jstrava.StravaConnection;
 import org.jstrava.entities.Activity;
 
 import javax.swing.table.DefaultTableModel;
+import java.awt.Desktop;
+import java.io.IOException;
+import java.net.URI;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
@@ -20,6 +24,9 @@ public class StravaTableModel extends DefaultTableModel {
     public static final int COL_SPEED_MAX = 4;
     public static final int COL_SPEED_AVG = 5;
     public static final int COL_ALTITUDE = 6;
+    public static final int COL_VIEW = 7;
+    public static final int COL_DOWNLOAD = 8;
+
 
     private final List<String> columns = List.of(
             getLabel("strava.table.date"),
@@ -28,18 +35,22 @@ public class StravaTableModel extends DefaultTableModel {
             getLabel("strava.table.time"),
             getLabel("strava.table.max"),
             getLabel("strava.table.avg"),
-            getLabel("strava.table.altitude")
+            getLabel("strava.table.altitude"),
+            "",
+            ""
     );
 
+    private final StravaConnection stravaConnection;
     private final List<Activity> activities;
 
-    public StravaTableModel(List<Activity> activities) {
+    public StravaTableModel(StravaConnection stravaConnection, List<Activity> activities) {
+        this.stravaConnection = stravaConnection;
         this.activities = activities;
     }
 
     @Override
     public boolean isCellEditable(int row, int column) {
-        return false;
+        return column == COL_DOWNLOAD || column == COL_VIEW;
     }
 
     @Override
@@ -90,6 +101,9 @@ public class StravaTableModel extends DefaultTableModel {
             case COL_ALTITUDE -> {
                 return (int) activity.getTotalElevationGain();
             }
+            case COL_VIEW, COL_DOWNLOAD -> {
+                return Boolean.FALSE;
+            }
         }
         return null;
     }
@@ -106,7 +120,33 @@ public class StravaTableModel extends DefaultTableModel {
             case COL_ALTITUDE -> {
                 return Integer.class;
             }
+            case COL_VIEW, COL_DOWNLOAD -> {
+                return Boolean.class;
+            }
         }
         return Object.class;
+    }
+
+
+    @Override
+    public void setValueAt(Object aValue, int row, int column) {
+        Activity activity = activities.get(row);
+        switch (column) {
+            case COL_VIEW -> {
+                try {
+                    String activityAsGPXURL = stravaConnection.getStrava().getActivityAsGPX(activity.getId());
+                    Desktop.getDesktop().browse(URI.create(activityAsGPXURL.substring(0, activityAsGPXURL.lastIndexOf('/'))));
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            case COL_DOWNLOAD -> {
+                try {
+                    Desktop.getDesktop().browse(URI.create(stravaConnection.getStrava().getActivityAsGPX(activity.getId())));
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
     }
 }

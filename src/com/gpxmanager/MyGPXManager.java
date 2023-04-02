@@ -64,8 +64,8 @@ import static com.gpxmanager.Utils.DEBUG_DIRECTORY;
 import static com.gpxmanager.Utils.getLabel;
 
 public final class MyGPXManager extends JFrame {
-    public static final String INTERNAL_VERSION = "8.3";
-    public static final String VERSION = "3.2";
+    public static final String INTERNAL_VERSION = "8.6";
+    public static final String VERSION = "4.0";
     private static final MyAutoHideLabel INFO_LABEL = new MyAutoHideLabel();
     private static JMenuItem saveFile;
     private static JMenuItem saveAsFile;
@@ -341,7 +341,7 @@ public final class MyGPXManager extends JFrame {
                 } catch (IOException | URISyntaxException ex) {
                     throw new RuntimeException(ex);
                 }
-                myTabbedPane.addTab(getLabel("menu.strava"), new StravaPanel(stravaConnection.getStrava().getCurrentAthleteActivities(1, 50)), true);
+                myTabbedPane.addTab(getLabel("menu.strava"), new StravaPanel(stravaConnection, stravaConnection.getStrava().getCurrentAthleteActivities(1, 50)), true);
             }
         }
     }
@@ -363,7 +363,21 @@ public final class MyGPXManager extends JFrame {
             } catch (IOException | URISyntaxException ex) {
                 throw new RuntimeException(ex);
             }
-            myTabbedPane.addTab(getLabel("menu.strava"), new StravaPanel(stravaConnection.getStrava().getCurrentAthleteActivities(1, 50)), true);
+//            List<Activity> currentAthleteActivities = stravaConnection.getStrava().getCurrentAthleteActivities();
+//            currentAthleteActivities.forEach(System.out::println);
+//            String routeAsGPX = stravaConnection.getStrava().getActivityAsGPX(8813330760L);
+//            try {
+//                Desktop.getDesktop().browse(new URL("https://www.strava.com/activities/8813330760/export_gpx").toURI());
+//                FileWriter fileWriter = new FileWriter(new File("routeAsGpx.gpx"));
+//                fileWriter.write(routeAsGPX);
+//                fileWriter.flush();
+//                fileWriter.close();
+//            } catch (IOException ex) {
+//                throw new RuntimeException(ex);
+//            } catch (URISyntaxException ex) {
+//                throw new RuntimeException(ex);
+//            }
+            myTabbedPane.addTab(getLabel("menu.strava"), new StravaPanel(stravaConnection, stravaConnection.getStrava().getCurrentAthleteActivities(1, 50)), true);
         }
     }
 
