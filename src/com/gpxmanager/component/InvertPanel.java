@@ -76,7 +76,7 @@ public class InvertPanel extends JPanel implements ITabListener {
 
     @Override
     public void tabClosed() {
-        parent.updateTabbedPane();
+        MyGPXManager.updateTabbedPane();
     }
 
     private class BrowseAction extends AbstractAction {

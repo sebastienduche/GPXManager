@@ -3,11 +3,13 @@ package com.gpxmanager.strava;
 import org.jstrava.StravaConnection;
 import org.jstrava.entities.Activity;
 
+import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 import java.awt.Desktop;
 import java.io.IOException;
 import java.net.URI;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -41,11 +43,11 @@ public class StravaTableModel extends DefaultTableModel {
     );
 
     private final StravaConnection stravaConnection;
-    private final List<Activity> activities;
+    private List<Activity> activities;
 
-    public StravaTableModel(StravaConnection stravaConnection, List<Activity> activities) {
+    public StravaTableModel(StravaConnection stravaConnection) {
         this.stravaConnection = stravaConnection;
-        this.activities = activities;
+        this.activities = new ArrayList<>();
     }
 
     @Override
@@ -148,5 +150,12 @@ public class StravaTableModel extends DefaultTableModel {
                 }
             }
         }
+    }
+
+    public void setActivities(List<Activity> activities) {
+        SwingUtilities.invokeLater(() -> {
+            this.activities = activities;
+            fireTableDataChanged();
+        });
     }
 }

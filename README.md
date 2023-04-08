@@ -1,6 +1,6 @@
 # GPXManager
 
-Java Swing application to edit and merge GPX files
+Java Swing application to edit, merge GPX files and get your GPX Files from Strava
 
 My need was to be able to merge several GPX files following a several days bike ride. Instead of having a GPX track for
 each day, I wanted to have a unique GPX file with the full route.
@@ -13,6 +13,7 @@ Currently, the application allows to:
 - Display elevation graph for each track and routes
 - Merge several GPX files in 1
 - Invert the tracks/routes to do it in the opposite direction
+- Access Strava activities
 
 Probably the application will never display the GPX file on a map.
 

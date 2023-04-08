@@ -1,5 +1,6 @@
 package com.gpxmanager;
 
+import com.google.gson.Gson;
 import com.gpxmanager.component.InvertPanel;
 import com.gpxmanager.component.MergePanel;
 import com.gpxmanager.gpx.GPXParser;
@@ -64,19 +65,21 @@ import static com.gpxmanager.Utils.DEBUG_DIRECTORY;
 import static com.gpxmanager.Utils.getLabel;
 
 public final class MyGPXManager extends JFrame {
-    public static final String INTERNAL_VERSION = "8.6";
-    public static final String VERSION = "4.0";
+    public static final String INTERNAL_VERSION = "9.1";
+    public static final String VERSION = "4.1";
     private static final MyAutoHideLabel INFO_LABEL = new MyAutoHideLabel();
     private static JMenuItem saveFile;
     private static JMenuItem saveAsFile;
     private final JMenuItem closeFile;
     private static JMenuItem connectToStravaMenuItem;
-    private final MyGPXManager instance;
+    private static MyGPXManager instance;
     private static Preferences prefs;
     private static JButton saveButton;
     private static MyTabbedPane myTabbedPane;
     private final LinkedList<File> openedFiles = new LinkedList<>();
     private final LinkedList<File> reopenedFiles = new LinkedList<>();
+
+    public static final Gson GSON = new Gson();
 
     private static FileWriter oDebugFile = null;
     private static File debugFile = null;
@@ -363,20 +366,7 @@ public final class MyGPXManager extends JFrame {
             } catch (IOException | URISyntaxException ex) {
                 throw new RuntimeException(ex);
             }
-//            List<Activity> currentAthleteActivities = stravaConnection.getStrava().getCurrentAthleteActivities();
-//            currentAthleteActivities.forEach(System.out::println);
-//            String routeAsGPX = stravaConnection.getStrava().getActivityAsGPX(8813330760L);
-//            try {
-//                Desktop.getDesktop().browse(new URL("https://www.strava.com/activities/8813330760/export_gpx").toURI());
-//                FileWriter fileWriter = new FileWriter(new File("routeAsGpx.gpx"));
-//                fileWriter.write(routeAsGPX);
-//                fileWriter.flush();
-//                fileWriter.close();
-//            } catch (IOException ex) {
-//                throw new RuntimeException(ex);
-//            } catch (URISyntaxException ex) {
-//                throw new RuntimeException(ex);
-//            }
+
             myTabbedPane.addTab(getLabel("menu.strava"), new StravaPanel(stravaConnection, stravaConnection.getStrava().getCurrentAthleteActivities(1, 50)), true);
         }
     }
@@ -466,7 +456,18 @@ public final class MyGPXManager extends JFrame {
             oDebugFile.close();
         } catch (IOException ignored) {
         }
+    }
 
+    public static MyGPXManager getInstance() {
+        return instance;
+    }
+
+    public static void setPreference(String key, String value) {
+        prefs.put(key, value);
+    }
+
+    public static String getPreference(String key, String defaultValue) {
+        return prefs.get(key, defaultValue);
     }
 
     class CloseFileAction extends AbstractAction {
@@ -570,7 +571,7 @@ public final class MyGPXManager extends JFrame {
         }
     }
 
-    class MergeAction extends AbstractAction {
+    static class MergeAction extends AbstractAction {
         public MergeAction() {
             super(getLabel("menu.merge"), MyGPXManagerImage.MERGE);
         }
@@ -581,7 +582,7 @@ public final class MyGPXManager extends JFrame {
         }
     }
 
-    class InvertAction extends AbstractAction {
+    static class InvertAction extends AbstractAction {
         public InvertAction() {
             super(getLabel("menu.invert"), MyGPXManagerImage.INVERT);
         }
@@ -627,7 +628,7 @@ public final class MyGPXManager extends JFrame {
         }
     }
 
-    class SearchUpdateAction extends AbstractAction {
+    static class SearchUpdateAction extends AbstractAction {
         public SearchUpdateAction() {
             super(getLabel("menu.checkUpdate"));
         }
@@ -642,7 +643,7 @@ public final class MyGPXManager extends JFrame {
         }
     }
 
-    private class LanguageAction extends AbstractAction {
+    private static class LanguageAction extends AbstractAction {
         private final Locale locale;
 
         public LanguageAction(Locale locale) {
