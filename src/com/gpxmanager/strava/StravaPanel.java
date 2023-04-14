@@ -40,6 +40,9 @@ import java.util.List;
 
 import static com.gpxmanager.MyGPXManager.GSON;
 import static com.gpxmanager.MyGPXManager.getInstance;
+import static com.gpxmanager.ProgramPreferences.STRAVA_ALL_DATA;
+import static com.gpxmanager.ProgramPreferences.getPreference;
+import static com.gpxmanager.ProgramPreferences.setPreference;
 import static com.gpxmanager.Utils.getLabel;
 import static com.gpxmanager.strava.StravaTableModel.COL_ALTITUDE;
 import static com.gpxmanager.strava.StravaTableModel.COL_DISTANCE;
@@ -92,7 +95,7 @@ public class StravaPanel extends JPanel implements ITabListener {
     }
 
     private boolean existStravaFile() {
-        String existingFile = MyGPXManager.getPreference("strava.allData", null);
+        String existingFile = getPreference(STRAVA_ALL_DATA, null);
         return existingFile != null && new File(existingFile).exists();
     }
 
@@ -114,7 +117,7 @@ public class StravaPanel extends JPanel implements ITabListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            String existingFile = MyGPXManager.getPreference("strava.allData", null);
+            String existingFile = getPreference(STRAVA_ALL_DATA, null);
             if (existingFile != null && new File(existingFile).exists()) {
                 if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(getInstance(),
                         MessageFormat.format(getLabel("strava.fileExist"), existingFile), getLabel("question"), JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)) {
@@ -131,7 +134,7 @@ public class StravaPanel extends JPanel implements ITabListener {
                         getLabel("strava.errorFile"), getLabel("error"), JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            MyGPXManager.setPreference("strava.allData", filePanel.getFile().getAbsolutePath());
+            setPreference(STRAVA_ALL_DATA, filePanel.getFile().getAbsolutePath());
             infoLabel.setText(getLabel("download"), false);
             setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
             SwingUtilities.invokeLater(() -> {
@@ -165,7 +168,7 @@ public class StravaPanel extends JPanel implements ITabListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            String existingFile = MyGPXManager.getPreference("strava.allData", null);
+            String existingFile = getPreference(STRAVA_ALL_DATA, null);
             if (existingFile == null || !new File(existingFile).exists()) {
                 JOptionPane.showMessageDialog(getInstance(),
                         getLabel("strava.errorNoFile"), getLabel("error"), JOptionPane.ERROR_MESSAGE);

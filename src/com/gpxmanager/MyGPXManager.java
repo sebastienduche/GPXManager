@@ -57,9 +57,17 @@ import java.util.LinkedList;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.prefs.Preferences;
 
-import static com.gpxmanager.MyGPXManagerImage.STRAVA;
+import static com.gpxmanager.ProgramPreferences.FILE;
+import static com.gpxmanager.ProgramPreferences.FILE1;
+import static com.gpxmanager.ProgramPreferences.FILE2;
+import static com.gpxmanager.ProgramPreferences.FILE3;
+import static com.gpxmanager.ProgramPreferences.FILE4;
+import static com.gpxmanager.ProgramPreferences.LOCALE;
+import static com.gpxmanager.ProgramPreferences.LOCALTION_X;
+import static com.gpxmanager.ProgramPreferences.LOCALTION_Y;
+import static com.gpxmanager.ProgramPreferences.getPreference;
+import static com.gpxmanager.ProgramPreferences.setPreference;
 import static com.gpxmanager.Utils.DATE_FORMATER_DD_MM_YYYY;
 import static com.gpxmanager.Utils.DEBUG_DIRECTORY;
 import static com.gpxmanager.Utils.getLabel;
@@ -73,7 +81,6 @@ public final class MyGPXManager extends JFrame {
     private final JMenuItem closeFile;
     private static JMenuItem connectToStravaMenuItem;
     private static MyGPXManager instance;
-    private static Preferences prefs;
     private static JButton saveButton;
     private static MyTabbedPane myTabbedPane;
     private final LinkedList<File> openedFiles = new LinkedList<>();
@@ -90,13 +97,12 @@ public final class MyGPXManager extends JFrame {
         instance = this;
         MyGPXManagerServer.getInstance().checkVersion();
         GPX_PARSER.addExtensionParser(new GarminExtension());
-        prefs = Preferences.userNodeForPackage(getClass());
         Thread.setDefaultUncaughtExceptionHandler((t, e) -> showException(e, true));
-        reopenedFiles.add(new File(prefs.get("MyGPXManager.file1", "")));
-        reopenedFiles.add(new File(prefs.get("MyGPXManager.file2", "")));
-        reopenedFiles.add(new File(prefs.get("MyGPXManager.file3", "")));
-        reopenedFiles.add(new File(prefs.get("MyGPXManager.file4", "")));
-        String locale = prefs.get("MyGPXManager.locale", "en");
+        reopenedFiles.add(new File(getPreference(FILE1, "")));
+        reopenedFiles.add(new File(getPreference(FILE2, "")));
+        reopenedFiles.add(new File(getPreference(FILE3, "")));
+        reopenedFiles.add(new File(getPreference(FILE4, "")));
+        String locale = getPreference(LOCALE, "en");
         Utils.initResources(new Locale.Builder().setLanguage(locale).build());
         saveFile = new JMenuItem(new SaveFileAction());
         saveAsFile = new JMenuItem(new SaveAsFileAction());
@@ -114,7 +120,7 @@ public final class MyGPXManager extends JFrame {
         menuStrava.add(new JMenuItem(new FirstConnectionToStravaAction()));
         connectToStravaMenuItem = new JMenuItem(new ConnectToStravaAction());
         menuStrava.add(connectToStravaMenuItem);
-        connectToStravaMenuItem.setEnabled(!prefs.get("MyGPXManager.strava", "").isBlank());
+        connectToStravaMenuItem.setEnabled(!getPreference("MyGPXManager.strava", "").isBlank());
         JMenu menuAbout = new JMenu("?");
         menuBar.add(menuAbout);
         menuFile.add(new JMenuItem(new OpenFileAction()));
@@ -204,9 +210,9 @@ public final class MyGPXManager extends JFrame {
             }
         });
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        setLocation(Integer.parseInt(prefs.get("MyGPXManager.x", "0")), Integer.parseInt(prefs.get("MyGPXManager.y", "0")));
-        int width = Integer.parseInt(prefs.get("MyGPXManager.width", "0"));
-        int height = Integer.parseInt(prefs.get("MyGPXManager.height", "0"));
+        setLocation(Integer.parseInt(getPreference(LOCALTION_X, "0")), Integer.parseInt(getPreference(LOCALTION_Y, "0")));
+        int width = Integer.parseInt(getPreference(ProgramPreferences.WIDTH, "0"));
+        int height = Integer.parseInt(getPreference(ProgramPreferences.HEIGHT, "0"));
         setSize(width != 0 ? width : screenSize.width, height != 0 ? height : screenSize.height);
         setVisible(true);
     }
@@ -333,10 +339,10 @@ public final class MyGPXManager extends JFrame {
             IdentificationStorage identificationStorage = stravaFirstConfigurationDialog.getIdentificationStorage();
             if (identificationStorage != null) {
                 if (identificationStorage instanceof FileIdentificationStorage) {
-                    // The file contains the datas
+                    // The file contains the data
                     File fileSaved = ((FileIdentificationStorage) identificationStorage).getFile();
-                    prefs.put("MyGPXManager.strava", fileSaved.getAbsolutePath());
-                    connectToStravaMenuItem.setEnabled(!prefs.get("MyGPXManager.strava", "").isBlank());
+                    ProgramPreferences.setPreference(ProgramPreferences.STRAVA, fileSaved.getAbsolutePath());
+                    connectToStravaMenuItem.setEnabled(!getPreference(ProgramPreferences.STRAVA, "").isBlank());
                 }
                 StravaConnection stravaConnection;
                 try {
@@ -351,12 +357,12 @@ public final class MyGPXManager extends JFrame {
 
     static class ConnectToStravaAction extends AbstractAction {
         public ConnectToStravaAction() {
-            super(getLabel("menu.connectStrava"), STRAVA);
+            super(getLabel("menu.connectStrava"), MyGPXManagerImage.STRAVA);
         }
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            File file = new File(prefs.get("MyGPXManager.strava", ""));
+            File file = new File(getPreference(ProgramPreferences.STRAVA, ""));
             FileIdentificationStorage fileIdentificationStorage = new FileIdentificationStorage(file);
 
             StravaConnection stravaConnection;
@@ -460,14 +466,6 @@ public final class MyGPXManager extends JFrame {
 
     public static MyGPXManager getInstance() {
         return instance;
-    }
-
-    public static void setPreference(String key, String value) {
-        prefs.put(key, value);
-    }
-
-    public static String getPreference(String key, String defaultValue) {
-        return prefs.get(key, defaultValue);
     }
 
     class CloseFileAction extends AbstractAction {
@@ -605,11 +603,11 @@ public final class MyGPXManager extends JFrame {
                 AtomicInteger i = new AtomicInteger(1);
                 reopenedFiles.stream()
                         .limit(4)
-                        .forEach(file -> prefs.put("MyGPXManager.file" + i.getAndIncrement(), file.getAbsolutePath()));
-                prefs.put("MyGPXManager.x", String.valueOf(getLocation().x));
-                prefs.put("MyGPXManager.y", String.valueOf(getLocation().y));
-                prefs.put("MyGPXManager.width", String.valueOf(getSize().width));
-                prefs.put("MyGPXManager.height", String.valueOf(getSize().height));
+                        .forEach(file -> setPreference(FILE + i.getAndIncrement(), file.getAbsolutePath()));
+                setPreference(LOCALTION_X, String.valueOf(getLocation().x));
+                setPreference(LOCALTION_Y, String.valueOf(getLocation().y));
+                setPreference(ProgramPreferences.WIDTH, String.valueOf(getSize().width));
+                setPreference(ProgramPreferences.HEIGHT, String.valueOf(getSize().height));
                 cleanDebugFiles();
                 closeDebug();
                 System.exit(0);
@@ -653,7 +651,7 @@ public final class MyGPXManager extends JFrame {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            prefs.put("MyGPXManager.locale", locale.getLanguage());
+            setPreference(LOCALE, locale.getLanguage());
             JOptionPane.showMessageDialog(instance, getLabel("languageChanged"), getLabel("information"), JOptionPane.INFORMATION_MESSAGE);
         }
     }

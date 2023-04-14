@@ -16,7 +16,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
-import java.util.prefs.Preferences;
+
+import static com.gpxmanager.ProgramPreferences.DIR;
+import static com.gpxmanager.ProgramPreferences.getPreference;
+import static com.gpxmanager.ProgramPreferences.setPreference;
 
 public class Utils {
 
@@ -26,14 +29,13 @@ public class Utils {
     public static final String DEBUG_DIRECTORY = "MyGPXManagerDebug";
 
     private static ResourceBundle labels;
-    private static final Preferences prefs = Preferences.userNodeForPackage(Utils.class);
 
     public static File getOpenSaveDirectory() {
-        return new File(prefs.get("MyGPXManager.dir", System.getProperty("user.home")));
+        return new File(getPreference(DIR, System.getProperty("user.home")));
     }
 
     public static void setOpenSaveDirectory(File file) {
-        prefs.put("MyGPXManager.dir", file.getAbsolutePath());
+        setPreference(DIR, file.getAbsolutePath());
     }
 
     public static void initResources(Locale locale) {
