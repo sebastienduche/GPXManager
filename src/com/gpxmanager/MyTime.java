@@ -4,24 +4,26 @@ import com.gpxmanager.gpx.beans.Waypoint;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 public class MyTime {
 
+    public static final int SECONDS_IN_HOUR = 3600;
     private long time;
     private int hours;
     private int minutes;
-    private int secondes;
+    private int seconds;
 
     public MyTime() {
         time = 0;
-        hours = minutes = secondes = 0;
+        hours = minutes = seconds = 0;
     }
 
-    public MyTime(long time, int hours, int minutes, int secondes) {
+    public MyTime(long time, int hours, int minutes, int seconds) {
         this.time = time;
         this.hours = hours;
         this.minutes = minutes;
-        this.secondes = secondes;
+        this.seconds = seconds;
     }
 
     public long getTime() {
@@ -36,14 +38,15 @@ public class MyTime {
         return minutes;
     }
 
-    public int getSecondes() {
-        return secondes;
+    public int getSeconds() {
+        return seconds;
     }
 
     public static MyTime getTrackTime(List<Waypoint> waypoints) {
         List<Date> times = waypoints
                 .stream()
                 .map(Waypoint::getTime)
+                .filter(Objects::nonNull)
                 .sorted()
                 .toList();
         if (times.size() < 2) {
@@ -52,13 +55,7 @@ public class MyTime {
         Date startTime = times.get(0);
         Date endTime = times.get(times.size() - 1);
         long time = endTime.getTime() - startTime.getTime();
-        time /= 1000;
-        long diffMinutes = time / 60;
-        int hours = (int) (time / (60 * 60));
-        int minutes = (int) (diffMinutes - (hours * 60));
-        int secondes = (int) (time - (diffMinutes * 60));
-
-        return new MyTime(time, hours, minutes, secondes);
+        return fromSeconds(time / 1000);
     }
 
     public void add(MyTime myTime) {
@@ -66,17 +63,17 @@ public class MyTime {
             return;
         }
         time += myTime.getTime();
-        long diffMinutes = time / 60;
-        hours = (int) (time / (60 * 60));
-        minutes = (int) (diffMinutes - (hours * 60));
-        secondes = (int) (time - (diffMinutes * 60));
+        MyTime newTime = fromSeconds(time);
+        hours = newTime.getHours();
+        minutes = newTime.getMinutes();
+        seconds = newTime.getSeconds();
     }
 
-    public static MyTime fromSeconds(int totalSeconds) {
-        int diffMinutes = totalSeconds / 60;
-        int hours = totalSeconds / (60 * 60);
-        int minutes = diffMinutes - (hours * 60);
-        int seconds = totalSeconds - (diffMinutes * 60);
+    public static MyTime fromSeconds(long totalSeconds) {
+        long diffMinutes = totalSeconds / 60;
+        int hours = (int) (totalSeconds / SECONDS_IN_HOUR);
+        int minutes = (int) (diffMinutes - (hours * 60));
+        int seconds = (int) (totalSeconds - (diffMinutes * 60));
         return new MyTime(totalSeconds, hours, minutes, seconds);
     }
 
@@ -90,10 +87,10 @@ public class MyTime {
             builder.append(0);
         }
         builder.append(minutes).append("m ");
-        if (secondes < 10) {
+        if (seconds < 10) {
             builder.append(0);
         }
-        builder.append(secondes).append("s ");
+        builder.append(seconds).append("s ");
         return builder.toString();
     }
 }

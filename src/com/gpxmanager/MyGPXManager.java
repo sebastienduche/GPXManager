@@ -65,7 +65,7 @@ import static com.gpxmanager.Utils.DEBUG_DIRECTORY;
 import static com.gpxmanager.Utils.getLabel;
 
 public final class MyGPXManager extends JFrame {
-    public static final String INTERNAL_VERSION = "9.1";
+    public static final String INTERNAL_VERSION = "9.2";
     public static final String VERSION = "4.1";
     private static final MyAutoHideLabel INFO_LABEL = new MyAutoHideLabel();
     private static JMenuItem saveFile;
@@ -606,10 +606,10 @@ public final class MyGPXManager extends JFrame {
                 reopenedFiles.stream()
                         .limit(4)
                         .forEach(file -> prefs.put("MyGPXManager.file" + i.getAndIncrement(), file.getAbsolutePath()));
-                prefs.put("MyGPXManager.x", "" + getLocation().x);
-                prefs.put("MyGPXManager.y", "" + getLocation().y);
-                prefs.put("MyGPXManager.width", "" + getSize().width);
-                prefs.put("MyGPXManager.height", "" + getSize().height);
+                prefs.put("MyGPXManager.x", String.valueOf(getLocation().x));
+                prefs.put("MyGPXManager.y", String.valueOf(getLocation().y));
+                prefs.put("MyGPXManager.width", String.valueOf(getSize().width));
+                prefs.put("MyGPXManager.height", String.valueOf(getSize().height));
                 cleanDebugFiles();
                 closeDebug();
                 System.exit(0);
