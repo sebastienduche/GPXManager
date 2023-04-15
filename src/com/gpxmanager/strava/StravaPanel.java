@@ -22,21 +22,23 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.event.ActionEvent;
-import java.io.BufferedReader;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.io.File;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.gpxmanager.MyGPXManager.GSON;
 import static com.gpxmanager.MyGPXManager.getInstance;
@@ -55,6 +57,7 @@ import static com.gpxmanager.strava.StravaTableModel.COL_VIEW;
 public class StravaPanel extends JPanel implements ITabListener {
 
     private final StravaConnection stravaConnection;
+    private List<Activity> activities;
     private JTable table;
     private StravaTableModel stravaTableModel;
     private JButton downloadAllActivities = new JButton(new DownloadActivitiesAction());
@@ -62,10 +65,13 @@ public class StravaPanel extends JPanel implements ITabListener {
     private final MyAutoHideLabel infoLabel = new MyAutoHideLabel();
 
     private final JLabel labelCount = new JLabel();
+    private final JTextField searchTextField = new JTextField();
+    private String filter;
 
 
     public StravaPanel(StravaConnection stravaConnection, List<Activity> activities) {
         this.stravaConnection = stravaConnection;
+        this.activities = activities;
         setLayout(new MigLayout("", "[grow]", "[][grow]10px[][]"));
         SwingUtilities.invokeLater(() -> {
             stravaTableModel = new StravaTableModel(stravaConnection);
@@ -84,14 +90,46 @@ public class StravaPanel extends JPanel implements ITabListener {
             leftRenderer.setHorizontalAlignment(SwingConstants.LEFT);
             table.getColumnModel().getColumn(COL_ALTITUDE).setCellRenderer(leftRenderer);
             table.setAutoCreateRowSorter(true);
-            add(downloadAllActivities, "split 2");
-            add(downloadNewActivities, "gapleft 10px, wrap");
+            add(downloadAllActivities, "split 4");
+            add(downloadNewActivities, "gapleft 10px");
+            add(new JLabel(), "growx");
+            add(searchTextField, "w 200, align right, wrap");
             add(new JScrollPane(table), "grow, wrap");
             add(labelCount, "alignright, wrap");
             add(infoLabel, "center");
             downloadNewActivities.setEnabled(existStravaFile());
+            searchTextField.addKeyListener(new KeyAdapter() {
+                @Override
+                public void keyPressed(KeyEvent e) {
+                    super.keyPressed(e);
+                    final char keyChar = e.getKeyChar();
+                    String value = searchTextField.getText();
+                    if (Character.isLetterOrDigit(keyChar)) {
+                        value += keyChar;
+                    } else if (e.getKeyCode() == KeyEvent.VK_BACK_SPACE && !value.isEmpty()) {
+                        value = value.substring(0, value.length() - 1);
+                    }
+                    filterActivities(value);
+                }
+            });
         });
 
+    }
+
+    private void filterActivities(String value) {
+        if (value == null || value.isBlank()) {
+            filter = "";
+        } else {
+            filter = value;
+        }
+        setActivities(activities
+                .stream()
+                .filter(this::filterActivity)
+                .collect(Collectors.toList()));
+    }
+
+    private boolean filterActivity(Activity activity) {
+        return activity.getName().toLowerCase().contains(filter.toLowerCase());
     }
 
     private boolean existStravaFile() {
@@ -179,39 +217,37 @@ public class StravaPanel extends JPanel implements ITabListener {
     }
 
     private void downloadLatestActivities(String existingFile) {
-        try (FileReader fileReader = new FileReader(existingFile);
-             BufferedReader bufferedReader = new BufferedReader(fileReader)) {
-            String json = bufferedReader.lines().reduce(String::concat).orElseThrow();
-            infoLabel.setText(getLabel("download"), false);
-            setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-            SwingUtilities.invokeLater(() -> {
-                List<Activity> activities = new ArrayList<>(List.of(GSON.fromJson(json, Activity[].class)));
-                Long maxId = activities.stream().map(Activity::getId).max(Long::compareTo).orElseThrow();
-                List<Activity> newActivities = new ArrayList<>();
-                List<Activity> collect;
-                int page = 1;
-                do {
-                    List<Activity> currentAthleteActivities = stravaConnection.getStrava().getCurrentAthleteActivities(page, 100);
-                    collect = currentAthleteActivities.stream().filter(activity -> activity.getId() > maxId).toList();
-                    newActivities.addAll(collect);
-                    page++;
-                } while (!collect.isEmpty());
-                activities.addAll(newActivities);
-                activities = activities.stream().sorted(Comparator.comparingLong(Activity::getId).reversed()).toList();
-                setActivities(activities);
-                try {
-                    FileWriter fileWriter = new FileWriter(existingFile);
-                    fileWriter.write(GSON.toJson(activities));
-                    fileWriter.flush();
-                    fileWriter.close();
-                } catch (IOException ex) {
-                    throw new RuntimeException(ex);
-                }
-                infoLabel.setText(MessageFormat.format(getLabel("strava.countNew"), newActivities.size()), true);
+        setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+        infoLabel.setText(getLabel("download"), false);
+        SwingUtilities.invokeLater(() -> {
+            Long maxId = activities.stream().map(Activity::getId).max(Long::compareTo).orElseThrow();
+            List<Activity> newActivities = new ArrayList<>();
+            List<Activity> collect;
+            int page = 1;
+            do {
+                List<Activity> currentAthleteActivities = stravaConnection.getStrava().getCurrentAthleteActivities(page, 100);
+                collect = currentAthleteActivities.stream().filter(activity -> activity.getId() > maxId).toList();
+                newActivities.addAll(collect);
+                page++;
+            } while (!collect.isEmpty());
+            if (newActivities.isEmpty()) {
+                infoLabel.setText(MessageFormat.format(getLabel("strava.countNew"), 0), true);
                 setCursor(Cursor.getDefaultCursor());
-            });
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+                return;
+            }
+            activities.addAll(newActivities);
+            activities = activities.stream().sorted(Comparator.comparingLong(Activity::getId).reversed()).toList();
+            setActivities(activities);
+            try {
+                FileWriter fileWriter = new FileWriter(existingFile);
+                fileWriter.write(GSON.toJson(activities));
+                fileWriter.flush();
+                fileWriter.close();
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+            infoLabel.setText(MessageFormat.format(getLabel("strava.countNew"), newActivities.size()), true);
+            setCursor(Cursor.getDefaultCursor());
+        });
     }
 }

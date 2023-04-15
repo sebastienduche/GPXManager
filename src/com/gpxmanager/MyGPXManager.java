@@ -13,6 +13,7 @@ import com.mytabbedpane.MyTabbedPane;
 import net.miginfocom.swing.MigLayout;
 import org.jstrava.StravaConnection;
 import org.jstrava.StravaFirstConfigurationDialog;
+import org.jstrava.entities.Activity;
 import org.jstrava.user.FileIdentificationStorage;
 import org.jstrava.user.IdentificationStorage;
 import org.xml.sax.SAXException;
@@ -41,10 +42,12 @@ import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -53,7 +56,10 @@ import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -66,6 +72,8 @@ import static com.gpxmanager.ProgramPreferences.FILE4;
 import static com.gpxmanager.ProgramPreferences.LOCALE;
 import static com.gpxmanager.ProgramPreferences.LOCALTION_X;
 import static com.gpxmanager.ProgramPreferences.LOCALTION_Y;
+import static com.gpxmanager.ProgramPreferences.STRAVA;
+import static com.gpxmanager.ProgramPreferences.STRAVA_ALL_DATA;
 import static com.gpxmanager.ProgramPreferences.getPreference;
 import static com.gpxmanager.ProgramPreferences.setPreference;
 import static com.gpxmanager.Utils.DATE_FORMATER_DD_MM_YYYY;
@@ -73,13 +81,14 @@ import static com.gpxmanager.Utils.DEBUG_DIRECTORY;
 import static com.gpxmanager.Utils.getLabel;
 
 public final class MyGPXManager extends JFrame {
-    public static final String INTERNAL_VERSION = "9.2";
+    public static final String INTERNAL_VERSION = "9.4";
     public static final String VERSION = "4.1";
     private static final MyAutoHideLabel INFO_LABEL = new MyAutoHideLabel();
     private static JMenuItem saveFile;
     private static JMenuItem saveAsFile;
     private final JMenuItem closeFile;
     private static JMenuItem connectToStravaMenuItem;
+    static JButton stravaButton = null;
     private static MyGPXManager instance;
     private static JButton saveButton;
     private static MyTabbedPane myTabbedPane;
@@ -106,6 +115,8 @@ public final class MyGPXManager extends JFrame {
         Utils.initResources(new Locale.Builder().setLanguage(locale).build());
         saveFile = new JMenuItem(new SaveFileAction());
         saveAsFile = new JMenuItem(new SaveAsFileAction());
+        saveButton = new JButton(new SaveFileAction());
+        saveButton.setText("");
         setTitle("MyGPXManager");
         setLayout(new BorderLayout());
         JMenuBar menuBar = new JMenuBar();
@@ -120,7 +131,7 @@ public final class MyGPXManager extends JFrame {
         menuStrava.add(new JMenuItem(new FirstConnectionToStravaAction()));
         connectToStravaMenuItem = new JMenuItem(new ConnectToStravaAction());
         menuStrava.add(connectToStravaMenuItem);
-        connectToStravaMenuItem.setEnabled(!getPreference("MyGPXManager.strava", "").isBlank());
+        connectToStravaMenuItem.setEnabled(!getPreference(STRAVA, "").isBlank());
         JMenu menuAbout = new JMenu("?");
         menuBar.add(menuAbout);
         menuFile.add(new JMenuItem(new OpenFileAction()));
@@ -184,8 +195,6 @@ public final class MyGPXManager extends JFrame {
         final JButton openButton = new JButton(new OpenFileAction());
         openButton.setText("");
         toolBar.add(openButton);
-        saveButton = new JButton(new SaveFileAction());
-        saveButton.setText("");
         toolBar.add(saveButton);
         toolBar.addSeparator();
         final JButton mergeButton = new JButton(new MergeAction());
@@ -194,6 +203,11 @@ public final class MyGPXManager extends JFrame {
         final JButton invertButton = new JButton(new InvertAction());
         invertButton.setText("");
         toolBar.add(invertButton);
+        toolBar.addSeparator();
+        stravaButton = new JButton(new ConnectToStravaAction());
+        stravaButton.setText("");
+        stravaButton.setEnabled(!getPreference(STRAVA, "").isBlank());
+        toolBar.add(stravaButton);
         toolBar.setFloatable(true);
         setFileOpened(null);
         add(toolBar, BorderLayout.NORTH);
@@ -343,6 +357,7 @@ public final class MyGPXManager extends JFrame {
                     File fileSaved = ((FileIdentificationStorage) identificationStorage).getFile();
                     ProgramPreferences.setPreference(ProgramPreferences.STRAVA, fileSaved.getAbsolutePath());
                     connectToStravaMenuItem.setEnabled(!getPreference(ProgramPreferences.STRAVA, "").isBlank());
+                    stravaButton.setEnabled(!getPreference(ProgramPreferences.STRAVA, "").isBlank());
                 }
                 StravaConnection stravaConnection;
                 try {
@@ -350,7 +365,7 @@ public final class MyGPXManager extends JFrame {
                 } catch (IOException | URISyntaxException ex) {
                     throw new RuntimeException(ex);
                 }
-                myTabbedPane.addTab(getLabel("menu.strava"), new StravaPanel(stravaConnection, stravaConnection.getStrava().getCurrentAthleteActivities(1, 50)), true);
+                myTabbedPane.addTab(getLabel("menu.strava"), MyGPXManagerImage.STRAVA, new StravaPanel(stravaConnection, stravaConnection.getStrava().getCurrentAthleteActivities(1, 50)), true);
             }
         }
     }
@@ -373,7 +388,12 @@ public final class MyGPXManager extends JFrame {
                 throw new RuntimeException(ex);
             }
 
-            myTabbedPane.addTab(getLabel("menu.strava"), new StravaPanel(stravaConnection, stravaConnection.getStrava().getCurrentAthleteActivities(1, 50)), true);
+            List<Activity> activities = loadDataIfExist();
+            if (activities.isEmpty()) {
+                activities = stravaConnection.getStrava().getCurrentAthleteActivities(1, 50);
+            }
+
+            myTabbedPane.addTab(getLabel("menu.strava"), MyGPXManagerImage.STRAVA, new StravaPanel(stravaConnection, activities), true);
         }
     }
 
@@ -396,6 +416,20 @@ public final class MyGPXManager extends JFrame {
             throw new RuntimeException(e);
         }
         setInfoLabel(MessageFormat.format(getLabel("file.saved"), file.getAbsolutePath()));
+    }
+
+    private static List<Activity> loadDataIfExist() {
+        String existingFile = getPreference(STRAVA_ALL_DATA, null);
+        if (existingFile != null && new File(existingFile).exists()) {
+            try (FileReader fileReader = new FileReader(existingFile);
+                 BufferedReader bufferedReader = new BufferedReader(fileReader)) {
+                String json = bufferedReader.lines().reduce(String::concat).orElseThrow();
+                return new ArrayList<>(List.of(GSON.fromJson(json, Activity[].class)));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return Collections.emptyList();
     }
 
     private void showException(Throwable e, boolean showWindowErrorAndExit) {
