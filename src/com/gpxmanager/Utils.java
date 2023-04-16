@@ -101,4 +101,11 @@ public class Utils {
         return instance.format(value * 3.6);
     }
 
+    public static int safeParseInt(String value, int defaultValue) {
+        try {
+            return Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            return defaultValue;
+        }
+    }
 }
