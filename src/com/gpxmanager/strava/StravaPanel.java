@@ -21,16 +21,19 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.text.BadLocationException;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.event.ActionEvent;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -46,7 +49,6 @@ import static com.gpxmanager.ProgramPreferences.STRAVA_ALL_DATA;
 import static com.gpxmanager.ProgramPreferences.getPreference;
 import static com.gpxmanager.ProgramPreferences.setPreference;
 import static com.gpxmanager.Utils.getLabel;
-import static com.gpxmanager.Utils.safeParseInt;
 import static com.gpxmanager.strava.StravaTableModel.COL_ALTITUDE;
 import static com.gpxmanager.strava.StravaTableModel.COL_DISTANCE;
 import static com.gpxmanager.strava.StravaTableModel.COL_DOWNLOAD;
@@ -67,8 +69,8 @@ public class StravaPanel extends JPanel implements ITabListener {
 
     private final JLabel labelCount = new JLabel();
     private final JTextField searchTextField = new JTextField();
-    private final JTextField minDistanceTextField = new JTextField();
-    private final JTextField maxDistanceTextField = new JTextField();
+    private final JSpinner minDistanceSpinner = new JSpinner(new SpinnerNumberModel(0, 0, 1000, 1));
+    private final JSpinner maxDistanceSpinner = new JSpinner(new SpinnerNumberModel(1000, 0, 1000, 1));
     private String filter;
     private int minDistance = 0;
     private int maxDistance = 1000;
@@ -99,60 +101,55 @@ public class StravaPanel extends JPanel implements ITabListener {
             add(downloadNewActivities, "gapleft 10px");
             add(new JLabel(), "growx");
             add(new JLabel(getLabel("filter.fromDistance")));
-            add(minDistanceTextField, "w 50, align right");
+            add(minDistanceSpinner, "w 50, align right");
             add(new JLabel(getLabel("filter.toDistance")));
-            add(maxDistanceTextField, "w 50, align right");
+            add(maxDistanceSpinner, "w 50, align right");
             add(searchTextField, "w 200, align right, wrap");
             add(new JScrollPane(table), "grow, wrap");
             add(labelCount, "alignright, wrap");
             add(infoLabel, "center");
             downloadNewActivities.setEnabled(existStravaFile());
-            searchTextField.addKeyListener(new KeyAdapter() {
+            searchTextField.getDocument().addDocumentListener(new DocumentListener() {
                 @Override
-                public void keyPressed(KeyEvent e) {
-                    super.keyPressed(e);
-                    final char keyChar = e.getKeyChar();
-                    String value = searchTextField.getText();
-                    if (Character.isLetterOrDigit(keyChar)) {
-                        value += keyChar;
-                    } else if (e.getKeyCode() == KeyEvent.VK_BACK_SPACE && !value.isEmpty()) {
-                        value = value.substring(0, value.length() - 1);
+                public void insertUpdate(DocumentEvent e) {
+                    performTextChange(e);
+                }
+
+                @Override
+                public void removeUpdate(DocumentEvent e) {
+                    performTextChange(e);
+                }
+
+                @Override
+                public void changedUpdate(DocumentEvent e) {
+                    performTextChange(e);
+                }
+
+                private void performTextChange(DocumentEvent e) {
+                    String s = extractText(e);
+                    if (s != null) {
+                        filterActivities(s, minDistance, maxDistance);
                     }
-                    filterActivities(value, minDistance, maxDistance);
                 }
             });
-            minDistanceTextField.addKeyListener(new KeyAdapter() {
-                @Override
-                public void keyPressed(KeyEvent e) {
-                    super.keyPressed(e);
-                    final char keyChar = e.getKeyChar();
-                    String value = minDistanceTextField.getText();
-                    if (Character.isLetterOrDigit(keyChar)) {
-                        value += keyChar;
-                    } else if (e.getKeyCode() == KeyEvent.VK_BACK_SPACE && !value.isEmpty()) {
-                        value = value.substring(0, value.length() - 1);
-                    }
-                    int min = safeParseInt(value, 0);
-                    filterActivities(filter, min, maxDistance);
-                }
+            minDistanceSpinner.addChangeListener(e -> {
+                JSpinner spinner = (JSpinner) e.getSource();
+                filterActivities(filter, (int) spinner.getValue(), maxDistance);
             });
-            maxDistanceTextField.addKeyListener(new KeyAdapter() {
-                @Override
-                public void keyPressed(KeyEvent e) {
-                    super.keyPressed(e);
-                    final char keyChar = e.getKeyChar();
-                    String value = maxDistanceTextField.getText();
-                    if (Character.isLetterOrDigit(keyChar)) {
-                        value += keyChar;
-                    } else if (e.getKeyCode() == KeyEvent.VK_BACK_SPACE && !value.isEmpty()) {
-                        value = value.substring(0, value.length() - 1);
-                    }
-                    int max = safeParseInt(value, 1000);
-                    filterActivities(filter, minDistance, max);
-                }
+            maxDistanceSpinner.addChangeListener(e -> {
+                JSpinner spinner = (JSpinner) e.getSource();
+                filterActivities(filter, minDistance, (int) spinner.getValue());
             });
         });
 
+    }
+
+    private static String extractText(DocumentEvent e) {
+        try {
+            return e.getDocument().getText(0, e.getDocument().getLength());
+        } catch (BadLocationException ignored) {
+        }
+        return "0";
     }
 
     private void filterActivities(String value, int min, int max) {
@@ -161,7 +158,6 @@ public class StravaPanel extends JPanel implements ITabListener {
         } else {
             filter = value;
         }
-        System.out.println("min=" + min + " max=" + max);
         minDistance = min;
         maxDistance = max;
         setActivities(activities
