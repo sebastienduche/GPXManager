@@ -49,6 +49,7 @@ import static com.gpxmanager.ProgramPreferences.STRAVA_ALL_DATA;
 import static com.gpxmanager.ProgramPreferences.getPreference;
 import static com.gpxmanager.ProgramPreferences.setPreference;
 import static com.gpxmanager.Utils.getLabel;
+import static com.gpxmanager.Utils.roundValue;
 import static com.gpxmanager.strava.StravaTableModel.COL_ALTITUDE;
 import static com.gpxmanager.strava.StravaTableModel.COL_DISTANCE;
 import static com.gpxmanager.strava.StravaTableModel.COL_DOWNLOAD;
@@ -68,6 +69,7 @@ public class StravaPanel extends JPanel implements ITabListener {
     private final MyAutoHideLabel infoLabel = new MyAutoHideLabel();
 
     private final JLabel labelCount = new JLabel();
+    private final JLabel labelKm = new JLabel();
     private final JTextField searchTextField = new JTextField();
     private final JSpinner minDistanceSpinner = new JSpinner(new SpinnerNumberModel(0, 0, 1000, 1));
     private final JSpinner maxDistanceSpinner = new JSpinner(new SpinnerNumberModel(1000, 0, 1000, 1));
@@ -106,6 +108,7 @@ public class StravaPanel extends JPanel implements ITabListener {
             add(maxDistanceSpinner, "w 50, align right");
             add(searchTextField, "w 200, align right, wrap");
             add(new JScrollPane(table), "grow, wrap");
+            add(labelKm, "split 2, growx");
             add(labelCount, "alignright, wrap");
             add(infoLabel, "center");
             downloadNewActivities.setEnabled(existStravaFile());
@@ -236,6 +239,11 @@ public class StravaPanel extends JPanel implements ITabListener {
     private void setActivities(List<Activity> activities) {
         stravaTableModel.setActivities(activities);
         labelCount.setText(MessageFormat.format(getLabel("strava.activities.count"), activities.size()));
+        String totalDistance = roundValue(activities.stream()
+                .map(Activity::getDistance)
+                .reduce(Double::sum)
+                .orElseGet(() -> (double) 0) / 1000);
+        labelKm.setText(MessageFormat.format(getLabel("strava.km"), totalDistance));
     }
 
     class DownloadNewActivitiesAction extends AbstractAction {
