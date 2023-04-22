@@ -14,9 +14,11 @@ import com.mytabbedpane.TabEvent;
 import net.miginfocom.swing.MigLayout;
 import org.jstrava.StravaConnection;
 import org.jstrava.entities.Activity;
+import org.jstrava.entities.Gear;
 
 import javax.swing.AbstractAction;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -38,7 +40,10 @@ import java.io.File;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.gpxmanager.MyGPXManager.GSON;
@@ -62,6 +67,8 @@ public class StravaPanel extends JPanel implements ITabListener {
 
     private final StravaConnection stravaConnection;
     private List<Activity> activities;
+
+    private List<Gear> gears;
     private JTable table;
     private StravaTableModel stravaTableModel;
     private JButton downloadAllActivities = new JButton(new DownloadActivitiesAction());
@@ -73,9 +80,12 @@ public class StravaPanel extends JPanel implements ITabListener {
     private final JTextField searchTextField = new JTextField();
     private final JSpinner minDistanceSpinner = new JSpinner(new SpinnerNumberModel(0, 0, 1000, 1));
     private final JSpinner maxDistanceSpinner = new JSpinner(new SpinnerNumberModel(1000, 0, 1000, 1));
+
+    private final JComboBox<GearItem> comboGear = new JComboBox<>();
     private String filter;
     private int minDistance = 0;
     private int maxDistance = 1000;
+    private GearItem selectedGear;
 
 
     public StravaPanel(StravaConnection stravaConnection, List<Activity> activities) {
@@ -85,6 +95,10 @@ public class StravaPanel extends JPanel implements ITabListener {
         SwingUtilities.invokeLater(() -> {
             stravaTableModel = new StravaTableModel(stravaConnection);
             setActivities(activities);
+            gears = enrichWithGear(activities);
+            comboGear.removeAllItems();
+            comboGear.addItem(new GearItem("", ""));
+            gears.forEach(gear -> comboGear.addItem(new GearItem(gear.getId(), gear.getName())));
             table = new JTable(stravaTableModel);
             infoLabel.setForeground(Color.red);
             table.getColumnModel().getColumn(COL_TIME).setCellRenderer(new DurationCellRenderer());
@@ -99,9 +113,10 @@ public class StravaPanel extends JPanel implements ITabListener {
             leftRenderer.setHorizontalAlignment(SwingConstants.LEFT);
             table.getColumnModel().getColumn(COL_ALTITUDE).setCellRenderer(leftRenderer);
             table.setAutoCreateRowSorter(true);
-            add(downloadAllActivities, "split 8");
+            add(downloadAllActivities, "split 9");
             add(downloadNewActivities, "gapleft 10px");
             add(new JLabel(), "growx");
+            add(comboGear);
             add(new JLabel(getLabel("filter.fromDistance")));
             add(minDistanceSpinner, "w 50, align right");
             add(new JLabel(getLabel("filter.toDistance")));
@@ -129,17 +144,18 @@ public class StravaPanel extends JPanel implements ITabListener {
                 }
 
                 private void performTextChange(DocumentEvent e) {
-                    filterActivities(extractText(e), minDistance, maxDistance);
+                    filterActivities(extractText(e), minDistance, maxDistance, selectedGear);
                 }
             });
             minDistanceSpinner.addChangeListener(e -> {
                 JSpinner spinner = (JSpinner) e.getSource();
-                filterActivities(filter, (int) spinner.getValue(), maxDistance);
+                filterActivities(filter, (int) spinner.getValue(), maxDistance, selectedGear);
             });
             maxDistanceSpinner.addChangeListener(e -> {
                 JSpinner spinner = (JSpinner) e.getSource();
-                filterActivities(filter, minDistance, (int) spinner.getValue());
+                filterActivities(filter, minDistance, (int) spinner.getValue(), selectedGear);
             });
+            comboGear.addItemListener(e -> filterActivities(filter, minDistance, maxDistance, (GearItem) e.getItem()));
         });
 
     }
@@ -152,7 +168,7 @@ public class StravaPanel extends JPanel implements ITabListener {
         return null;
     }
 
-    private void filterActivities(String value, int min, int max) {
+    private void filterActivities(String value, int min, int max, GearItem gear) {
         if (value == null || value.isBlank()) {
             filter = "";
         } else {
@@ -160,6 +176,7 @@ public class StravaPanel extends JPanel implements ITabListener {
         }
         minDistance = min;
         maxDistance = max;
+        selectedGear = gear;
         setActivities(activities
                 .stream()
                 .filter(this::filterActivity)
@@ -169,6 +186,7 @@ public class StravaPanel extends JPanel implements ITabListener {
     private boolean filterActivity(Activity activity) {
         return activity.getDistance() >= (minDistance * METER_IN_KM) &&
                 activity.getDistance() <= (maxDistance * METER_IN_KM) &&
+                (selectedGear == null || selectedGear.getId().isBlank() || selectedGear.getId().equals(activity.getGearId())) &&
                 (filter.isBlank() || activity.getName().toLowerCase().contains(filter.toLowerCase()));
     }
 
@@ -217,10 +235,14 @@ public class StravaPanel extends JPanel implements ITabListener {
             setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
             SwingUtilities.invokeLater(() -> {
                 List<Activity> currentAthleteActivities = stravaConnection.getStrava().getCurrentAthleteActivitiesAll();
+                gears = enrichWithGear(currentAthleteActivities);
                 setActivities(currentAthleteActivities);
                 String json = GSON.toJson(currentAthleteActivities);
                 writeToFile(json, filePanel.getFile());
                 infoLabel.setText("", true);
+                comboGear.removeAllItems();
+                comboGear.addItem(new GearItem("", ""));
+                gears.forEach(gear -> comboGear.addItem(new GearItem(gear.getId(), gear.getName())));
                 setCursor(Cursor.getDefaultCursor());
             });
         }
@@ -275,10 +297,52 @@ public class StravaPanel extends JPanel implements ITabListener {
             }
             activities.addAll(newActivities);
             activities = activities.stream().sorted(Comparator.comparingLong(Activity::getId).reversed()).toList();
+            gears = enrichWithGear(activities);
             setActivities(activities);
             writeToFile(GSON.toJson(activities), new File(existingFile));
+            comboGear.removeAllItems();
+            comboGear.addItem(new GearItem("", ""));
+            gears.forEach(gear -> comboGear.addItem(new GearItem(gear.getId(), gear.getName())));
             infoLabel.setText(MessageFormat.format(getLabel("strava.countNew"), newActivities.size()), true);
             setCursor(Cursor.getDefaultCursor());
         });
+    }
+
+    private List<Gear> enrichWithGear(List<Activity> activities) {
+        List<String> gearIDs = activities
+                .stream()
+                .map(Activity::getGearId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .collect(Collectors.toList());
+
+        Map<String, Gear> map = new HashMap<>();
+        activities
+                .stream()
+                .map(Activity::getGear)
+                .filter(Objects::nonNull)
+                .distinct()
+                .forEach(gear -> {
+                    if (!map.containsKey(gear.getId())) {
+                        map.put(gear.getId(), gear);
+                    }
+                });
+
+        for (String gearID : gearIDs) {
+            if (!map.containsKey(gearID)) {
+                Gear gear = stravaConnection.getStrava().findGear(gearID);
+                map.put(gearID, gear);
+            }
+        }
+
+        for (Activity activity : activities) {
+            if (activity.getGear() == null) {
+                Gear gear = map.get(activity.getGearId());
+                if (gear != null) {
+                    activity.setGear(gear);
+                }
+            }
+        }
+        return map.values().stream().toList();
     }
 }
