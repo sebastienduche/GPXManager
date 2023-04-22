@@ -27,6 +27,7 @@ public class Utils {
     public static final SimpleDateFormat DATE_HOUR_MINUTE = new SimpleDateFormat("yyyy-MM-dd kk:mm");
     public static final DateTimeFormatter DATE_FORMATER_DD_MM_YYYY = DateTimeFormatter.ofPattern("dd-MM-yyyy");
     public static final String DEBUG_DIRECTORY = "MyGPXManagerDebug";
+    public static final int METER_IN_KM = 1000;
 
     private static ResourceBundle labels;
 
@@ -106,6 +107,17 @@ public class Utils {
             return Integer.parseInt(value);
         } catch (NumberFormatException e) {
             return defaultValue;
+        }
+    }
+
+    public static void writeToFile(String content, File file) {
+        try {
+            FileWriter fileWriter = new FileWriter(file);
+            fileWriter.write(content);
+            fileWriter.flush();
+            fileWriter.close();
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
         }
     }
 }

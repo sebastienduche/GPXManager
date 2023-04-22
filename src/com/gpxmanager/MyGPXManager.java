@@ -70,8 +70,8 @@ import static com.gpxmanager.ProgramPreferences.FILE2;
 import static com.gpxmanager.ProgramPreferences.FILE3;
 import static com.gpxmanager.ProgramPreferences.FILE4;
 import static com.gpxmanager.ProgramPreferences.LOCALE;
-import static com.gpxmanager.ProgramPreferences.LOCALTION_X;
-import static com.gpxmanager.ProgramPreferences.LOCALTION_Y;
+import static com.gpxmanager.ProgramPreferences.LOCATION_X;
+import static com.gpxmanager.ProgramPreferences.LOCATION_Y;
 import static com.gpxmanager.ProgramPreferences.STRAVA;
 import static com.gpxmanager.ProgramPreferences.STRAVA_ALL_DATA;
 import static com.gpxmanager.ProgramPreferences.getPreference;
@@ -224,7 +224,7 @@ public final class MyGPXManager extends JFrame {
             }
         });
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        setLocation(Integer.parseInt(getPreference(LOCALTION_X, "0")), Integer.parseInt(getPreference(LOCALTION_Y, "0")));
+        setLocation(Integer.parseInt(getPreference(LOCATION_X, "0")), Integer.parseInt(getPreference(LOCATION_Y, "0")));
         int width = Integer.parseInt(getPreference(ProgramPreferences.WIDTH, "0"));
         int height = Integer.parseInt(getPreference(ProgramPreferences.HEIGHT, "0"));
         setSize(width != 0 ? width : screenSize.width, height != 0 ? height : screenSize.height);
@@ -638,8 +638,8 @@ public final class MyGPXManager extends JFrame {
                 reopenedFiles.stream()
                         .limit(4)
                         .forEach(file -> setPreference(FILE + i.getAndIncrement(), file.getAbsolutePath()));
-                setPreference(LOCALTION_X, String.valueOf(getLocation().x));
-                setPreference(LOCALTION_Y, String.valueOf(getLocation().y));
+                setPreference(LOCATION_X, String.valueOf(getLocation().x));
+                setPreference(LOCATION_Y, String.valueOf(getLocation().y));
                 setPreference(ProgramPreferences.WIDTH, String.valueOf(getSize().width));
                 setPreference(ProgramPreferences.HEIGHT, String.valueOf(getSize().height));
                 cleanDebugFiles();

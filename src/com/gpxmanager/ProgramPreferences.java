@@ -11,8 +11,8 @@ public class ProgramPreferences {
     public static String FILE3 = "MyGPXManager.file3";
     public static String FILE4 = "MyGPXManager.file4";
     public static String LOCALE = "MyGPXManager.locale";
-    public static String LOCALTION_X = "MyGPXManager.x";
-    public static String LOCALTION_Y = "MyGPXManager.y";
+    public static String LOCATION_X = "MyGPXManager.x";
+    public static String LOCATION_Y = "MyGPXManager.y";
     public static String WIDTH = "MyGPXManager.width";
     public static String HEIGHT = "MyGPXManager.height";
     public static String STRAVA = "MyGPXManager.strava";

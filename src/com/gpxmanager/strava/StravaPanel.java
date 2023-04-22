@@ -35,8 +35,6 @@ import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.event.ActionEvent;
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -48,8 +46,10 @@ import static com.gpxmanager.MyGPXManager.getInstance;
 import static com.gpxmanager.ProgramPreferences.STRAVA_ALL_DATA;
 import static com.gpxmanager.ProgramPreferences.getPreference;
 import static com.gpxmanager.ProgramPreferences.setPreference;
+import static com.gpxmanager.Utils.METER_IN_KM;
 import static com.gpxmanager.Utils.getLabel;
 import static com.gpxmanager.Utils.roundValue;
+import static com.gpxmanager.Utils.writeToFile;
 import static com.gpxmanager.strava.StravaTableModel.COL_ALTITUDE;
 import static com.gpxmanager.strava.StravaTableModel.COL_DISTANCE;
 import static com.gpxmanager.strava.StravaTableModel.COL_DOWNLOAD;
@@ -129,10 +129,7 @@ public class StravaPanel extends JPanel implements ITabListener {
                 }
 
                 private void performTextChange(DocumentEvent e) {
-                    String s = extractText(e);
-                    if (s != null) {
-                        filterActivities(s, minDistance, maxDistance);
-                    }
+                    filterActivities(extractText(e), minDistance, maxDistance);
                 }
             });
             minDistanceSpinner.addChangeListener(e -> {
@@ -152,7 +149,7 @@ public class StravaPanel extends JPanel implements ITabListener {
             return e.getDocument().getText(0, e.getDocument().getLength());
         } catch (BadLocationException ignored) {
         }
-        return "0";
+        return null;
     }
 
     private void filterActivities(String value, int min, int max) {
@@ -170,8 +167,8 @@ public class StravaPanel extends JPanel implements ITabListener {
     }
 
     private boolean filterActivity(Activity activity) {
-        return activity.getDistance() >= (minDistance * 1000) &&
-                activity.getDistance() <= (maxDistance * 1000) &&
+        return activity.getDistance() >= (minDistance * METER_IN_KM) &&
+                activity.getDistance() <= (maxDistance * METER_IN_KM) &&
                 (filter.isBlank() || activity.getName().toLowerCase().contains(filter.toLowerCase()));
     }
 
@@ -222,14 +219,7 @@ public class StravaPanel extends JPanel implements ITabListener {
                 List<Activity> currentAthleteActivities = stravaConnection.getStrava().getCurrentAthleteActivitiesAll();
                 setActivities(currentAthleteActivities);
                 String json = GSON.toJson(currentAthleteActivities);
-                try {
-                    FileWriter fileWriter = new FileWriter(filePanel.getFile());
-                    fileWriter.write(json);
-                    fileWriter.flush();
-                    fileWriter.close();
-                } catch (IOException ex) {
-                    throw new RuntimeException(ex);
-                }
+                writeToFile(json, filePanel.getFile());
                 infoLabel.setText("", true);
                 setCursor(Cursor.getDefaultCursor());
             });
@@ -242,7 +232,7 @@ public class StravaPanel extends JPanel implements ITabListener {
         String totalDistance = roundValue(activities.stream()
                 .map(Activity::getDistance)
                 .reduce(Double::sum)
-                .orElseGet(() -> (double) 0) / 1000);
+                .orElseGet(() -> (double) 0) / METER_IN_KM);
         labelKm.setText(MessageFormat.format(getLabel("strava.km"), totalDistance));
     }
 
@@ -286,14 +276,7 @@ public class StravaPanel extends JPanel implements ITabListener {
             activities.addAll(newActivities);
             activities = activities.stream().sorted(Comparator.comparingLong(Activity::getId).reversed()).toList();
             setActivities(activities);
-            try {
-                FileWriter fileWriter = new FileWriter(existingFile);
-                fileWriter.write(GSON.toJson(activities));
-                fileWriter.flush();
-                fileWriter.close();
-            } catch (IOException ex) {
-                throw new RuntimeException(ex);
-            }
+            writeToFile(GSON.toJson(activities), new File(existingFile));
             infoLabel.setText(MessageFormat.format(getLabel("strava.countNew"), newActivities.size()), true);
             setCursor(Cursor.getDefaultCursor());
         });
