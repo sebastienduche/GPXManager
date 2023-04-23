@@ -13,6 +13,7 @@ import com.mytabbedpane.ITabListener;
 import com.mytabbedpane.TabEvent;
 import net.miginfocom.swing.MigLayout;
 import org.jstrava.StravaConnection;
+import org.jstrava.StravaException;
 import org.jstrava.entities.Activity;
 import org.jstrava.entities.Gear;
 
@@ -91,14 +92,13 @@ public class StravaPanel extends JPanel implements ITabListener {
     public StravaPanel(StravaConnection stravaConnection, List<Activity> activities) {
         this.stravaConnection = stravaConnection;
         this.activities = activities;
+        searchTextField.setToolTipText(getLabel("strava.search"));
         setLayout(new MigLayout("", "[grow]", "[][grow]10px[][]"));
         SwingUtilities.invokeLater(() -> {
             stravaTableModel = new StravaTableModel(stravaConnection);
             setActivities(activities);
             gears = enrichWithGear(activities);
-            comboGear.removeAllItems();
-            comboGear.addItem(new GearItem("", ""));
-            gears.forEach(gear -> comboGear.addItem(new GearItem(gear.getId(), gear.getName())));
+            populateGearCombo();
             table = new JTable(stravaTableModel);
             infoLabel.setForeground(Color.red);
             table.getColumnModel().getColumn(COL_TIME).setCellRenderer(new DurationCellRenderer());
@@ -158,6 +158,12 @@ public class StravaPanel extends JPanel implements ITabListener {
             comboGear.addItemListener(e -> filterActivities(filter, minDistance, maxDistance, (GearItem) e.getItem()));
         });
 
+    }
+
+    private void populateGearCombo() {
+        comboGear.removeAllItems();
+        comboGear.addItem(new GearItem("", getLabel("strava.all.bikes")));
+        gears.forEach(gear -> comboGear.addItem(new GearItem(gear.getId(), gear.getName())));
     }
 
     private static String extractText(DocumentEvent e) {
@@ -234,16 +240,20 @@ public class StravaPanel extends JPanel implements ITabListener {
             infoLabel.setText(getLabel("download"), false);
             setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
             SwingUtilities.invokeLater(() -> {
-                List<Activity> currentAthleteActivities = stravaConnection.getStrava().getCurrentAthleteActivitiesAll();
-                gears = enrichWithGear(currentAthleteActivities);
-                setActivities(currentAthleteActivities);
-                String json = GSON.toJson(currentAthleteActivities);
-                writeToFile(json, filePanel.getFile());
-                infoLabel.setText("", true);
-                comboGear.removeAllItems();
-                comboGear.addItem(new GearItem("", ""));
-                gears.forEach(gear -> comboGear.addItem(new GearItem(gear.getId(), gear.getName())));
-                setCursor(Cursor.getDefaultCursor());
+                List<Activity> currentAthleteActivities;
+                try {
+                    currentAthleteActivities = stravaConnection.getStrava().getCurrentAthleteActivitiesAll();
+                    gears = enrichWithGear(currentAthleteActivities);
+                    setActivities(currentAthleteActivities);
+                    String json = GSON.toJson(currentAthleteActivities);
+                    writeToFile(json, filePanel.getFile());
+                    infoLabel.setText("", true);
+                    populateGearCombo();
+                } catch (StravaException ex) {
+                    throw new RuntimeException(ex);
+                } finally {
+                    setCursor(Cursor.getDefaultCursor());
+                }
             });
         }
     }
@@ -285,7 +295,12 @@ public class StravaPanel extends JPanel implements ITabListener {
             List<Activity> collect;
             int page = 1;
             do {
-                List<Activity> currentAthleteActivities = stravaConnection.getStrava().getCurrentAthleteActivities(page, 100);
+                List<Activity> currentAthleteActivities;
+                try {
+                    currentAthleteActivities = stravaConnection.getStrava().getCurrentAthleteActivities(page, 100);
+                } catch (StravaException e) {
+                    throw new RuntimeException(e);
+                }
                 collect = currentAthleteActivities.stream().filter(activity -> activity.getId() > maxId).toList();
                 newActivities.addAll(collect);
                 page++;
@@ -300,9 +315,7 @@ public class StravaPanel extends JPanel implements ITabListener {
             gears = enrichWithGear(activities);
             setActivities(activities);
             writeToFile(GSON.toJson(activities), new File(existingFile));
-            comboGear.removeAllItems();
-            comboGear.addItem(new GearItem("", ""));
-            gears.forEach(gear -> comboGear.addItem(new GearItem(gear.getId(), gear.getName())));
+            populateGearCombo();
             infoLabel.setText(MessageFormat.format(getLabel("strava.countNew"), newActivities.size()), true);
             setCursor(Cursor.getDefaultCursor());
         });
@@ -330,8 +343,12 @@ public class StravaPanel extends JPanel implements ITabListener {
 
         for (String gearID : gearIDs) {
             if (!map.containsKey(gearID)) {
-                Gear gear = stravaConnection.getStrava().findGear(gearID);
-                map.put(gearID, gear);
+                try {
+                    Gear gear = stravaConnection.getStrava().findGear(gearID);
+                    map.put(gearID, gear);
+                } catch (StravaException e) {
+                    throw new RuntimeException(e);
+                }
             }
         }
 
