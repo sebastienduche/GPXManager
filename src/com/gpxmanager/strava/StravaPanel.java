@@ -21,8 +21,10 @@ import javax.swing.AbstractAction;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.JTable;
@@ -36,8 +38,11 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.text.BadLocationException;
 import java.awt.Color;
 import java.awt.Cursor;
+import java.awt.Desktop;
 import java.awt.event.ActionEvent;
 import java.io.File;
+import java.io.IOException;
+import java.net.URI;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -88,14 +93,17 @@ public class StravaPanel extends JPanel implements ITabListener {
     private int maxDistance = 1000;
     private GearItem selectedGear;
 
+    private static StravaPanel stravaPanel;
+
 
     public StravaPanel(StravaConnection stravaConnection, List<Activity> activities) {
+        stravaPanel = this;
         this.stravaConnection = stravaConnection;
         this.activities = activities;
         searchTextField.setToolTipText(getLabel("strava.search"));
         setLayout(new MigLayout("", "[grow]", "[][grow]10px[][]"));
         SwingUtilities.invokeLater(() -> {
-            stravaTableModel = new StravaTableModel(stravaConnection);
+            stravaTableModel = new StravaTableModel();
             setActivities(activities);
             gears = enrichWithGear(activities);
             populateGearCombo();
@@ -105,14 +113,22 @@ public class StravaPanel extends JPanel implements ITabListener {
             table.getColumnModel().getColumn(COL_DISTANCE).setCellRenderer(new RoundDoubleCellRenderer());
             table.getColumnModel().getColumn(COL_SPEED_MAX).setCellRenderer(new MeterPerSecondToKmHCellRenderer());
             table.getColumnModel().getColumn(COL_SPEED_AVG).setCellRenderer(new MeterPerSecondToKmHCellRenderer());
-            table.getColumnModel().getColumn(COL_VIEW).setCellRenderer(new ButtonCellRenderer(getLabel("strava.view")));
-            table.getColumnModel().getColumn(COL_DOWNLOAD).setCellRenderer(new ButtonCellRenderer(getLabel("strava.download")));
+            table.getColumnModel().getColumn(COL_VIEW).setCellRenderer(new ButtonCellRenderer("", MyGPXManagerImage.STRAVA, getLabel("strava.view")));
+            table.getColumnModel().getColumn(COL_DOWNLOAD).setCellRenderer(new ButtonCellRenderer("", MyGPXManagerImage.SAVE, getLabel("strava.download")));
             table.getColumnModel().getColumn(COL_VIEW).setCellEditor(new ButtonCellEditor());
             table.getColumnModel().getColumn(COL_DOWNLOAD).setCellEditor(new ButtonCellEditor());
+            table.getColumnModel().getColumn(COL_VIEW).setMinWidth(25);
+            table.getColumnModel().getColumn(COL_VIEW).setMaxWidth(25);
+            table.getColumnModel().getColumn(COL_DOWNLOAD).setMinWidth(25);
+            table.getColumnModel().getColumn(COL_DOWNLOAD).setMaxWidth(25);
             DefaultTableCellRenderer leftRenderer = new DefaultTableCellRenderer();
             leftRenderer.setHorizontalAlignment(SwingConstants.LEFT);
             table.getColumnModel().getColumn(COL_ALTITUDE).setCellRenderer(leftRenderer);
             table.setAutoCreateRowSorter(true);
+            JPopupMenu popup = new JPopupMenu();
+            popup.add(new JMenuItem(new OpenInStravaAction()));
+            popup.add(new JMenuItem(new DownloadFromStravaAction()));
+            table.setComponentPopupMenu(popup);
             add(downloadAllActivities, "split 9");
             add(downloadNewActivities, "gapleft 10px");
             add(new JLabel(), "growx");
@@ -158,6 +174,23 @@ public class StravaPanel extends JPanel implements ITabListener {
             comboGear.addItemListener(e -> filterActivities(filter, minDistance, maxDistance, (GearItem) e.getItem()));
         });
 
+    }
+
+    public static void openActivityOnStrava(Activity activity) {
+        try {
+            String activityAsGPXURL = stravaPanel.stravaConnection.getStrava().getActivityAsGPX(activity.getId());
+            Desktop.getDesktop().browse(URI.create(activityAsGPXURL.substring(0, activityAsGPXURL.lastIndexOf('/'))));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void downloadGPXActivityOnStrava(Activity activity) {
+        try {
+            Desktop.getDesktop().browse(URI.create(stravaPanel.stravaConnection.getStrava().getActivityAsGPX(activity.getId())));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void populateGearCombo() {
@@ -319,6 +352,32 @@ public class StravaPanel extends JPanel implements ITabListener {
             infoLabel.setText(MessageFormat.format(getLabel("strava.countNew"), newActivities.size()), true);
             setCursor(Cursor.getDefaultCursor());
         });
+    }
+
+    class DownloadFromStravaAction extends AbstractAction {
+
+        public DownloadFromStravaAction() {
+            super(getLabel("strava.download"), MyGPXManagerImage.SAVE);
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            Activity activity = stravaTableModel.getActivityAt(table.getSelectedRow());
+            downloadGPXActivityOnStrava(activity);
+        }
+    }
+
+    class OpenInStravaAction extends AbstractAction {
+
+        public OpenInStravaAction() {
+            super(getLabel("strava.view"), MyGPXManagerImage.STRAVA);
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            Activity activity = stravaTableModel.getActivityAt(table.getSelectedRow());
+            openActivityOnStrava(activity);
+        }
     }
 
     private List<Gear> enrichWithGear(List<Activity> activities) {

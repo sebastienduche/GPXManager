@@ -21,6 +21,7 @@ public class ButtonCellRenderer extends JButton implements TableCellRenderer {
 
     private static final long serialVersionUID = -6826155883692278688L;
     private final String label;
+    private String tooltips;
     private ImageIcon image;
 
     public ButtonCellRenderer(String label) {
@@ -28,10 +29,11 @@ public class ButtonCellRenderer extends JButton implements TableCellRenderer {
         this.label = label;
     }
 
-    public ButtonCellRenderer(String label, ImageIcon image) {
+    public ButtonCellRenderer(String label, ImageIcon image, String tooltips) {
         super();
         this.label = label;
         this.image = image;
+        this.tooltips = tooltips;
     }
 
     @Override
@@ -51,6 +53,9 @@ public class ButtonCellRenderer extends JButton implements TableCellRenderer {
         setText(label);
         if (image != null) {
             setIcon(image);
+        }
+        if (tooltips != null) {
+            setToolTipText(tooltips);
         }
 
         return this;

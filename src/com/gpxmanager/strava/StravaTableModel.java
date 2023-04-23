@@ -1,13 +1,9 @@
 package com.gpxmanager.strava;
 
-import org.jstrava.StravaConnection;
 import org.jstrava.entities.Activity;
 
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
-import java.awt.Desktop;
-import java.io.IOException;
-import java.net.URI;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -16,6 +12,8 @@ import java.util.List;
 import static com.gpxmanager.Utils.DATE_HOUR_MINUTE;
 import static com.gpxmanager.Utils.TIMESTAMP;
 import static com.gpxmanager.Utils.getLabel;
+import static com.gpxmanager.strava.StravaPanel.downloadGPXActivityOnStrava;
+import static com.gpxmanager.strava.StravaPanel.openActivityOnStrava;
 
 public class StravaTableModel extends DefaultTableModel {
 
@@ -42,11 +40,9 @@ public class StravaTableModel extends DefaultTableModel {
             ""
     );
 
-    private final StravaConnection stravaConnection;
     private List<Activity> activities;
 
-    public StravaTableModel(StravaConnection stravaConnection) {
-        this.stravaConnection = stravaConnection;
+    public StravaTableModel() {
         this.activities = new ArrayList<>();
     }
 
@@ -134,21 +130,8 @@ public class StravaTableModel extends DefaultTableModel {
     public void setValueAt(Object aValue, int row, int column) {
         Activity activity = activities.get(row);
         switch (column) {
-            case COL_VIEW -> {
-                try {
-                    String activityAsGPXURL = stravaConnection.getStrava().getActivityAsGPX(activity.getId());
-                    Desktop.getDesktop().browse(URI.create(activityAsGPXURL.substring(0, activityAsGPXURL.lastIndexOf('/'))));
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-            case COL_DOWNLOAD -> {
-                try {
-                    Desktop.getDesktop().browse(URI.create(stravaConnection.getStrava().getActivityAsGPX(activity.getId())));
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }
+            case COL_VIEW -> openActivityOnStrava(activity);
+            case COL_DOWNLOAD -> downloadGPXActivityOnStrava(activity);
         }
     }
 
@@ -157,5 +140,9 @@ public class StravaTableModel extends DefaultTableModel {
             this.activities = activities;
             fireTableDataChanged();
         });
+    }
+
+    public Activity getActivityAt(int selectedRow) {
+        return activities.get(selectedRow);
     }
 }
