@@ -62,8 +62,10 @@ import static com.gpxmanager.Utils.getLabel;
 import static com.gpxmanager.Utils.roundValue;
 import static com.gpxmanager.Utils.writeToFile;
 import static com.gpxmanager.strava.StravaTableModel.COL_ALTITUDE;
+import static com.gpxmanager.strava.StravaTableModel.COL_DATE;
 import static com.gpxmanager.strava.StravaTableModel.COL_DISTANCE;
 import static com.gpxmanager.strava.StravaTableModel.COL_DOWNLOAD;
+import static com.gpxmanager.strava.StravaTableModel.COL_NAME;
 import static com.gpxmanager.strava.StravaTableModel.COL_SPEED_AVG;
 import static com.gpxmanager.strava.StravaTableModel.COL_SPEED_MAX;
 import static com.gpxmanager.strava.StravaTableModel.COL_TIME;
@@ -121,6 +123,24 @@ public class StravaPanel extends JPanel implements ITabListener {
             table.getColumnModel().getColumn(COL_VIEW).setMaxWidth(25);
             table.getColumnModel().getColumn(COL_DOWNLOAD).setMinWidth(25);
             table.getColumnModel().getColumn(COL_DOWNLOAD).setMaxWidth(25);
+            table.getColumnModel().getColumn(COL_DISTANCE).setMinWidth(50);
+            table.getColumnModel().getColumn(COL_DISTANCE).setPreferredWidth(100);
+            table.getColumnModel().getColumn(COL_DISTANCE).setMaxWidth(100);
+            table.getColumnModel().getColumn(COL_SPEED_MAX).setMinWidth(50);
+            table.getColumnModel().getColumn(COL_SPEED_MAX).setPreferredWidth(150);
+            table.getColumnModel().getColumn(COL_SPEED_MAX).setMaxWidth(200);
+            table.getColumnModel().getColumn(COL_SPEED_AVG).setMinWidth(50);
+            table.getColumnModel().getColumn(COL_SPEED_AVG).setPreferredWidth(150);
+            table.getColumnModel().getColumn(COL_ALTITUDE).setMinWidth(50);
+            table.getColumnModel().getColumn(COL_ALTITUDE).setPreferredWidth(1500);
+            table.getColumnModel().getColumn(COL_ALTITUDE).setMaxWidth(200);
+            table.getColumnModel().getColumn(COL_TIME).setMinWidth(50);
+            table.getColumnModel().getColumn(COL_TIME).setPreferredWidth(150);
+            table.getColumnModel().getColumn(COL_TIME).setMaxWidth(200);
+            table.getColumnModel().getColumn(COL_DATE).setMinWidth(50);
+            table.getColumnModel().getColumn(COL_DATE).setPreferredWidth(150);
+            table.getColumnModel().getColumn(COL_DATE).setMaxWidth(200);
+            table.getColumnModel().getColumn(COL_NAME).setMinWidth(300);
             DefaultTableCellRenderer leftRenderer = new DefaultTableCellRenderer();
             leftRenderer.setHorizontalAlignment(SwingConstants.LEFT);
             table.getColumnModel().getColumn(COL_ALTITUDE).setCellRenderer(leftRenderer);
@@ -128,6 +148,7 @@ public class StravaPanel extends JPanel implements ITabListener {
             JPopupMenu popup = new JPopupMenu();
             popup.add(new JMenuItem(new OpenInStravaAction()));
             popup.add(new JMenuItem(new DownloadFromStravaAction()));
+            popup.add(new JMenuItem(new UpdateActivityFromStravaAction()));
             table.setComponentPopupMenu(popup);
             add(downloadAllActivities, "split 9");
             add(downloadNewActivities, "gapleft 10px");
@@ -377,6 +398,35 @@ public class StravaPanel extends JPanel implements ITabListener {
         public void actionPerformed(ActionEvent e) {
             Activity activity = stravaTableModel.getActivityAt(table.getSelectedRow());
             openActivityOnStrava(activity);
+        }
+    }
+
+    class UpdateActivityFromStravaAction extends AbstractAction {
+
+        public UpdateActivityFromStravaAction() {
+            super(getLabel("strava.updateActivity"));
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            Activity activity = stravaTableModel.getActivityAt(table.getSelectedRow());
+            updateActivityFromStrava(activity, table.getSelectedRow());
+        }
+    }
+
+    private void updateActivityFromStrava(Activity activity, int selectedRow) {
+        try {
+            Activity activity1 = stravaPanel.stravaConnection.getStrava().findActivity(activity.getId(), false);
+            int i = activities.indexOf(activity);
+            activities.remove(activity);
+            activities.add(i, activity1);
+            stravaTableModel.setActivityAt(selectedRow, activity1);
+            String existingFile = getPreference(STRAVA_ALL_DATA, null);
+            if (existingFile != null && new File(existingFile).exists()) {
+                writeToFile(GSON.toJson(activities), new File(existingFile));
+            }
+        } catch (StravaException e) {
+            throw new RuntimeException(e);
         }
     }
 

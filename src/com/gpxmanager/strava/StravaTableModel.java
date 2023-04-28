@@ -145,4 +145,12 @@ public class StravaTableModel extends DefaultTableModel {
     public Activity getActivityAt(int selectedRow) {
         return activities.get(selectedRow);
     }
+
+    public void setActivityAt(int selectedRow, Activity activity) {
+        SwingUtilities.invokeLater(() -> {
+            activities.remove(selectedRow);
+            activities.add(selectedRow, activity);
+            fireTableRowsUpdated(selectedRow, selectedRow);
+        });
+    }
 }
