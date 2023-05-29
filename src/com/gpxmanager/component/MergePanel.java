@@ -43,17 +43,16 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Objects;
 
+import static com.gpxmanager.Utils.checkFileName;
 import static com.gpxmanager.Utils.getLabel;
 
 public class MergePanel extends JPanel implements ITabListener {
     private final MergeTableModel model = new MergeTableModel();
     private final PropertiesPanel propertiesPanel = new PropertiesPanel(null);
     private final MyAutoHideLabel infoLabel = new MyAutoHideLabel();
-    private final MyGPXManager parent;
     private static final String MERGE_PANEL = "MERGE_PANEL";
 
-    public MergePanel(MyGPXManager parent) {
-        this.parent = parent;
+    public MergePanel() {
         setLayout(new MigLayout("", "[grow]", "[][grow]"));
         JTable table = new JTable(model);
         TableColumnModel tcm = table.getColumnModel();
@@ -93,7 +92,7 @@ public class MergePanel extends JPanel implements ITabListener {
 
     @Override
     public void tabClosed() {
-        parent.updateTabbedPane();
+        MyGPXManager.updateTabbedPane();
     }
 
     private class AddAction extends AbstractAction {
@@ -142,7 +141,7 @@ public class MergePanel extends JPanel implements ITabListener {
                 File file = boiteFichier.getSelectedFile();
                 if (file != null) {
                     Utils.setOpenSaveDirectory(file.getParentFile());
-                    file = parent.checkFile(file);
+                    file = checkFileName(file);
                     try {
                         GPX gpx = null;
                         LinkedList<Track> tracks = null;

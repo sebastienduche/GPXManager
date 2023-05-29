@@ -120,4 +120,14 @@ public class Utils {
             throw new RuntimeException(ex);
         }
     }
+
+    public static File checkFileName(File file) {
+        if (file == null) {
+            return null;
+        }
+        if (!file.getName().toLowerCase().endsWith(Filtre.FILTRE_GPX.toString())) {
+            return new File(file.getAbsolutePath() + Filtre.FILTRE_GPX);
+        }
+        return file;
+    }
 }

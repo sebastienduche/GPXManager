@@ -35,25 +35,20 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
+import static com.gpxmanager.Utils.checkFileName;
 import static com.gpxmanager.Utils.getLabel;
+import static com.gpxmanager.gpx.GPXUtils.getGpxParser;
 
 public class InvertPanel extends JPanel implements ITabListener {
     private final PropertiesPanel propertiesPanel = new PropertiesPanel(null);
     private final MyAutoHideLabel infoLabel = new MyAutoHideLabel();
     private final JModifyTextField fileTextField = new JModifyTextField();
     private final JButton browse = new JButton(new BrowseAction());
-    private final MyGPXManager parent;
     private File file;
     private GPX gpx;
     private static final String INVERT_PANEL = "INVERT_PANEL";
 
-    public InvertPanel(MyGPXManager parent) {
-        this(parent, null);
-    }
-
-    public InvertPanel(MyGPXManager parent, File file) {
-        this.parent = parent;
-        this.file = file;
+    public InvertPanel() {
         setLayout(new MigLayout("", "[grow]", "[]20px[]20px[][]"));
         infoLabel.setForeground(Color.red);
         add(fileTextField, "growx, split 2");
@@ -109,7 +104,7 @@ public class InvertPanel extends JPanel implements ITabListener {
         }
         fileTextField.setText(file.getAbsolutePath());
         try {
-            gpx = parent.getGpxParser().parseGPX(new FileInputStream(file));
+            gpx = getGpxParser().parseGPX(new FileInputStream(file));
             if (gpx != null) {
                 propertiesPanel.load(gpx.getMetadata());
             }
@@ -137,7 +132,7 @@ public class InvertPanel extends JPanel implements ITabListener {
                 File file = boiteFichier.getSelectedFile();
                 if (file != null) {
                     Utils.setOpenSaveDirectory(file.getParentFile());
-                    file = parent.checkFile(file);
+                    file = checkFileName(file);
                     if (gpx.getTracks() != null) {
                         gpx.getTracks().forEach(track -> reverseAndCleanTime(track.getTrackPoints()));
                     }

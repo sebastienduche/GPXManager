@@ -3,7 +3,6 @@ package com.gpxmanager;
 import com.google.gson.Gson;
 import com.gpxmanager.component.InvertPanel;
 import com.gpxmanager.component.MergePanel;
-import com.gpxmanager.gpx.GPXParser;
 import com.gpxmanager.gpx.beans.GPX;
 import com.gpxmanager.gpx.extensions.GarminExtension;
 import com.gpxmanager.launcher.MyGPXManagerServer;
@@ -79,10 +78,12 @@ import static com.gpxmanager.ProgramPreferences.getPreference;
 import static com.gpxmanager.ProgramPreferences.setPreference;
 import static com.gpxmanager.Utils.DATE_FORMATER_DD_MM_YYYY;
 import static com.gpxmanager.Utils.DEBUG_DIRECTORY;
+import static com.gpxmanager.Utils.checkFileName;
 import static com.gpxmanager.Utils.getLabel;
+import static com.gpxmanager.gpx.GPXUtils.getGpxParser;
 
 public final class MyGPXManager extends JFrame {
-    public static final String INTERNAL_VERSION = "10.9";
+    public static final String INTERNAL_VERSION = "11.3";
     public static final String VERSION = "4.4";
     private static final MyAutoHideLabel INFO_LABEL = new MyAutoHideLabel();
     private static JMenuItem saveFile;
@@ -101,12 +102,10 @@ public final class MyGPXManager extends JFrame {
     private static FileWriter oDebugFile = null;
     private static File debugFile = null;
 
-    private final static GPXParser GPX_PARSER = new GPXParser();
-
     public MyGPXManager() throws HeadlessException {
         instance = this;
         MyGPXManagerServer.getInstance().checkVersion();
-        GPX_PARSER.addExtensionParser(new GarminExtension());
+        getGpxParser().addExtensionParser(new GarminExtension());
         Thread.setDefaultUncaughtExceptionHandler((t, e) -> showException(e, true));
         reopenedFiles.add(new File(getPreference(FILE1, "")));
         reopenedFiles.add(new File(getPreference(FILE2, "")));
@@ -274,10 +273,6 @@ public final class MyGPXManager extends JFrame {
         }
     }
 
-    public GPXParser getGpxParser() {
-        return GPX_PARSER;
-    }
-
     public void closeFile(GPXPropertiesPanel gpxPropertiesPanel) {
         if (gpxPropertiesPanel.isModified() && JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(instance, MessageFormat.format(getLabel("question.saveOpenedFile"), gpxPropertiesPanel.getFile()), getLabel("question"), JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)) {
             try {
@@ -308,16 +303,6 @@ public final class MyGPXManager extends JFrame {
         saveAsFile.setEnabled(opened);
         saveButton.setEnabled(opened);
         closeFile.setEnabled(opened);
-    }
-
-    public File checkFile(File file) {
-        if (file == null) {
-            return null;
-        }
-        if (!file.getName().toLowerCase().endsWith(Filtre.FILTRE_GPX.toString())) {
-            return new File(file.getAbsolutePath() + Filtre.FILTRE_GPX);
-        }
-        return file;
     }
 
     class OpenFileAction extends AbstractAction {
@@ -399,7 +384,7 @@ public final class MyGPXManager extends JFrame {
 
     private void open(File file) {
         try {
-            GPX gpx = GPX_PARSER.parseGPX(new FileInputStream(file));
+            GPX gpx = getGpxParser().parseGPX(new FileInputStream(file));
             myTabbedPane.addTab(file.getName(), new GPXPropertiesPanel(file, gpx), true);
             reopenedFiles.addFirst(file);
             setFileOpened(file);
@@ -410,7 +395,7 @@ public final class MyGPXManager extends JFrame {
 
     public static void save(GPX gpx, File file) {
         try {
-            GPX_PARSER.writeGPX(gpx, new FileOutputStream(file));
+            getGpxParser().writeGPX(gpx, new FileOutputStream(file));
         } catch (ParserConfigurationException | TransformerException | FileNotFoundException e) {
             throw new RuntimeException(e);
         }
@@ -587,7 +572,7 @@ public final class MyGPXManager extends JFrame {
             boiteFichier.setCurrentDirectory(Utils.getOpenSaveDirectory());
             if (JFileChooser.APPROVE_OPTION == boiteFichier.showSaveDialog(instance)) {
                 File file = boiteFichier.getSelectedFile();
-                file = checkFile(file);
+                file = checkFileName(file);
                 if (file == null) {
                     setCursor(Cursor.getDefaultCursor());
                     return;
@@ -609,7 +594,7 @@ public final class MyGPXManager extends JFrame {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            myTabbedPane.selectOrAddTab(new MergePanel(instance), getLabel("merge.title"), MyGPXManagerImage.MERGE, true);
+            myTabbedPane.selectOrAddTab(new MergePanel(), getLabel("merge.title"), MyGPXManagerImage.MERGE, true);
         }
     }
 
@@ -620,7 +605,7 @@ public final class MyGPXManager extends JFrame {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            myTabbedPane.selectOrAddTab(new InvertPanel(instance), getLabel("invert.action"), MyGPXManagerImage.INVERT, true);
+            myTabbedPane.selectOrAddTab(new InvertPanel(), getLabel("invert.action"), MyGPXManagerImage.INVERT, true);
         }
     }
 
