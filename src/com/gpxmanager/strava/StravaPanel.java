@@ -355,7 +355,7 @@ public class StravaPanel extends JPanel implements ITabListener {
                 } catch (StravaException e) {
                     throw new RuntimeException(e);
                 }
-                collect = currentAthleteActivities.stream().filter(activity -> activity.getId() > maxId).toList();
+                collect = currentAthleteActivities.stream().filter(activity -> activity.getId() > maxId).collect(Collectors.toList());
                 newActivities.addAll(collect);
                 page++;
             } while (!collect.isEmpty());
@@ -365,7 +365,7 @@ public class StravaPanel extends JPanel implements ITabListener {
                 return;
             }
             activities.addAll(newActivities);
-            activities = activities.stream().sorted(Comparator.comparingLong(Activity::getId).reversed()).toList();
+            activities = activities.stream().sorted(Comparator.comparingLong(Activity::getId).reversed()).collect(Collectors.toList());
             gears = enrichWithGear(activities);
             setActivities(activities);
             writeToFile(GSON.toJson(activities), new File(existingFile));
@@ -469,6 +469,6 @@ public class StravaPanel extends JPanel implements ITabListener {
                 }
             }
         }
-        return map.values().stream().toList();
+        return new ArrayList<>(map.values());
     }
 }
