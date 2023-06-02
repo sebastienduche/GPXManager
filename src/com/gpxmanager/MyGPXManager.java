@@ -83,7 +83,7 @@ import static com.gpxmanager.Utils.getLabel;
 import static com.gpxmanager.gpx.GPXUtils.getGpxParser;
 
 public final class MyGPXManager extends JFrame {
-    public static final String INTERNAL_VERSION = "11.3";
+    public static final String INTERNAL_VERSION = "11.6";
     public static final String VERSION = "4.4";
     private static final MyAutoHideLabel INFO_LABEL = new MyAutoHideLabel();
     private static JMenuItem saveFile;

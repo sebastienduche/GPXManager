@@ -4,12 +4,9 @@ import com.gpxmanager.Filtre;
 import com.gpxmanager.MyGPXManager;
 import com.gpxmanager.MyGPXManagerImage;
 import com.gpxmanager.Utils;
-import com.gpxmanager.gpx.GPXParser;
+import com.gpxmanager.gpx.GPXUtils;
 import com.gpxmanager.gpx.beans.GPX;
 import com.gpxmanager.gpx.beans.Metadata;
-import com.gpxmanager.gpx.beans.Route;
-import com.gpxmanager.gpx.beans.Track;
-import com.gpxmanager.gpx.beans.Waypoint;
 import com.mycomponents.MyAutoHideLabel;
 import com.mycomponents.tablecomponents.ButtonCellEditor;
 import com.mycomponents.tablecomponents.ButtonCellRenderer;
@@ -34,13 +31,10 @@ import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.event.ActionEvent;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.Objects;
 
 import static com.gpxmanager.Utils.checkFileName;
@@ -143,45 +137,14 @@ public class MergePanel extends JPanel implements ITabListener {
                     Utils.setOpenSaveDirectory(file.getParentFile());
                     file = checkFileName(file);
                     try {
-                        GPX gpx = null;
-                        LinkedList<Track> tracks = null;
-                        LinkedList<Route> routes = null;
-                        LinkedList<Waypoint> waypoints = null;
-                        for (File modelFile : model.getFiles()) {
-                            if (gpx == null) {
-                                gpx = new GPXParser().parseGPX(new FileInputStream(modelFile));
-                                if (gpx.getTracks() == null) {
-                                    gpx.setTracks(new LinkedList<>());
-                                }
-                                tracks = gpx.getTracks();
-                                if (gpx.getRoutes() == null) {
-                                    gpx.setRoutes(new LinkedList<>());
-                                }
-                                routes = gpx.getRoutes();
-                                if (gpx.getWaypoints() == null) {
-                                    gpx.setWaypoints(new LinkedList<>());
-                                }
-                                waypoints = gpx.getWaypoints();
-                            } else {
-                                GPX gpx1 = new GPXParser().parseGPX(new FileInputStream(modelFile));
-                                if (gpx1.getTracks() != null) {
-                                    tracks.addAll(gpx1.getTracks());
-                                }
-                                if (gpx1.getRoutes() != null) {
-                                    routes.addAll(gpx1.getRoutes());
-                                }
-                                if (gpx1.getWaypoints() != null) {
-                                    waypoints.addAll(gpx1.getWaypoints());
-                                }
-                            }
-                        }
+                        GPX gpx = GPXUtils.mergeFiles(model.getFiles());
                         if (gpx == null) {
                             return;
                         }
                         Metadata metadata = new Metadata();
                         propertiesPanel.save(metadata);
                         gpx.setMetadata(metadata);
-                        new GPXParser().writeGPX(gpx, new FileOutputStream(file));
+                        GPXUtils.writeFile(gpx, file);
 
                         infoLabel.setText(MessageFormat.format(getLabel("merge.file.saved"), file.getAbsolutePath()), true);
                     } catch (ParserConfigurationException | IOException | TransformerException | SAXException |
