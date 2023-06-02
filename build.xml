@@ -37,11 +37,11 @@
             <zipfileset excludes="META-INF/*.SF" src="./lib/gson-2.10.1.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="./lib/jcommon-1.0.18.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="./lib/jfreechart-1.5.3.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="./lib/JStravaExtension-1.4.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="./lib/JStravaExtension-1.5.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="./lib/log4j-1.2.16.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="./lib/miglayout-4.0-swing.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="./lib/MyComponents-1.2.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="./lib/MyTabbedPane-1.1.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="./lib/MyTabbedPane-1.2.jar"/>
         </jar>
         <jar destfile="Build/MyGPXManagerCommand.jar" filesetmanifest="mergewithoutmain">
             <manifest>
@@ -60,11 +60,11 @@
             <zipfileset excludes="META-INF/*.SF" src="./lib/gson-2.10.1.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="./lib/jcommon-1.0.18.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="./lib/jfreechart-1.5.3.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="./lib/JStravaExtension-1.4.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="./lib/JStravaExtension-1.5.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="./lib/log4j-1.2.16.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="./lib/miglayout-4.0-swing.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="./lib/MyComponents-1.2.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="./lib/MyTabbedPane-1.1.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="./lib/MyTabbedPane-1.2.jar"/>
         </jar>
     </target>
 </project>
