@@ -32,7 +32,7 @@ public class GarminExtension implements IExtensionParser {
         for (int idx = 0; idx < childNodes.getLength(); idx++) {
             Node currentNode = childNodes.item(idx);
             switch (currentNode.getNodeName()) {
-                case TRACKPOINT_EXT -> {
+                case TRACKPOINT_EXT: {
                     logger.debug("found TrackPointExtension");
                     parseTrackPointExtension(currentNode, garmin);
                 }
@@ -50,7 +50,7 @@ public class GarminExtension implements IExtensionParser {
         for (int idx = 0; idx < childNodes.getLength(); idx++) {
             Node currentNode = childNodes.item(idx);
             switch (currentNode.getNodeName()) {
-                case ATEMP -> {
+                case ATEMP: {
                     logger.debug("found atemp");
                     garmin.setTemperature(currentNode.getTextContent());
                 }

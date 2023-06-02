@@ -168,7 +168,7 @@ public final class MyGPXManager extends JFrame {
         frenchMenuItem.setSelected(Locale.FRENCH.getLanguage().equals(locale));
         menuLanguage.add(frenchMenuItem);
         languageGroup.add(frenchMenuItem);
-        Locale nl = Locale.of("nl");
+        Locale nl = new Locale("nl");
         JRadioButtonMenuItem dutchMenuItem = new JRadioButtonMenuItem(new LanguageAction(nl));
         dutchMenuItem.setSelected(nl.getLanguage().equals(locale));
         menuLanguage.add(dutchMenuItem);
