@@ -5,7 +5,6 @@ import com.gpxmanager.gpx.beans.Waypoint;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 public class MyTime {
 
@@ -49,7 +48,7 @@ public class MyTime {
                 .map(Waypoint::getTime)
                 .filter(Objects::nonNull)
                 .sorted()
-                .collect(Collectors.toList());
+                .toList();
         if (times.size() < 2) {
             return null;
         }

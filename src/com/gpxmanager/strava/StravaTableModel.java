@@ -73,7 +73,7 @@ public class StravaTableModel extends DefaultTableModel {
     public Object getValueAt(int row, int column) {
         Activity activity = activities.get(row);
         switch (column) {
-            case COL_DATE: {
+            case COL_DATE -> {
                 try {
                     Date localDateTime = TIMESTAMP.parse(activity.getStartDateLocal());
                     return DATE_HOUR_MINUTE.format(localDateTime);
@@ -81,26 +81,25 @@ public class StravaTableModel extends DefaultTableModel {
                     return null;
                 }
             }
-            case COL_NAME: {
+            case COL_NAME -> {
                 return activity.getName();
             }
-            case COL_DISTANCE: {
+            case COL_DISTANCE -> {
                 return activity.getDistance() / 1000;
             }
-            case COL_TIME: {
+            case COL_TIME -> {
                 return activity.getMovingTime();
             }
-            case COL_SPEED_MAX: {
+            case COL_SPEED_MAX -> {
                 return activity.getMaxSpeed();
             }
-            case COL_SPEED_AVG: {
+            case COL_SPEED_AVG -> {
                 return activity.getAverageSpeed();
             }
-            case COL_ALTITUDE: {
+            case COL_ALTITUDE -> {
                 return (int) activity.getTotalElevationGain();
             }
-            case COL_VIEW:
-            case COL_DOWNLOAD: {
+            case COL_VIEW, COL_DOWNLOAD -> {
                 return Boolean.FALSE;
             }
         }
@@ -110,21 +109,16 @@ public class StravaTableModel extends DefaultTableModel {
     @Override
     public Class<?> getColumnClass(int columnIndex) {
         switch (columnIndex) {
-            case COL_DATE:
-            case COL_NAME: {
+            case COL_DATE, COL_NAME -> {
                 return String.class;
             }
-            case COL_DISTANCE:
-            case COL_TIME:
-            case COL_SPEED_MAX:
-            case COL_SPEED_AVG: {
+            case COL_DISTANCE, COL_TIME, COL_SPEED_MAX, COL_SPEED_AVG -> {
                 return Double.class;
             }
-            case COL_ALTITUDE: {
+            case COL_ALTITUDE -> {
                 return Integer.class;
             }
-            case COL_VIEW:
-            case COL_DOWNLOAD: {
+            case COL_VIEW, COL_DOWNLOAD -> {
                 return Boolean.class;
             }
         }
@@ -136,14 +130,8 @@ public class StravaTableModel extends DefaultTableModel {
     public void setValueAt(Object aValue, int row, int column) {
         Activity activity = activities.get(row);
         switch (column) {
-            case COL_VIEW: {
-                openActivityOnStrava(activity);
-                break;
-            }
-            case COL_DOWNLOAD: {
-                downloadGPXActivityOnStrava(activity);
-                break;
-            }
+            case COL_VIEW -> openActivityOnStrava(activity);
+            case COL_DOWNLOAD -> downloadGPXActivityOnStrava(activity);
         }
     }
 
