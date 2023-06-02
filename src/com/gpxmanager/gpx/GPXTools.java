@@ -1,4 +1,5 @@
-import com.gpxmanager.gpx.GPXUtils;
+package com.gpxmanager.gpx;
+
 import com.gpxmanager.gpx.beans.GPX;
 import org.xml.sax.SAXException;
 
