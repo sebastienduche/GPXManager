@@ -26,6 +26,12 @@ Running MyGPXManagerLauncher.jar is enough to run the program. By using this jar
 automatically. You can download the MyGPXManagerLauncher.jar in the Release page. Then double-click on the jar file
 or execute : java -jar MyGPXManagerLauncher.jar
 
+If you want to invert a GPX file or merge several files via command line, it's possible.
+Run MyGPXManagerCommand.jar with options.
+Usages:  
+-invert -file <.file.> -target <.file.>  
+-merge -files <file,file...> -target <.file.>
+
 Supported languages:
 
 - English
