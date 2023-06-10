@@ -18,6 +18,9 @@ public class ProgramPreferences {
     public static String STRAVA = "MyGPXManager.strava";
     public static String STRAVA_ALL_DATA = "strava.allData";
     public static String DIR = "MyGPXManager.dir";
+    public static String GPS_MOUNT_ROOT = "MyGPXManager.gps.mount.root";
+    public static String GPS_MOUNT_DIR = "MyGPXManager.gps.mount.dir";
+    public static String GPS_TARGET_DIR = "MyGPXManager.gps.target.dir";
 
     public static void setPreference(String key, String value) {
         prefs.put(key, value);

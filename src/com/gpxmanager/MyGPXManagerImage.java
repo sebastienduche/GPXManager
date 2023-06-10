@@ -28,7 +28,7 @@ public final class MyGPXManagerImage {
     public static final ImageIcon SEARCH = getInstance().getImage("find.gif");
     public static final ImageIcon OPEN = getInstance().getImage("folder.gif");
     public static final ImageIcon SAVE = getInstance().getImage("save.png");
-    public static final ImageIcon TABLE = getInstance().getImage("table.gif");
+    public static final ImageIcon UPLOAD = getInstance().getImage("upload.png");
     public static final ImageIcon IMPORT = getInstance().getImage("import.gif");
     public static final ImageIcon EXPORT = getInstance().getImage("export.gif");
     public static final ImageIcon PARAMETER = getInstance().getImage("parameters.gif");

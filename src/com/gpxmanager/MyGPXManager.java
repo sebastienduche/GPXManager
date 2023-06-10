@@ -3,10 +3,12 @@ package com.gpxmanager;
 import com.google.gson.Gson;
 import com.gpxmanager.component.InvertPanel;
 import com.gpxmanager.component.MergePanel;
+import com.gpxmanager.gpx.GPXUtils;
 import com.gpxmanager.gpx.beans.GPX;
 import com.gpxmanager.gpx.extensions.GarminExtension;
 import com.gpxmanager.launcher.MyGPXManagerServer;
 import com.gpxmanager.strava.StravaPanel;
+import com.gpxmanager.watchdir.WatchDirListener;
 import com.mycomponents.MyAutoHideLabel;
 import com.mytabbedpane.MyTabbedPane;
 import net.miginfocom.swing.MigLayout;
@@ -51,6 +53,8 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.MessageFormat;
 import java.text.ParseException;
 import java.time.LocalDate;
@@ -69,6 +73,9 @@ import static com.gpxmanager.ProgramPreferences.FILE1;
 import static com.gpxmanager.ProgramPreferences.FILE2;
 import static com.gpxmanager.ProgramPreferences.FILE3;
 import static com.gpxmanager.ProgramPreferences.FILE4;
+import static com.gpxmanager.ProgramPreferences.GPS_MOUNT_DIR;
+import static com.gpxmanager.ProgramPreferences.GPS_MOUNT_ROOT;
+import static com.gpxmanager.ProgramPreferences.GPS_TARGET_DIR;
 import static com.gpxmanager.ProgramPreferences.LOCALE;
 import static com.gpxmanager.ProgramPreferences.LOCATION_X;
 import static com.gpxmanager.ProgramPreferences.LOCATION_Y;
@@ -81,15 +88,18 @@ import static com.gpxmanager.Utils.DEBUG_DIRECTORY;
 import static com.gpxmanager.Utils.checkFileName;
 import static com.gpxmanager.Utils.getLabel;
 import static com.gpxmanager.gpx.GPXUtils.getGpxParser;
+import static com.gpxmanager.gpx.GPXUtils.initWatchDir;
+import static com.gpxmanager.gpx.GPXUtils.watchDirContains;
 
 public final class MyGPXManager extends JFrame {
-    public static final String INTERNAL_VERSION = "11.6";
-    public static final String VERSION = "4.4";
+    public static final String INTERNAL_VERSION = "12.2";
+    public static final String VERSION = "5.0";
     private static final MyAutoHideLabel INFO_LABEL = new MyAutoHideLabel();
     private static JMenuItem saveFile;
     private static JMenuItem saveAsFile;
     private final JMenuItem closeFile;
     private static JMenuItem connectToStravaMenuItem;
+    private static JMenuItem sendToDevice;
     static JButton stravaButton = null;
     private static MyGPXManager instance;
     private static JButton saveButton;
@@ -104,6 +114,11 @@ public final class MyGPXManager extends JFrame {
 
     public MyGPXManager() throws HeadlessException {
         instance = this;
+        /*
+        ProgramPreferences.setPreference(GPS_MOUNT_ROOT, "/Volumes");
+        ProgramPreferences.setPreference(GPS_MOUNT_DIR, "/Volumes/GARMIN");
+        ProgramPreferences.setPreference(GPS_TARGET_DIR, "Garmin/NewFiles");
+         */
         MyGPXManagerServer.getInstance().checkVersion();
         getGpxParser().addExtensionParser(new GarminExtension());
         Thread.setDefaultUncaughtExceptionHandler((t, e) -> showException(e, true));
@@ -159,6 +174,9 @@ public final class MyGPXManager extends JFrame {
         menuFile.add(new JMenuItem(new ExitAction()));
         menuGpx.add(new JMenuItem(new MergeAction()));
         menuGpx.add(new JMenuItem(new InvertAction()));
+        sendToDevice = new JMenuItem(new SendToDeviceAction());
+        menuGpx.add(sendToDevice);
+        sendToDevice.setEnabled(false);
         ButtonGroup languageGroup = new ButtonGroup();
         JRadioButtonMenuItem englishMenu = new JRadioButtonMenuItem(new LanguageAction(Locale.ENGLISH));
         englishMenu.setSelected(Locale.ENGLISH.getLanguage().equals(locale));
@@ -229,6 +247,43 @@ public final class MyGPXManager extends JFrame {
         int height = Integer.parseInt(getPreference(ProgramPreferences.HEIGHT, "0"));
         setSize(width != 0 ? width : screenSize.width, height != 0 ? height : screenSize.height);
         setVisible(true);
+        try {
+            watchDir();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void watchDir() throws IOException {
+        String rootDir = getPreference(GPS_MOUNT_ROOT, "");
+        String mountDir = getPreference(GPS_MOUNT_DIR, "");
+        String targetDir = getPreference(GPS_TARGET_DIR, "");
+        if (rootDir.isEmpty() || mountDir.isEmpty() || targetDir.isEmpty()) {
+            return;
+        }
+        initWatchDir(new WatchDirListener() {
+            @Override
+            public void eventCreated(Path path) {
+                if (mountDir.equals(path.toString())) {
+                    INFO_LABEL.setText(path + " connected", true);
+                    sendToDevice.setEnabled(true);
+                }
+            }
+
+            @Override
+            public void eventDeleted(Path path) {
+                if (mountDir.equals(path.toString())) {
+                    INFO_LABEL.setText(path + " disconnected", true);
+                    sendToDevice.setEnabled(false);
+                }
+            }
+
+            @Override
+            public void eventModified(Path path) {
+                INFO_LABEL.setText(path + " updated", true);
+            }
+        });
+        sendToDevice.setEnabled(watchDirContains(Paths.get(mountDir)));
     }
 
     public static void setInfoLabel(String text) {
@@ -583,6 +638,37 @@ public final class MyGPXManager extends JFrame {
                 }
                 GPXPropertiesPanel selectedComponent = myTabbedPane.getSelectedComponent(GPXPropertiesPanel.class);
                 save(selectedComponent.getGpx(), file);
+            }
+        }
+    }
+
+    class SendToDeviceAction extends AbstractAction {
+        public SendToDeviceAction() {
+            super(getLabel("menu.sendToDevice"), MyGPXManagerImage.UPLOAD);
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            JFileChooser boiteFichier = new JFileChooser();
+            boiteFichier.removeChoosableFileFilter(boiteFichier.getFileFilter());
+            boiteFichier.addChoosableFileFilter(Filtre.FILTRE_GPX);
+            if (JFileChooser.APPROVE_OPTION == boiteFichier.showOpenDialog(instance)) {
+                File openedFile = boiteFichier.getSelectedFile();
+                if (openedFile == null) {
+                    setCursor(Cursor.getDefaultCursor());
+                    return;
+                }
+                if (!openedFile.getName().toLowerCase().endsWith(Filtre.FILTRE_GPX.toString())) {
+                    openedFile = new File(openedFile.getAbsolutePath() + Filtre.FILTRE_GPX);
+                }
+                GPX gpx = GPXUtils.loadFile(openedFile);
+                if (gpx != null) {
+                    try {
+                        GPXUtils.uploadToDevice(gpx, openedFile.getName());
+                    } catch (IOException | ParserConfigurationException | TransformerException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
             }
         }
     }
