@@ -1,6 +1,7 @@
 package com.gpxmanager;
 
 import com.google.gson.Gson;
+import com.gpxmanager.component.ConfigureDevicePanel;
 import com.gpxmanager.component.InvertPanel;
 import com.gpxmanager.component.MergePanel;
 import com.gpxmanager.gpx.GPXUtils;
@@ -139,6 +140,8 @@ public final class MyGPXManager extends JFrame {
         menuBar.add(menuFile);
         JMenu menuGpx = new JMenu(getLabel("menu.gpx"));
         menuBar.add(menuGpx);
+        JMenu menuDevice = new JMenu(getLabel("menu.device"));
+        menuBar.add(menuDevice);
         JMenu menuLanguage = new JMenu(getLabel("menu.language"));
         menuBar.add(menuLanguage);
         JMenu menuStrava = new JMenu(getLabel("menu.strava"));
@@ -175,7 +178,9 @@ public final class MyGPXManager extends JFrame {
         menuGpx.add(new JMenuItem(new MergeAction()));
         menuGpx.add(new JMenuItem(new InvertAction()));
         sendToDevice = new JMenuItem(new SendToDeviceAction());
-        menuGpx.add(sendToDevice);
+        menuDevice.add(sendToDevice);
+        menuDevice.addSeparator();
+        menuDevice.add(new JMenuItem(new ConfigureDeviceAction()));
         sendToDevice.setEnabled(false);
         ButtonGroup languageGroup = new ButtonGroup();
         JRadioButtonMenuItem englishMenu = new JRadioButtonMenuItem(new LanguageAction(Locale.ENGLISH));
@@ -670,6 +675,20 @@ public final class MyGPXManager extends JFrame {
                         throw new RuntimeException(ex);
                     }
                 }
+            }
+        }
+    }
+
+    class ConfigureDeviceAction extends AbstractAction {
+        public ConfigureDeviceAction() {
+            super(getLabel("menu.configureDevice"), null);
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            ConfigureDevicePanel message = new ConfigureDevicePanel();
+            if (JOptionPane.YES_OPTION == JOptionPane.showOptionDialog(instance, message, getLabel("menu.configureDevice"), JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE, null, null, null)) {
+                message.save();
             }
         }
     }
