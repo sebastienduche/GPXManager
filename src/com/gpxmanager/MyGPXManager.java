@@ -92,7 +92,7 @@ import static com.gpxmanager.gpx.GPXUtils.initWatchDir;
 import static com.gpxmanager.gpx.GPXUtils.watchDirContains;
 
 public final class MyGPXManager extends JFrame {
-    public static final String INTERNAL_VERSION = "12.2";
+    public static final String INTERNAL_VERSION = "12.3";
     public static final String VERSION = "5.0";
     private static final MyAutoHideLabel INFO_LABEL = new MyAutoHideLabel();
     private static JMenuItem saveFile;
@@ -665,6 +665,7 @@ public final class MyGPXManager extends JFrame {
                 if (gpx != null) {
                     try {
                         GPXUtils.uploadToDevice(gpx, openedFile.getName());
+                        INFO_LABEL.setText(MessageFormat.format(getLabel("file.device.saved"), openedFile.getName()), true);
                     } catch (IOException | ParserConfigurationException | TransformerException ex) {
                         throw new RuntimeException(ex);
                     }
