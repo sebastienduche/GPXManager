@@ -2,6 +2,7 @@ package com.gpxmanager;
 
 import com.google.gson.Gson;
 import com.gpxmanager.component.ConfigureDevicePanel;
+import com.gpxmanager.component.ConfigureStravaStoragePanel;
 import com.gpxmanager.component.InvertPanel;
 import com.gpxmanager.component.MergePanel;
 import com.gpxmanager.gpx.GPXUtils;
@@ -93,8 +94,8 @@ import static com.gpxmanager.gpx.GPXUtils.initWatchDir;
 import static com.gpxmanager.gpx.GPXUtils.watchDirContains;
 
 public final class MyGPXManager extends JFrame {
-    public static final String INTERNAL_VERSION = "12.3";
-    public static final String VERSION = "5.0";
+    public static final String INTERNAL_VERSION = "12.4";
+    public static final String VERSION = "5.1";
     private static final MyAutoHideLabel INFO_LABEL = new MyAutoHideLabel();
     private static JMenuItem saveFile;
     private static JMenuItem saveAsFile;
@@ -115,11 +116,6 @@ public final class MyGPXManager extends JFrame {
 
     public MyGPXManager() throws HeadlessException {
         instance = this;
-        /*
-        ProgramPreferences.setPreference(GPS_MOUNT_ROOT, "/Volumes");
-        ProgramPreferences.setPreference(GPS_MOUNT_DIR, "/Volumes/GARMIN");
-        ProgramPreferences.setPreference(GPS_TARGET_DIR, "Garmin/NewFiles");
-         */
         MyGPXManagerServer.getInstance().checkVersion();
         getGpxParser().addExtensionParser(new GarminExtension());
         Thread.setDefaultUncaughtExceptionHandler((t, e) -> showException(e, true));
@@ -150,6 +146,8 @@ public final class MyGPXManager extends JFrame {
         connectToStravaMenuItem = new JMenuItem(new ConnectToStravaAction());
         menuStrava.add(connectToStravaMenuItem);
         connectToStravaMenuItem.setEnabled(!getPreference(STRAVA, "").isBlank());
+        menuStrava.addSeparator();
+        menuStrava.add(new JMenuItem(new ConfigureStravaFileAction()));
         JMenu menuAbout = new JMenu("?");
         menuBar.add(menuAbout);
         menuFile.add(new JMenuItem(new OpenFileAction()));
@@ -679,16 +677,30 @@ public final class MyGPXManager extends JFrame {
         }
     }
 
-    class ConfigureDeviceAction extends AbstractAction {
+    static class ConfigureDeviceAction extends AbstractAction {
         public ConfigureDeviceAction() {
             super(getLabel("menu.configureDevice"), null);
         }
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            ConfigureDevicePanel message = new ConfigureDevicePanel();
-            if (JOptionPane.YES_OPTION == JOptionPane.showOptionDialog(instance, message, getLabel("menu.configureDevice"), JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE, null, null, null)) {
-                message.save();
+            ConfigureDevicePanel devicePanel = new ConfigureDevicePanel();
+            if (JOptionPane.YES_OPTION == JOptionPane.showOptionDialog(instance, devicePanel, getLabel("menu.configureDevice"), JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE, null, new Object[]{getLabel("save"), getLabel("cancel")}, getLabel("save"))) {
+                devicePanel.save();
+            }
+        }
+    }
+
+    static class ConfigureStravaFileAction extends AbstractAction {
+        public ConfigureStravaFileAction() {
+            super(getLabel("menu.configureStravaFile"), null);
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            ConfigureStravaStoragePanel storagePanel = new ConfigureStravaStoragePanel();
+            if (JOptionPane.YES_OPTION == JOptionPane.showOptionDialog(instance, storagePanel, getLabel("menu.configureStravaFile"), JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE, null, new Object[]{getLabel("save"), getLabel("cancel")}, getLabel("save"))) {
+                storagePanel.save();
             }
         }
     }
