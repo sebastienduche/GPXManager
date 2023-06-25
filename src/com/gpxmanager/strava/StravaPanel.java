@@ -28,6 +28,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.JTable;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
@@ -66,6 +67,7 @@ import static com.gpxmanager.strava.StravaTableModel.COL_DATE;
 import static com.gpxmanager.strava.StravaTableModel.COL_DISTANCE;
 import static com.gpxmanager.strava.StravaTableModel.COL_DOWNLOAD;
 import static com.gpxmanager.strava.StravaTableModel.COL_NAME;
+import static com.gpxmanager.strava.StravaTableModel.COL_PR;
 import static com.gpxmanager.strava.StravaTableModel.COL_SPEED_AVG;
 import static com.gpxmanager.strava.StravaTableModel.COL_SPEED_MAX;
 import static com.gpxmanager.strava.StravaTableModel.COL_TIME;
@@ -121,6 +123,8 @@ public class StravaPanel extends JPanel implements ITabListener {
             table.getColumnModel().getColumn(COL_DOWNLOAD).setCellEditor(new ButtonCellEditor());
             table.getColumnModel().getColumn(COL_VIEW).setMinWidth(25);
             table.getColumnModel().getColumn(COL_VIEW).setMaxWidth(25);
+            table.getColumnModel().getColumn(COL_PR).setMinWidth(25);
+            table.getColumnModel().getColumn(COL_PR).setMaxWidth(25);
             table.getColumnModel().getColumn(COL_DOWNLOAD).setMinWidth(25);
             table.getColumnModel().getColumn(COL_DOWNLOAD).setMaxWidth(25);
             table.getColumnModel().getColumn(COL_DISTANCE).setMinWidth(50);
@@ -149,6 +153,7 @@ public class StravaPanel extends JPanel implements ITabListener {
             popup.add(new JMenuItem(new OpenInStravaAction()));
             popup.add(new JMenuItem(new DownloadFromStravaAction()));
             popup.add(new JMenuItem(new UpdateActivityFromStravaAction()));
+            popup.add(new JMenuItem(new ShowJSONAction()));
             table.setComponentPopupMenu(popup);
             add(downloadAllActivities, "split 9");
             add(downloadNewActivities, "gapleft 10px");
@@ -364,7 +369,13 @@ public class StravaPanel extends JPanel implements ITabListener {
                 setCursor(Cursor.getDefaultCursor());
                 return;
             }
-            activities.addAll(newActivities);
+            newActivities.forEach(activity -> {
+                try {
+                    activities.add(stravaConnection.getStrava().findActivity(activity.getId(), true));
+                } catch (StravaException e) {
+                    throw new RuntimeException(e);
+                }
+            });
             activities = activities.stream().sorted(Comparator.comparingLong(Activity::getId).reversed()).collect(Collectors.toList());
             gears = enrichWithGear(activities);
             setActivities(activities);
@@ -414,9 +425,28 @@ public class StravaPanel extends JPanel implements ITabListener {
         }
     }
 
+    class ShowJSONAction extends AbstractAction {
+
+        public ShowJSONAction() {
+            super(getLabel("strava.showJson"));
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            Activity activity = stravaTableModel.getActivityAt(table.getSelectedRow());
+            updateActivityFromStrava(activity, table.getSelectedRow());
+            JPanel panel = new JPanel();
+            panel.setLayout(new MigLayout("", "[500:500:500]", "[500:500:500]"));
+            JTextArea textArea = new JTextArea(GSON.toJson(activity).replaceAll(",", ",\n"));
+            panel.add(new JScrollPane(textArea));
+            panel.setSize(500, 500);
+            JOptionPane.showOptionDialog(null, panel, getLabel("strava.showJson"), JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, null, null);
+        }
+    }
+
     private void updateActivityFromStrava(Activity activity, int selectedRow) {
         try {
-            Activity activity1 = stravaPanel.stravaConnection.getStrava().findActivity(activity.getId(), false);
+            Activity activity1 = stravaConnection.getStrava().findActivity(activity.getId(), true);
             int i = activities.indexOf(activity);
             activities.remove(activity);
             activities.add(i, activity1);

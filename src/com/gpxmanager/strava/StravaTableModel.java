@@ -12,6 +12,7 @@ import java.util.List;
 import static com.gpxmanager.Utils.DATE_HOUR_MINUTE;
 import static com.gpxmanager.Utils.TIMESTAMP;
 import static com.gpxmanager.Utils.getLabel;
+import static com.gpxmanager.Utils.getPersonalRecords;
 import static com.gpxmanager.strava.StravaPanel.downloadGPXActivityOnStrava;
 import static com.gpxmanager.strava.StravaPanel.openActivityOnStrava;
 
@@ -24,8 +25,9 @@ public class StravaTableModel extends DefaultTableModel {
     public static final int COL_SPEED_MAX = 4;
     public static final int COL_SPEED_AVG = 5;
     public static final int COL_ALTITUDE = 6;
-    public static final int COL_VIEW = 7;
-    public static final int COL_DOWNLOAD = 8;
+    public static final int COL_PR = 7;
+    public static final int COL_VIEW = 8;
+    public static final int COL_DOWNLOAD = 9;
 
 
     private final List<String> columns = List.of(
@@ -36,6 +38,7 @@ public class StravaTableModel extends DefaultTableModel {
             getLabel("strava.table.max"),
             getLabel("strava.table.avg"),
             getLabel("strava.table.altitude"),
+            getLabel("strava.table.pr"),
             "",
             ""
     );
@@ -99,6 +102,9 @@ public class StravaTableModel extends DefaultTableModel {
             case COL_ALTITUDE: {
                 return (int) activity.getTotalElevationGain();
             }
+            case COL_PR: {
+                return getPersonalRecords(activity).size();
+            }
             case COL_VIEW:
             case COL_DOWNLOAD: {
                 return Boolean.FALSE;
@@ -120,6 +126,7 @@ public class StravaTableModel extends DefaultTableModel {
             case COL_SPEED_AVG: {
                 return Double.class;
             }
+            case COL_PR:
             case COL_ALTITUDE: {
                 return Integer.class;
             }

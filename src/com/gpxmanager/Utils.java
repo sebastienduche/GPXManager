@@ -3,6 +3,8 @@ package com.gpxmanager;
 import com.gpxmanager.geocalc.Degree;
 import com.gpxmanager.geocalc.EarthCalc;
 import com.gpxmanager.gpx.beans.Waypoint;
+import org.jstrava.entities.Activity;
+import org.jstrava.entities.SegmentEffort;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -12,10 +14,12 @@ import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
+import java.util.stream.Collectors;
 
 import static com.gpxmanager.ProgramPreferences.DIR;
 import static com.gpxmanager.ProgramPreferences.getPreference;
@@ -100,6 +104,16 @@ public class Utils {
         NumberFormat instance = DecimalFormat.getInstance();
         instance.setMaximumFractionDigits(2);
         return instance.format(value * 3.6);
+    }
+
+    public static List<SegmentEffort> getPersonalRecords(Activity activity) {
+        if (activity.getSegmentEfforts() == null) {
+            return Collections.emptyList();
+        }
+        return activity.getSegmentEfforts()
+                .stream()
+                .filter(segmentEffort -> segmentEffort.getPrRank() != null)
+                .collect(Collectors.toList());
     }
 
     public static int safeParseInt(String value, int defaultValue) {
