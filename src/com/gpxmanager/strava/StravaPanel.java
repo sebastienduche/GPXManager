@@ -394,7 +394,7 @@ public class StravaPanel extends JPanel implements ITabListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            Activity activity = stravaTableModel.getActivityAt(table.getSelectedRow());
+            Activity activity = stravaTableModel.getActivityAt(table.convertRowIndexToModel(table.getSelectedRow()));
             downloadGPXActivityOnStrava(activity);
         }
     }
@@ -407,7 +407,7 @@ public class StravaPanel extends JPanel implements ITabListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            Activity activity = stravaTableModel.getActivityAt(table.getSelectedRow());
+            Activity activity = stravaTableModel.getActivityAt(table.convertRowIndexToModel(table.getSelectedRow()));
             openActivityOnStrava(activity);
         }
     }
@@ -420,7 +420,7 @@ public class StravaPanel extends JPanel implements ITabListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            Activity activity = stravaTableModel.getActivityAt(table.getSelectedRow());
+            Activity activity = stravaTableModel.getActivityAt(table.convertRowIndexToModel(table.getSelectedRow()));
             updateActivityFromStrava(activity, table.getSelectedRow());
         }
     }
@@ -433,7 +433,7 @@ public class StravaPanel extends JPanel implements ITabListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            Activity activity = stravaTableModel.getActivityAt(table.getSelectedRow());
+            Activity activity = stravaTableModel.getActivityAt(table.convertRowIndexToModel(table.getSelectedRow()));
             updateActivityFromStrava(activity, table.getSelectedRow());
             JPanel panel = new JPanel();
             panel.setLayout(new MigLayout("", "[500:500:500]", "[500:500:500]"));
