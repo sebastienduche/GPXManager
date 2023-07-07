@@ -451,12 +451,24 @@ public class StravaPanel extends JPanel implements ITabListener {
             activities.remove(activity);
             activities.add(i, activity1);
             stravaTableModel.setActivityAt(selectedRow, activity1);
-            String existingFile = getPreference(STRAVA_ALL_DATA, null);
-            if (existingFile != null && new File(existingFile).exists()) {
-                writeToFile(GSON.toJson(activities), new File(existingFile));
-            }
+            save();
         } catch (StravaException e) {
+            if (e.getHttpStatusCode() == 404) {
+                if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, getLabel("strava.notFound.askDelete"), getLabel("information"), JOptionPane.YES_NO_OPTION)) {
+                    activities.remove(activity);
+                    stravaTableModel.fireTableRowsDeleted(selectedRow, selectedRow);
+                    save();
+                }
+                return;
+            }
             throw new RuntimeException(e);
+        }
+    }
+
+    private void save() {
+        String existingFile = getPreference(STRAVA_ALL_DATA, null);
+        if (existingFile != null && new File(existingFile).exists()) {
+            writeToFile(GSON.toJson(activities), new File(existingFile));
         }
     }
 
