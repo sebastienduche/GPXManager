@@ -15,6 +15,7 @@ import static com.gpxmanager.Utils.getLabel;
 import static com.gpxmanager.Utils.getPersonalRecords;
 import static com.gpxmanager.strava.StravaPanel.downloadGPXActivityOnStrava;
 import static com.gpxmanager.strava.StravaPanel.openActivityOnStrava;
+import static com.gpxmanager.strava.StravaPanel.updateActivityFromStrava;
 
 public class StravaTableModel extends DefaultTableModel {
 
@@ -28,6 +29,7 @@ public class StravaTableModel extends DefaultTableModel {
     public static final int COL_PR = 7;
     public static final int COL_VIEW = 8;
     public static final int COL_DOWNLOAD = 9;
+    public static final int COL_REFRESH = 10;
 
 
     private final List<String> columns = List.of(
@@ -40,6 +42,7 @@ public class StravaTableModel extends DefaultTableModel {
             getLabel("strava.table.altitude"),
             getLabel("strava.table.pr"),
             "",
+            "",
             ""
     );
 
@@ -51,7 +54,9 @@ public class StravaTableModel extends DefaultTableModel {
 
     @Override
     public boolean isCellEditable(int row, int column) {
-        return column == COL_DOWNLOAD || column == COL_VIEW;
+        return column == COL_DOWNLOAD
+                || column == COL_VIEW
+                || column == COL_REFRESH;
     }
 
     @Override
@@ -106,6 +111,7 @@ public class StravaTableModel extends DefaultTableModel {
                 return getPersonalRecords(activity).size();
             }
             case COL_VIEW:
+            case COL_REFRESH:
             case COL_DOWNLOAD: {
                 return Boolean.FALSE;
             }
@@ -131,6 +137,7 @@ public class StravaTableModel extends DefaultTableModel {
                 return Integer.class;
             }
             case COL_VIEW:
+            case COL_REFRESH:
             case COL_DOWNLOAD: {
                 return Boolean.class;
             }
@@ -149,6 +156,10 @@ public class StravaTableModel extends DefaultTableModel {
             }
             case COL_DOWNLOAD: {
                 downloadGPXActivityOnStrava(activity);
+                break;
+            }
+            case COL_REFRESH: {
+                updateActivityFromStrava(activity, row);
                 break;
             }
         }
