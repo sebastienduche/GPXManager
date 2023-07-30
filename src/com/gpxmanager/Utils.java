@@ -94,6 +94,13 @@ public class Utils {
         return EarthCalc.calculateDistance(points) / 1000;
     }
 
+    public static String getTotalDistance(List<Activity> activities) {
+        return roundValue(activities.stream()
+                .map(Activity::getDistance)
+                .reduce(Double::sum)
+                .orElseGet(() -> (double) 0) / METER_IN_KM);
+    }
+
     public static String roundValue(double value) {
         NumberFormat nf = NumberFormat.getInstance();
         nf.setMaximumFractionDigits(2);

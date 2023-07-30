@@ -55,6 +55,7 @@ import java.util.stream.Collectors;
 
 import static com.gpxmanager.MyGPXManager.GSON;
 import static com.gpxmanager.MyGPXManager.getInstance;
+import static com.gpxmanager.MyGPXManager.getMyTabbedPane;
 import static com.gpxmanager.ProgramPreferences.STRAVA_ALL_DATA;
 import static com.gpxmanager.ProgramPreferences.getPreference;
 import static com.gpxmanager.ProgramPreferences.setPreference;
@@ -84,6 +85,7 @@ public class StravaPanel extends JPanel implements ITabListener {
     private StravaTableModel stravaTableModel;
     private final JButton downloadAllActivities = new JButton(new DownloadActivitiesAction());
     private final JButton downloadNewActivities = new JButton(new DownloadNewActivitiesAction());
+    private final JButton showStatistics = new JButton(new ShowStatisticsAction());
     private final MyAutoHideLabel infoLabel = new MyAutoHideLabel();
 
     private final JLabel labelCount = new JLabel();
@@ -160,8 +162,9 @@ public class StravaPanel extends JPanel implements ITabListener {
             popup.add(new JMenuItem(new UpdateActivityFromStravaAction()));
             popup.add(new JMenuItem(new ShowJSONAction()));
             table.setComponentPopupMenu(popup);
-            add(downloadAllActivities, "split 9");
+            add(downloadAllActivities, "split 10");
             add(downloadNewActivities, "gapleft 10px");
+            add(showStatistics, "gapleft 10px");
             add(new JLabel(), "growx");
             add(comboGear);
             add(new JLabel(getLabel("filter.fromDistance")));
@@ -347,6 +350,18 @@ public class StravaPanel extends JPanel implements ITabListener {
                 return;
             }
             downloadLatestActivities(existingFile);
+        }
+    }
+
+    class ShowStatisticsAction extends AbstractAction {
+
+        public ShowStatisticsAction() {
+            super(getLabel("strava.statistics"), MyGPXManagerImage.STATS);
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            getMyTabbedPane().addTab(getLabel("strava.statistics"), MyGPXManagerImage.STATS, new StravaStatisticPanel(activities), true);
         }
     }
 
