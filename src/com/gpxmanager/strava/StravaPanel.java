@@ -85,6 +85,7 @@ public class StravaPanel extends JPanel implements ITabListener {
     private StravaTableModel stravaTableModel;
     private final JButton downloadAllActivities = new JButton(new DownloadActivitiesAction());
     private final JButton downloadNewActivities = new JButton(new DownloadNewActivitiesAction());
+    private final JButton downloadActivity = new JButton(new DownloadActivityAction());
     private final JButton showStatistics = new JButton(new ShowStatisticsAction());
     private final MyAutoHideLabel infoLabel = new MyAutoHideLabel();
 
@@ -108,7 +109,7 @@ public class StravaPanel extends JPanel implements ITabListener {
         this.stravaConnection = stravaConnection;
         this.activities = activities;
         searchTextField.setToolTipText(getLabel("strava.search"));
-        setLayout(new MigLayout("", "[grow]", "[][grow]10px[][]"));
+        setLayout(new MigLayout("", "[grow]", "[][][grow]10px[][]"));
         SwingUtilities.invokeLater(() -> {
             stravaTableModel = new StravaTableModel();
             setActivities(activities);
@@ -162,10 +163,11 @@ public class StravaPanel extends JPanel implements ITabListener {
             popup.add(new JMenuItem(new UpdateActivityFromStravaAction()));
             popup.add(new JMenuItem(new ShowJSONAction()));
             table.setComponentPopupMenu(popup);
-            add(downloadAllActivities, "split 10");
+            add(downloadAllActivities, "split 4");
             add(downloadNewActivities, "gapleft 10px");
-            add(showStatistics, "gapleft 10px");
-            add(new JLabel(), "growx");
+            add(downloadActivity, "gapleft 10px");
+            add(showStatistics, "gapleft 10px, wrap");
+            add(new JLabel(), "split 7, growx");
             add(comboGear);
             add(new JLabel(getLabel("filter.fromDistance")));
             add(minDistanceSpinner, "w 50, align right");
@@ -260,7 +262,8 @@ public class StravaPanel extends JPanel implements ITabListener {
         return activity.getDistance() >= (minDistance * METER_IN_KM) &&
                 activity.getDistance() <= (maxDistance * METER_IN_KM) &&
                 (selectedGear == null || selectedGear.getId().isBlank() || selectedGear.getId().equals(activity.getGearId())) &&
-                (filter.isBlank() || activity.getName().toLowerCase().contains(filter.toLowerCase()));
+                (filter.isBlank() || activity.getName().toLowerCase().contains(filter.toLowerCase()) ||
+                        Long.toString(activity.getId()).equals(filter));
     }
 
     private boolean existStravaFile() {
@@ -326,6 +329,7 @@ public class StravaPanel extends JPanel implements ITabListener {
     }
 
     private void setActivities(List<Activity> activities) {
+        activities.sort(Comparator.comparing(Activity::getId).reversed());
         stravaTableModel.setActivities(activities);
         labelCount.setText(MessageFormat.format(getLabel("strava.activities.count"), activities.size()));
         String totalDistance = roundValue(activities.stream()
@@ -350,6 +354,50 @@ public class StravaPanel extends JPanel implements ITabListener {
                 return;
             }
             downloadLatestActivities(existingFile);
+        }
+    }
+
+    class DownloadActivityAction extends AbstractAction {
+
+        public DownloadActivityAction() {
+            super(getLabel("strava.downloadActivity"), MyGPXManagerImage.IMPORT);
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            String value = JOptionPane.showInputDialog(getInstance(), getLabel("strava.activityQuestion"));
+            try {
+                long id = Long.parseLong(value);
+                infoLabel.setText(getLabel("download"), false);
+                Activity activityFromStrava = findActivityFromStrava(id);
+                Activity foundActivity = activities
+                        .stream()
+                        .filter(activity -> activityFromStrava.getId() == activity.getId())
+                        .findFirst().orElse(null);
+                infoLabel.setText(MessageFormat.format(getLabel("strava.countNew"), 1), true);
+                if (foundActivity != null) {
+                    if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(stravaPanel, getLabel("strava.alreadyExist"), getLabel("information"), JOptionPane.YES_NO_OPTION)) {
+                        activities.remove(foundActivity);
+                        activities.add(activityFromStrava);
+                        setActivities(activities);
+                        save();
+                    }
+                } else {
+                    activities.add(activityFromStrava);
+                    setActivities(activities);
+                    save();
+                }
+            } catch (NumberFormatException nfe) {
+                JOptionPane.showMessageDialog(getInstance(),
+                        getLabel("strava.errorNotNumeric"), getLabel("error"), JOptionPane.ERROR_MESSAGE);
+            } catch (StravaException ex) {
+                if (ex.getHttpStatusCode() == 404) {
+                    JOptionPane.showMessageDialog(getInstance(),
+                            getLabel("strava.notFound"), getLabel("error"), JOptionPane.ERROR_MESSAGE);
+                } else {
+                    throw new RuntimeException(ex);
+                }
+            }
         }
     }
 
@@ -483,6 +531,11 @@ public class StravaPanel extends JPanel implements ITabListener {
             }
             throw new RuntimeException(e);
         }
+    }
+
+    public static Activity findActivityFromStrava(long id) throws StravaException {
+        return stravaPanel.stravaConnection.getStrava().findActivity(id, true);
+
     }
 
     private static void save() {
