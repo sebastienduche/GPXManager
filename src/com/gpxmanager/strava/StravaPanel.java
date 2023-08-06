@@ -284,7 +284,7 @@ public class StravaPanel extends JPanel implements ITabListener {
     class DownloadActivitiesAction extends AbstractAction {
 
         public DownloadActivitiesAction() {
-            super(getLabel("strava.downloadAll"), MyGPXManagerImage.IMPORT);
+            super(getLabel("strava.downloadAll"), MyGPXManagerImage.DOWNLOAD_SEVERAL);
         }
 
         @Override
@@ -342,7 +342,7 @@ public class StravaPanel extends JPanel implements ITabListener {
     class DownloadNewActivitiesAction extends AbstractAction {
 
         public DownloadNewActivitiesAction() {
-            super(getLabel("strava.downloadNew"), MyGPXManagerImage.IMPORT);
+            super(getLabel("strava.downloadNew"), MyGPXManagerImage.DOWNLOAD);
         }
 
         @Override
@@ -360,7 +360,7 @@ public class StravaPanel extends JPanel implements ITabListener {
     class DownloadActivityAction extends AbstractAction {
 
         public DownloadActivityAction() {
-            super(getLabel("strava.downloadActivity"), MyGPXManagerImage.IMPORT);
+            super(getLabel("strava.downloadActivity"), null);
         }
 
         @Override
