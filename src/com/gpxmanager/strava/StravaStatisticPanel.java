@@ -49,14 +49,16 @@ public class StravaStatisticPanel extends JPanel implements ITabListener {
 
     private final JLabel labelCount = new JLabel();
     private final JLabel labelKm = new JLabel();
+    private final JLabel labelCommute = new JLabel();
 
     public StravaStatisticPanel(List<Activity> activities) {
         setLayout(new MigLayout("", "[grow][grow]", "[][200:200:200]"));
         JPanel panelGlobal = new JPanel();
         panelGlobal.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), getLabel("strava.statistics.global")));
         panelGlobal.setLayout(new MigLayout("", "[]", "[]"));
-        panelGlobal.add(labelCount, " split 2, gapright 100px");
-        panelGlobal.add(labelKm, "wrap");
+        panelGlobal.add(labelCount, " split 3, gapright 100px");
+        panelGlobal.add(labelKm, "gapright 100px");
+        panelGlobal.add(labelCommute, "wrap");
         add(panelGlobal, "span 2, growx, wrap");
         SwingUtilities.invokeLater(() -> {
             Map<Integer, List<Activity>> activitiesPerYear = activities
@@ -86,8 +88,16 @@ public class StravaStatisticPanel extends JPanel implements ITabListener {
             buildGlobalStatisticsTable(statisticList);
             buildLongestRideStatisticsTable(longestRidesList);
             setStatisticsPerYear(activities);
-            add(new JScrollPane(tableGlobal), "w 610, split 2");
-            add(new JScrollPane(tableLongestRide), "w 610");
+            JPanel panelTableGlobal = new JPanel();
+            panelTableGlobal.setLayout(new MigLayout("", "0px[610:610:610]0px", "[grow]0px"));
+            panelTableGlobal.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), getLabel("strava.statistics.per.year")));
+            panelTableGlobal.add(new JScrollPane(tableGlobal), "grow");
+            JPanel panelTableLongest = new JPanel();
+            panelTableLongest.setLayout(new MigLayout("", "0px[610:610:610]0px", "[grow]0px"));
+            panelTableLongest.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), getLabel("strava.statistics.per.distance")));
+            panelTableLongest.add(new JScrollPane(tableLongestRide), "grow");
+            add(panelTableGlobal, "split 2");
+            add(panelTableLongest);
         });
     }
 
@@ -145,6 +155,8 @@ public class StravaStatisticPanel extends JPanel implements ITabListener {
         labelCount.setText(MessageFormat.format(getLabel("strava.activities.count"), activities.size()));
         String totalDistance = getTotalDistance(activities);
         labelKm.setText(MessageFormat.format(getLabel("strava.km"), totalDistance));
+        long count = activities.stream().filter(Activity::isCommute).count();
+        labelCommute.setText(MessageFormat.format(getLabel("strava.commute"), count));
     }
 
     @Override

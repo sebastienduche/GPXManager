@@ -96,10 +96,12 @@ public class StravaPanel extends JPanel implements ITabListener {
     private final JSpinner maxDistanceSpinner = new JSpinner(new SpinnerNumberModel(1000, 0, 1000, 1));
 
     private final JComboBox<GearItem> comboGear = new JComboBox<>();
+    private final JComboBox<CommuteItem> comboCommute = new JComboBox<>();
     private String filter;
     private int minDistance = 0;
     private int maxDistance = 1000;
     private GearItem selectedGear;
+    private CommuteItem selectedCommute;
 
     private static StravaPanel stravaPanel;
 
@@ -115,6 +117,7 @@ public class StravaPanel extends JPanel implements ITabListener {
             setActivities(activities);
             gears = enrichWithGear(activities);
             populateGearCombo();
+            populateCommuteCombo();
             table = new JTable(stravaTableModel);
             infoLabel.setForeground(Color.red);
             table.getColumnModel().getColumn(COL_TIME).setCellRenderer(new DurationCellRenderer());
@@ -167,8 +170,9 @@ public class StravaPanel extends JPanel implements ITabListener {
             add(downloadNewActivities, "gapleft 10px");
             add(downloadActivity, "gapleft 10px");
             add(showStatistics, "gapleft 10px, wrap");
-            add(new JLabel(), "split 7, growx");
+            add(new JLabel(), "split 8, growx");
             add(comboGear);
+            add(comboCommute);
             add(new JLabel(getLabel("filter.fromDistance")));
             add(minDistanceSpinner, "w 50, align right");
             add(new JLabel(getLabel("filter.toDistance")));
@@ -196,18 +200,19 @@ public class StravaPanel extends JPanel implements ITabListener {
                 }
 
                 private void performTextChange(DocumentEvent e) {
-                    filterActivities(extractText(e), minDistance, maxDistance, selectedGear);
+                    filterActivities(extractText(e), minDistance, maxDistance, selectedGear, selectedCommute);
                 }
             });
             minDistanceSpinner.addChangeListener(e -> {
                 JSpinner spinner = (JSpinner) e.getSource();
-                filterActivities(filter, (int) spinner.getValue(), maxDistance, selectedGear);
+                filterActivities(filter, (int) spinner.getValue(), maxDistance, selectedGear, selectedCommute);
             });
             maxDistanceSpinner.addChangeListener(e -> {
                 JSpinner spinner = (JSpinner) e.getSource();
-                filterActivities(filter, minDistance, (int) spinner.getValue(), selectedGear);
+                filterActivities(filter, minDistance, (int) spinner.getValue(), selectedGear, selectedCommute);
             });
-            comboGear.addItemListener(e -> filterActivities(filter, minDistance, maxDistance, (GearItem) e.getItem()));
+            comboGear.addItemListener(e -> filterActivities(filter, minDistance, maxDistance, (GearItem) e.getItem(), selectedCommute));
+            comboCommute.addItemListener(e -> filterActivities(filter, minDistance, maxDistance, selectedGear, (CommuteItem) e.getItem()));
         });
 
     }
@@ -235,6 +240,13 @@ public class StravaPanel extends JPanel implements ITabListener {
         gears.forEach(gear -> comboGear.addItem(new GearItem(gear.getId(), gear.getName())));
     }
 
+    private void populateCommuteCombo() {
+        comboCommute.removeAllItems();
+        comboCommute.addItem(new CommuteItem(getLabel("strava.all.type"), null));
+        comboCommute.addItem(new CommuteItem(getLabel("strava.commute.yes"), true));
+        comboCommute.addItem(new CommuteItem(getLabel("strava.commute.no"), false));
+    }
+
     private static String extractText(DocumentEvent e) {
         try {
             return e.getDocument().getText(0, e.getDocument().getLength());
@@ -243,7 +255,7 @@ public class StravaPanel extends JPanel implements ITabListener {
         return null;
     }
 
-    private void filterActivities(String value, int min, int max, GearItem gear) {
+    private void filterActivities(String value, int min, int max, GearItem gear, CommuteItem item) {
         if (value == null || value.isBlank()) {
             filter = "";
         } else {
@@ -252,6 +264,7 @@ public class StravaPanel extends JPanel implements ITabListener {
         minDistance = min;
         maxDistance = max;
         selectedGear = gear;
+        selectedCommute = item;
         setActivities(activities
                 .stream()
                 .filter(this::filterActivity)
@@ -262,6 +275,7 @@ public class StravaPanel extends JPanel implements ITabListener {
         return activity.getDistance() >= (minDistance * METER_IN_KM) &&
                 activity.getDistance() <= (maxDistance * METER_IN_KM) &&
                 (selectedGear == null || selectedGear.getId().isBlank() || selectedGear.getId().equals(activity.getGearId())) &&
+                (selectedCommute == null || selectedCommute.getValue() == null || selectedCommute.getValue().equals(activity.isCommute())) &&
                 (filter.isBlank() || activity.getName().toLowerCase().contains(filter.toLowerCase()) ||
                         Long.toString(activity.getId()).equals(filter));
     }
@@ -519,6 +533,7 @@ public class StravaPanel extends JPanel implements ITabListener {
             stravaPanel.activities.remove(activity);
             stravaPanel.activities.add(i, activity1);
             stravaPanel.stravaTableModel.setActivityAt(selectedRow, activity1);
+            stravaPanel.infoLabel.setText(getLabel("strava.updateActivity.done"), true);
             save();
         } catch (StravaException e) {
             if (e.getHttpStatusCode() == 404) {

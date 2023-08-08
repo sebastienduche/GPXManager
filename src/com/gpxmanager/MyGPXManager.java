@@ -94,7 +94,7 @@ import static com.gpxmanager.gpx.GPXUtils.initWatchDir;
 import static com.gpxmanager.gpx.GPXUtils.watchDirContains;
 
 public final class MyGPXManager extends JFrame {
-    public static final String INTERNAL_VERSION = "13.7";
+    public static final String INTERNAL_VERSION = "13.9";
     public static final String VERSION = "5.5";
     private static final MyAutoHideLabel INFO_LABEL = new MyAutoHideLabel();
     private static JMenuItem saveFile;
