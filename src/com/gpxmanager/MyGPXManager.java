@@ -87,14 +87,15 @@ import static com.gpxmanager.ProgramPreferences.getPreference;
 import static com.gpxmanager.ProgramPreferences.setPreference;
 import static com.gpxmanager.Utils.DATE_FORMATER_DD_MM_YYYY;
 import static com.gpxmanager.Utils.DEBUG_DIRECTORY;
-import static com.gpxmanager.Utils.checkFileName;
+import static com.gpxmanager.Utils.checkFileNameWithExtension;
+import static com.gpxmanager.Utils.createFileChooser;
 import static com.gpxmanager.Utils.getLabel;
 import static com.gpxmanager.gpx.GPXUtils.getGpxParser;
 import static com.gpxmanager.gpx.GPXUtils.initWatchDir;
 import static com.gpxmanager.gpx.GPXUtils.watchDirContains;
 
 public final class MyGPXManager extends JFrame {
-    public static final String INTERNAL_VERSION = "13.9";
+    public static final String INTERNAL_VERSION = "14.4";
     public static final String VERSION = "5.5";
     private static final MyAutoHideLabel INFO_LABEL = new MyAutoHideLabel();
     private static JMenuItem saveFile;
@@ -268,7 +269,7 @@ public final class MyGPXManager extends JFrame {
             @Override
             public void eventCreated(Path path) {
                 if (mountDir.equals(path.toString())) {
-                    INFO_LABEL.setText(path + " connected", true);
+                    setInfoLabel(MessageFormat.format(getLabel("device.connected"), path));
                     sendToDevice.setEnabled(true);
                 }
             }
@@ -276,14 +277,14 @@ public final class MyGPXManager extends JFrame {
             @Override
             public void eventDeleted(Path path) {
                 if (mountDir.equals(path.toString())) {
-                    INFO_LABEL.setText(path + " disconnected", true);
+                    setInfoLabel(MessageFormat.format(getLabel("device.disconnected"), path));
                     sendToDevice.setEnabled(false);
                 }
             }
 
             @Override
             public void eventModified(Path path) {
-                INFO_LABEL.setText(path + " updated", true);
+                setInfoLabel(MessageFormat.format(getLabel("device.updated"), path));
             }
         });
         sendToDevice.setEnabled(watchDirContains(Paths.get(mountDir)));
@@ -370,12 +371,11 @@ public final class MyGPXManager extends JFrame {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            JFileChooser boiteFichier = new JFileChooser();
-            boiteFichier.removeChoosableFileFilter(boiteFichier.getFileFilter());
-            boiteFichier.addChoosableFileFilter(Filtre.FILTRE_GPX);
-            boiteFichier.setCurrentDirectory(Utils.getOpenSaveDirectory());
-            if (JFileChooser.APPROVE_OPTION == boiteFichier.showOpenDialog(instance)) {
-                File file = boiteFichier.getSelectedFile();
+            JFileChooser fileChooser = createFileChooser();
+            fileChooser.setCurrentDirectory(Utils.getOpenSaveDirectory());
+            if (JFileChooser.APPROVE_OPTION == fileChooser.showOpenDialog(instance)) {
+                File file = fileChooser.getSelectedFile();
+                file = checkFileNameWithExtension(file);
                 if (file != null) {
                     Utils.setOpenSaveDirectory(file.getParentFile());
                     open(file);
@@ -400,8 +400,9 @@ public final class MyGPXManager extends JFrame {
                     // The file contains the data
                     File fileSaved = ((FileIdentificationStorage) identificationStorage).getFile();
                     ProgramPreferences.setPreference(ProgramPreferences.STRAVA, fileSaved.getAbsolutePath());
-                    connectToStravaMenuItem.setEnabled(!getPreference(ProgramPreferences.STRAVA, "").isBlank());
-                    stravaButton.setEnabled(!getPreference(ProgramPreferences.STRAVA, "").isBlank());
+                    boolean isAvailable = !getPreference(STRAVA, "").isBlank();
+                    connectToStravaMenuItem.setEnabled(isAvailable);
+                    stravaButton.setEnabled(isAvailable);
                 }
                 StravaConnection stravaConnection;
                 try {
@@ -588,18 +589,14 @@ public final class MyGPXManager extends JFrame {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            JFileChooser boiteFichier = new JFileChooser();
-            boiteFichier.removeChoosableFileFilter(boiteFichier.getFileFilter());
-            boiteFichier.addChoosableFileFilter(Filtre.FILTRE_GPX);
+            JFileChooser fileChooser = createFileChooser();
             if (openedFiles.isEmpty()) {
-                if (JFileChooser.APPROVE_OPTION == boiteFichier.showSaveDialog(instance)) {
-                    File openedFile = boiteFichier.getSelectedFile();
+                if (JFileChooser.APPROVE_OPTION == fileChooser.showSaveDialog(instance)) {
+                    File openedFile = fileChooser.getSelectedFile();
+                    openedFile = checkFileNameWithExtension(openedFile);
                     if (openedFile == null) {
                         setCursor(Cursor.getDefaultCursor());
                         return;
-                    }
-                    if (!openedFile.getName().toLowerCase().endsWith(Filtre.FILTRE_GPX.toString())) {
-                        openedFile = new File(openedFile.getAbsolutePath() + Filtre.FILTRE_GPX);
                     }
                     GPXPropertiesPanel selectedComponent = myTabbedPane.getSelectedComponent(GPXPropertiesPanel.class);
                     try {
@@ -628,21 +625,16 @@ public final class MyGPXManager extends JFrame {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            JFileChooser boiteFichier = new JFileChooser();
-            boiteFichier.removeChoosableFileFilter(boiteFichier.getFileFilter());
-            boiteFichier.addChoosableFileFilter(Filtre.FILTRE_GPX);
-            boiteFichier.setCurrentDirectory(Utils.getOpenSaveDirectory());
-            if (JFileChooser.APPROVE_OPTION == boiteFichier.showSaveDialog(instance)) {
-                File file = boiteFichier.getSelectedFile();
-                file = checkFileName(file);
+            JFileChooser fileChooser = createFileChooser();
+            fileChooser.setCurrentDirectory(Utils.getOpenSaveDirectory());
+            if (JFileChooser.APPROVE_OPTION == fileChooser.showSaveDialog(instance)) {
+                File file = fileChooser.getSelectedFile();
+                file = checkFileNameWithExtension(file);
                 if (file == null) {
                     setCursor(Cursor.getDefaultCursor());
                     return;
                 }
                 Utils.setOpenSaveDirectory(file.getParentFile());
-                if (!file.getName().toLowerCase().endsWith(Filtre.FILTRE_GPX.toString())) {
-                    file = new File(file.getAbsolutePath() + Filtre.FILTRE_GPX);
-                }
                 GPXPropertiesPanel selectedComponent = myTabbedPane.getSelectedComponent(GPXPropertiesPanel.class);
                 save(selectedComponent.getGpx(), file);
             }
@@ -656,17 +648,13 @@ public final class MyGPXManager extends JFrame {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            JFileChooser boiteFichier = new JFileChooser();
-            boiteFichier.removeChoosableFileFilter(boiteFichier.getFileFilter());
-            boiteFichier.addChoosableFileFilter(Filtre.FILTRE_GPX);
-            if (JFileChooser.APPROVE_OPTION == boiteFichier.showOpenDialog(instance)) {
-                File openedFile = boiteFichier.getSelectedFile();
+            JFileChooser fileChooser = createFileChooser();
+            if (JFileChooser.APPROVE_OPTION == fileChooser.showOpenDialog(instance)) {
+                File openedFile = fileChooser.getSelectedFile();
+                openedFile = checkFileNameWithExtension(openedFile);
                 if (openedFile == null) {
                     setCursor(Cursor.getDefaultCursor());
                     return;
-                }
-                if (!openedFile.getName().toLowerCase().endsWith(Filtre.FILTRE_GPX.toString())) {
-                    openedFile = new File(openedFile.getAbsolutePath() + Filtre.FILTRE_GPX);
                 }
                 GPX gpx = GPXUtils.loadFile(openedFile);
                 if (gpx != null) {

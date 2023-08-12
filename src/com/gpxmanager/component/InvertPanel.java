@@ -1,6 +1,5 @@
 package com.gpxmanager.component;
 
-import com.gpxmanager.Filtre;
 import com.gpxmanager.MyGPXManager;
 import com.gpxmanager.MyGPXManagerImage;
 import com.gpxmanager.Utils;
@@ -34,7 +33,8 @@ import java.util.Objects;
 
 import static com.gpxmanager.ProgramPreferences.GPS_MOUNT_DIR;
 import static com.gpxmanager.ProgramPreferences.getPreference;
-import static com.gpxmanager.Utils.checkFileName;
+import static com.gpxmanager.Utils.checkFileNameWithExtension;
+import static com.gpxmanager.Utils.createFileChooser;
 import static com.gpxmanager.Utils.getLabel;
 
 public class InvertPanel extends JPanel implements ITabListener {
@@ -110,12 +110,11 @@ public class InvertPanel extends JPanel implements ITabListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            JFileChooser boiteFichier = new JFileChooser();
-            boiteFichier.removeChoosableFileFilter(boiteFichier.getFileFilter());
-            boiteFichier.addChoosableFileFilter(Filtre.FILTRE_GPX);
-            boiteFichier.setCurrentDirectory(Utils.getOpenSaveDirectory());
-            if (JFileChooser.APPROVE_OPTION == boiteFichier.showOpenDialog(null)) {
-                file = boiteFichier.getSelectedFile();
+            JFileChooser fileChooser = createFileChooser();
+            fileChooser.setCurrentDirectory(Utils.getOpenSaveDirectory());
+            if (JFileChooser.APPROVE_OPTION == fileChooser.showOpenDialog(null)) {
+                file = fileChooser.getSelectedFile();
+                file = checkFileNameWithExtension(file);
                 if (file != null) {
                     Utils.setOpenSaveDirectory(file.getParentFile());
                     loadFile();
@@ -149,15 +148,13 @@ public class InvertPanel extends JPanel implements ITabListener {
                 JOptionPane.showMessageDialog(null, getLabel("invert.no.file"), getLabel("error"), JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            JFileChooser boiteFichier = new JFileChooser();
-            boiteFichier.removeChoosableFileFilter(boiteFichier.getFileFilter());
-            boiteFichier.addChoosableFileFilter(Filtre.FILTRE_GPX);
-            boiteFichier.setCurrentDirectory(Utils.getOpenSaveDirectory());
-            if (JFileChooser.APPROVE_OPTION == boiteFichier.showSaveDialog(null)) {
-                File file = boiteFichier.getSelectedFile();
+            JFileChooser fileChooser = createFileChooser();
+            fileChooser.setCurrentDirectory(Utils.getOpenSaveDirectory());
+            if (JFileChooser.APPROVE_OPTION == fileChooser.showSaveDialog(null)) {
+                File file = fileChooser.getSelectedFile();
+                file = checkFileNameWithExtension(file);
                 if (file != null) {
                     Utils.setOpenSaveDirectory(file.getParentFile());
-                    file = checkFileName(file);
                     GPXUtils.invertFile(gpx);
                     try {
                         Metadata metadata = new Metadata();
@@ -183,11 +180,11 @@ public class InvertPanel extends JPanel implements ITabListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
+            file = checkFileNameWithExtension(file);
             if (file == null) {
                 JOptionPane.showMessageDialog(null, getLabel("invert.no.file"), getLabel("error"), JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            file = checkFileName(file);
             GPXUtils.invertFile(gpx);
             try {
                 Metadata metadata = new Metadata();
@@ -200,7 +197,6 @@ public class InvertPanel extends JPanel implements ITabListener {
                 throw new RuntimeException(ex);
             }
             setCursor(Cursor.getDefaultCursor());
-
         }
     }
 

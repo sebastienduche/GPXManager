@@ -1,6 +1,5 @@
 package com.gpxmanager.component;
 
-import com.gpxmanager.Filtre;
 import com.gpxmanager.MyGPXManager;
 import com.gpxmanager.MyGPXManagerImage;
 import com.gpxmanager.Utils;
@@ -37,7 +36,9 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Objects;
 
-import static com.gpxmanager.Utils.checkFileName;
+import static com.gpxmanager.Utils.checkFileExtension;
+import static com.gpxmanager.Utils.checkFileNameWithExtension;
+import static com.gpxmanager.Utils.createFileChooser;
 import static com.gpxmanager.Utils.getLabel;
 
 public class MergePanel extends JPanel implements ITabListener {
@@ -96,15 +97,15 @@ public class MergePanel extends JPanel implements ITabListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            JFileChooser boiteFichier = new JFileChooser();
-            boiteFichier.removeChoosableFileFilter(boiteFichier.getFileFilter());
-            boiteFichier.addChoosableFileFilter(Filtre.FILTRE_GPX);
-            boiteFichier.setMultiSelectionEnabled(true);
-            if (JFileChooser.APPROVE_OPTION == boiteFichier.showOpenDialog(null)) {
-                File[] files = boiteFichier.getSelectedFiles();
+            JFileChooser fileChooser = createFileChooser();
+            fileChooser.setMultiSelectionEnabled(true);
+            if (JFileChooser.APPROVE_OPTION == fileChooser.showOpenDialog(null)) {
+                File[] files = fileChooser.getSelectedFiles();
                 if (files != null) {
                     for (File file : files) {
-                        model.addFile(file);
+                        if (checkFileExtension(file)) {
+                            model.addFile(file);
+                        }
                     }
                 }
                 setCursor(Cursor.getDefaultCursor());
@@ -127,15 +128,13 @@ public class MergePanel extends JPanel implements ITabListener {
                 JOptionPane.showMessageDialog(null, getLabel("merge.one.file"), getLabel("error"), JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            JFileChooser boiteFichier = new JFileChooser();
-            boiteFichier.removeChoosableFileFilter(boiteFichier.getFileFilter());
-            boiteFichier.addChoosableFileFilter(Filtre.FILTRE_GPX);
-            boiteFichier.setCurrentDirectory(Utils.getOpenSaveDirectory());
-            if (JFileChooser.APPROVE_OPTION == boiteFichier.showSaveDialog(null)) {
-                File file = boiteFichier.getSelectedFile();
+            JFileChooser fileChooser = createFileChooser();
+            fileChooser.setCurrentDirectory(Utils.getOpenSaveDirectory());
+            if (JFileChooser.APPROVE_OPTION == fileChooser.showSaveDialog(null)) {
+                File file = fileChooser.getSelectedFile();
+                file = checkFileNameWithExtension(file);
                 if (file != null) {
                     Utils.setOpenSaveDirectory(file.getParentFile());
-                    file = checkFileName(file);
                     try {
                         GPX gpx = GPXUtils.mergeFiles(model.getFiles());
                         if (gpx == null) {
@@ -161,6 +160,7 @@ public class MergePanel extends JPanel implements ITabListener {
         public static final int UP = 0;
         public static final int DOWN = 1;
         public static final int DELETE = 2;
+        public static final int FILE = 3;
 
         ArrayList<File> files = new ArrayList<>();
 
@@ -176,7 +176,7 @@ public class MergePanel extends JPanel implements ITabListener {
 
         @Override
         public String getColumnName(int column) {
-            if (column == 3) {
+            if (column == FILE) {
                 return getLabel("merge.file");
             }
             return "";
@@ -184,12 +184,12 @@ public class MergePanel extends JPanel implements ITabListener {
 
         @Override
         public boolean isCellEditable(int row, int column) {
-            return column < 3;
+            return column < FILE;
         }
 
         @Override
         public Object getValueAt(int row, int column) {
-            if (column == 3) {
+            if (column == FILE) {
                 return files.get(row).getAbsolutePath();
             }
             return Boolean.FALSE;

@@ -6,6 +6,7 @@ import com.gpxmanager.gpx.beans.Waypoint;
 import org.jstrava.entities.Activity;
 import org.jstrava.entities.SegmentEffort;
 
+import javax.swing.JFileChooser;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -142,13 +143,30 @@ public class Utils {
         }
     }
 
-    public static File checkFileName(File file) {
+    public static File checkFileNameWithExtension(File file) {
         if (file == null) {
             return null;
         }
-        if (!file.getName().toLowerCase().endsWith(Filtre.FILTRE_GPX.toString())) {
-            return new File(file.getAbsolutePath() + Filtre.FILTRE_GPX);
+        if (!file.getName().toLowerCase().endsWith(Filter.FILTER_GPX.toString())) {
+            return new File(file.getAbsolutePath() + Filter.FILTER_GPX);
         }
         return file;
+    }
+
+    public static boolean checkFileExtension(File file) {
+        if (file == null) {
+            return false;
+        }
+        if (!file.getName().toLowerCase().endsWith(Filter.FILTER_GPX.toString())) {
+            return false;
+        }
+        return true;
+    }
+
+    public static JFileChooser createFileChooser() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.removeChoosableFileFilter(fileChooser.getFileFilter());
+        fileChooser.addChoosableFileFilter(Filter.FILTER_GPX);
+        return fileChooser;
     }
 }
