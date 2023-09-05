@@ -13,9 +13,10 @@ import com.mytabbedpane.ITabListener;
 import com.mytabbedpane.TabEvent;
 import net.miginfocom.swing.MigLayout;
 import org.jstrava.StravaConnection;
-import org.jstrava.StravaException;
 import org.jstrava.entities.Activity;
 import org.jstrava.entities.Gear;
+import org.jstrava.exception.StravaException;
+import org.jstrava.exception.StravaRequestException;
 
 import javax.swing.AbstractAction;
 import javax.swing.JButton;
@@ -74,6 +75,7 @@ import static com.gpxmanager.strava.StravaTableModel.COL_SPEED_AVG;
 import static com.gpxmanager.strava.StravaTableModel.COL_SPEED_MAX;
 import static com.gpxmanager.strava.StravaTableModel.COL_TIME;
 import static com.gpxmanager.strava.StravaTableModel.COL_VIEW;
+import static java.util.Comparator.comparingLong;
 
 public class StravaPanel extends JPanel implements ITabListener {
 
@@ -334,12 +336,28 @@ public class StravaPanel extends JPanel implements ITabListener {
                     infoLabel.setText("", true);
                     populateGearCombo();
                 } catch (StravaException ex) {
-                    throw new RuntimeException(ex);
+                    manageStravaException(ex, null);
                 } finally {
                     setCursor(Cursor.getDefaultCursor());
                 }
             });
         }
+    }
+
+    private static <T> T manageStravaException(StravaException ex, Class<T> classOfT) {
+        if (ex instanceof StravaRequestException && ((StravaRequestException) ex).getHttpStatusCode() == 404) {
+            return null; // Managed when needed
+        }
+        if (ex instanceof StravaRequestException && ((StravaRequestException) ex).getHttpStatusCode() == 401) {
+            stravaPanel.stravaConnection.refreshToken();
+            if (classOfT != null) {
+                return stravaPanel.stravaConnection.getStrava().retryGet(classOfT);
+            }
+            JOptionPane.showMessageDialog(getInstance(),
+                    getLabel("strava.noConnection"), getLabel("information"), JOptionPane.WARNING_MESSAGE);
+            return null;
+        }
+        throw new RuntimeException(ex);
     }
 
     private void setActivities(List<Activity> activities) {
@@ -384,33 +402,39 @@ public class StravaPanel extends JPanel implements ITabListener {
                 long id = Long.parseLong(value);
                 infoLabel.setText(getLabel("download"), false);
                 Activity activityFromStrava = findActivityFromStrava(id);
-                Activity foundActivity = activities
-                        .stream()
-                        .filter(activity -> activityFromStrava.getId() == activity.getId())
-                        .findFirst().orElse(null);
-                infoLabel.setText(MessageFormat.format(getLabel("strava.countNew"), 1), true);
-                if (foundActivity != null) {
-                    if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(stravaPanel, getLabel("strava.alreadyExist"), getLabel("information"), JOptionPane.YES_NO_OPTION)) {
-                        activities.remove(foundActivity);
-                        activities.add(activityFromStrava);
-                        setActivities(activities);
-                        save();
-                    }
-                } else {
-                    activities.add(activityFromStrava);
-                    setActivities(activities);
-                    save();
-                }
+                performActivityAction(activityFromStrava);
             } catch (NumberFormatException nfe) {
                 JOptionPane.showMessageDialog(getInstance(),
                         getLabel("strava.errorNotNumeric"), getLabel("error"), JOptionPane.ERROR_MESSAGE);
             } catch (StravaException ex) {
-                if (ex.getHttpStatusCode() == 404) {
+                Activity activity = manageStravaException(ex, Activity.class);
+                if (activity != null) {
+                    performActivityAction(activity);
+                }
+                if (ex instanceof StravaRequestException && ((StravaRequestException) ex).getHttpStatusCode() == 404) {
                     JOptionPane.showMessageDialog(getInstance(),
                             getLabel("strava.notFound"), getLabel("error"), JOptionPane.ERROR_MESSAGE);
-                } else {
-                    throw new RuntimeException(ex);
                 }
+            }
+        }
+
+        private void performActivityAction(Activity activityFromStrava) {
+            Activity foundActivity = activities
+                    .stream()
+                    .filter(activity -> activityFromStrava.getId() == activity.getId())
+                    .findFirst().orElse(null);
+            infoLabel.setText(MessageFormat.format(getLabel("strava.countNew"), 1), true);
+            if (foundActivity != null) {
+                if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(stravaPanel, getLabel("strava.alreadyExist"), getLabel("information"), JOptionPane.YES_NO_OPTION)) {
+                    activities.remove(foundActivity);
+                    activities.add(activityFromStrava);
+                    setActivities(activities);
+                    save();
+                }
+            } else {
+                activities.add(activityFromStrava);
+                setActivities(activities);
+                save();
             }
         }
     }
@@ -433,18 +457,23 @@ public class StravaPanel extends JPanel implements ITabListener {
         SwingUtilities.invokeLater(() -> {
             Long maxId = activities.stream().map(Activity::getId).max(Long::compareTo).orElseThrow();
             List<Activity> newActivities = new ArrayList<>();
-            List<Activity> collect;
+            List<Activity> collect = new ArrayList<>();
             int page = 1;
             do {
-                List<Activity> currentAthleteActivities;
+                List<Activity> currentAthleteActivities = null;
                 try {
                     currentAthleteActivities = stravaConnection.getStrava().getCurrentAthleteActivities(page, 100);
                 } catch (StravaException e) {
-                    throw new RuntimeException(e);
+                    Activity[] elements = manageStravaException(e, Activity[].class);
+                    if (elements != null) {
+                        currentAthleteActivities = List.of(elements);
+                    }
                 }
-                collect = currentAthleteActivities.stream().filter(activity -> activity.getId() > maxId).collect(Collectors.toList());
-                newActivities.addAll(collect);
-                page++;
+                if (currentAthleteActivities != null) {
+                    collect = currentAthleteActivities.stream().filter(activity -> activity.getId() > maxId).collect(Collectors.toList());
+                    newActivities.addAll(collect);
+                    page++;
+                }
             } while (!collect.isEmpty());
             if (newActivities.isEmpty()) {
                 infoLabel.setText(MessageFormat.format(getLabel("strava.countNew"), 0), true);
@@ -455,10 +484,13 @@ public class StravaPanel extends JPanel implements ITabListener {
                 try {
                     activities.add(stravaConnection.getStrava().findActivity(activity.getId(), true));
                 } catch (StravaException e) {
-                    throw new RuntimeException(e);
+                    Activity activity1 = manageStravaException(e, Activity.class);
+                    if (activity1 != null) {
+                        activities.add(activity1);
+                    }
                 }
             });
-            activities = activities.stream().sorted(Comparator.comparingLong(Activity::getId).reversed()).collect(Collectors.toList());
+            activities = activities.stream().sorted(comparingLong(Activity::getId).reversed()).collect(Collectors.toList());
             gears = enrichWithGear(activities);
             setActivities(activities);
             writeToFile(GSON.toJson(activities), new File(existingFile));
@@ -526,26 +558,36 @@ public class StravaPanel extends JPanel implements ITabListener {
         }
     }
 
-    public static void updateActivityFromStrava(Activity activity, int selectedRow) {
+    public static void updateActivityFromStrava(Activity oldActivity, int selectedRow) {
         try {
-            Activity activity1 = stravaPanel.stravaConnection.getStrava().findActivity(activity.getId(), true);
-            int i = stravaPanel.activities.indexOf(activity);
-            stravaPanel.activities.remove(activity);
-            stravaPanel.activities.add(i, activity1);
-            stravaPanel.stravaTableModel.setActivityAt(selectedRow, activity1);
-            stravaPanel.infoLabel.setText(getLabel("strava.updateActivity.done"), true);
-            save();
+            Activity newActivity = stravaPanel.stravaConnection.getStrava().findActivity(oldActivity.getId(), true);
+            updateActivity(oldActivity, selectedRow, newActivity);
         } catch (StravaException e) {
-            if (e.getHttpStatusCode() == 404) {
-                if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(stravaPanel, getLabel("strava.notFound.askDelete"), getLabel("information"), JOptionPane.YES_NO_OPTION)) {
-                    stravaPanel.activities.remove(activity);
-                    stravaPanel.stravaTableModel.fireTableRowsDeleted(selectedRow, selectedRow);
-                    save();
-                }
-                return;
+            Activity activity = manageStravaException(e, Activity.class);
+            if (activity != null) {
+                updateActivity(oldActivity, selectedRow, activity);
             }
-            throw new RuntimeException(e);
+            if (e instanceof StravaRequestException && ((StravaRequestException) e).getHttpStatusCode() == 404) {
+                if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(stravaPanel, getLabel("strava.notFound.askDelete"), getLabel("information"), JOptionPane.YES_NO_OPTION)) {
+                    removeActivityAtRow(oldActivity, selectedRow);
+                }
+            }
         }
+    }
+
+    private static void removeActivityAtRow(Activity oldActivity, int selectedRow) {
+        stravaPanel.activities.remove(oldActivity);
+        stravaPanel.stravaTableModel.fireTableRowsDeleted(selectedRow, selectedRow);
+        save();
+    }
+
+    private static void updateActivity(Activity oldActivity, int selectedRow, Activity newActivity) {
+        int i = stravaPanel.activities.indexOf(oldActivity);
+        stravaPanel.activities.remove(oldActivity);
+        stravaPanel.activities.add(i, newActivity);
+        stravaPanel.stravaTableModel.setActivityAt(selectedRow, newActivity);
+        stravaPanel.infoLabel.setText(getLabel("strava.updateActivity.done"), true);
+        save();
     }
 
     public static Activity findActivityFromStrava(long id) throws StravaException {
@@ -586,7 +628,10 @@ public class StravaPanel extends JPanel implements ITabListener {
                     Gear gear = stravaConnection.getStrava().findGear(gearID);
                     map.put(gearID, gear);
                 } catch (StravaException e) {
-                    throw new RuntimeException(e);
+                    Gear gear = manageStravaException(e, Gear.class);
+                    if (gear != null) {
+                        map.put(gearID, gear);
+                    }
                 }
             }
         }

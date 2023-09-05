@@ -15,9 +15,9 @@ import com.mycomponents.MyAutoHideLabel;
 import com.mytabbedpane.MyTabbedPane;
 import net.miginfocom.swing.MigLayout;
 import org.jstrava.StravaConnection;
-import org.jstrava.StravaException;
 import org.jstrava.StravaFirstConfigurationDialog;
 import org.jstrava.entities.Activity;
+import org.jstrava.exception.StravaException;
 import org.jstrava.user.FileIdentificationStorage;
 import org.jstrava.user.IdentificationStorage;
 import org.xml.sax.SAXException;
@@ -95,8 +95,8 @@ import static com.gpxmanager.gpx.GPXUtils.initWatchDir;
 import static com.gpxmanager.gpx.GPXUtils.watchDirContains;
 
 public final class MyGPXManager extends JFrame {
-    public static final String INTERNAL_VERSION = "14.4";
-    public static final String VERSION = "5.5";
+    public static final String INTERNAL_VERSION = "14.5";
+    public static final String VERSION = "5.6";
     private static final MyAutoHideLabel INFO_LABEL = new MyAutoHideLabel();
     private static JMenuItem saveFile;
     private static JMenuItem saveAsFile;
