@@ -61,25 +61,25 @@ public class StravaGlobalStatisticTableModel extends DefaultTableModel {
         StravaGlobalStatistic statistic = statistics.get(row);
         switch (column) {
             case COL_GLOBAL_YEAR: {
-                return statistic.getYear();
+                return statistic.year();
             }
             case COL_GLOBAL_ACTIVITY: {
-                return statistic.getActivityCount();
+                return statistic.activityCount();
             }
             case COL_GLOBAL_DISTANCE: {
-                return statistic.getDistance();
+                return statistic.distance();
             }
             case COL_GLOBAL_TIME: {
-                return statistic.getTime();
+                return statistic.time();
             }
             case COL_GLOBAL_SPEED_MAX: {
-                return statistic.getMaxSpeed();
+                return statistic.maxSpeed();
             }
             case COL_GLOBAL_ALTITUDE: {
-                return (int) statistic.getAltitude();
+                return (int) statistic.altitude();
             }
             case COL_GLOBAL_PR: {
-                return statistic.getPrCount();
+                return statistic.prCount();
             }
         }
         return null;

@@ -47,9 +47,9 @@ public class PropertiesPanel extends JPanel {
             add(new JLabel(getLabel("properties.totalTime")));
             MyTime totalTime = new MyTime();
             for (Track track : gpx.getTracks()) {
-                totalTime.add(getTrackTime(track.getTrackPoints()));
+                totalTime = MyTime.add(totalTime, getTrackTime(track.getTrackPoints()));
             }
-            if (totalTime.getTime() != 0) {
+            if (totalTime != null && totalTime.time() != 0) {
                 add(new JBoldLabel(totalTime.toString()), "wrap");
             } else {
                 add(new JLabel(), "wrap");

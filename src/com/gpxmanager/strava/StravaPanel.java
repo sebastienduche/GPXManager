@@ -276,8 +276,8 @@ public class StravaPanel extends JPanel implements ITabListener {
     private boolean filterActivity(Activity activity) {
         return activity.getDistance() >= (minDistance * METER_IN_KM) &&
                 activity.getDistance() <= (maxDistance * METER_IN_KM) &&
-                (selectedGear == null || selectedGear.getId().isBlank() || selectedGear.getId().equals(activity.getGearId())) &&
-                (selectedCommute == null || selectedCommute.getValue() == null || selectedCommute.getValue().equals(activity.isCommute())) &&
+                (selectedGear == null || selectedGear.id().isBlank() || selectedGear.id().equals(activity.getGearId())) &&
+                (selectedCommute == null || selectedCommute.value() == null || selectedCommute.value().equals(activity.isCommute())) &&
                 (filter.isBlank() || activity.getName().toLowerCase().contains(filter.toLowerCase()) ||
                         Long.toString(activity.getId()).equals(filter));
     }

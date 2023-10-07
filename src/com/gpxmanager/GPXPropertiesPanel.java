@@ -104,21 +104,21 @@ public class GPXPropertiesPanel extends JPanel implements ITabListener {
             trackPanel.setLayout(new MigLayout("", "[][grow]10px[][grow]", "grow"));
             tracksPanel.add(trackPanel, "growx, wrap");
             String title = track.isTrack() ? getLabel("properties.track.number") : getLabel("properties.route.number");
-            trackPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), MessageFormat.format(title, track.getIndex() + 1)));
+            trackPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), MessageFormat.format(title, track.index() + 1)));
             trackPanel.add(new JLabel(getLabel("properties.track.distance")));
-            trackPanel.add(new JBoldLabel(roundValue(getTrackDistance(track.getRoutePoints())) + " " + getLabel("km")));
+            trackPanel.add(new JBoldLabel(roundValue(getTrackDistance(track.routePoints())) + " " + getLabel("km")));
             trackPanel.add(new JLabel(getLabel("properties.track.name")));
             JModifyTextField trackName = new JModifyTextField();
             trackNames.add(trackName);
-            trackName.setText(track.getName());
+            trackName.setText(track.name());
             trackPanel.add(trackName, "growx, wrap");
             trackPanel.add(new JLabel(getLabel("properties.track.time")));
-            MyTime trackTime = getTrackTime(track.getRoutePoints());
+            MyTime trackTime = getTrackTime(track.routePoints());
             trackPanel.add(new JBoldLabel(trackTime == null ? "" : trackTime.toString()));
             trackPanel.add(new JLabel(getLabel("properties.description")));
             JModifyTextField trackDescription = new JModifyTextField();
             trackDescriptions.add(trackDescription);
-            trackDescription.setText(track.getDescription());
+            trackDescription.setText(track.description());
             trackPanel.add(trackDescription, "span 2, growx, wrap");
             trackPanel.add(new PanelChart(track), "span 4");
 
