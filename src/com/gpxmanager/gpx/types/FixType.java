@@ -1,6 +1,6 @@
 /*
  * FixType.java
- * 
+ *
  * Copyright (c) 2012, AlternativeVision. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -20,68 +20,49 @@
  */
 
 package com.gpxmanager.gpx.types;
+
 /**
- * 
  * <p>Type of GPS fix. Value comes from list: {'none'|'2d'|'3d'|'dgps'|'pps'}</p>
- * <br> 
+ * <br>
  * <ul>
- * <li>none = GPS had no fix.</li> 
+ * <li>none = GPS had no fix.</li>
  * <li>pps = military signal used</li>
  * </ul>
- * <p>To signify "the fix info is unknown", leave out fixType entirely.</p> 
- *
+ * <p>To signify "the fix info is unknown", leave out fixType entirely.</p>
  */
-public class FixType {
-	
-	private final String value;
-	
-	private FixType(String value) {
-		this.value = value;
-	}
-	
-	public String getValue() {
-		return value;
-	}
-	
-	public static FixType returnType(String value) {
-		if(NONE.getValue().equals(value)) {
-			return NONE;
-		} else if(TWO_D.getValue().equals(value)) {
-			return TWO_D;
-		} else if(THREE_D.getValue().equals(value)) {
-			return THREE_D;
-		} else if(DGPS.getValue().equals(value)) {
-			return DGPS;
-		} else if(PPS.getValue().equals(value)) {
-			return PPS;
-		} 
-		return null;
-	}
-	
-	//'none'|'2d'|'3d'|'dgps'|'pps'
-	
-	/**
-	 * Constant that defines 'none' Fix type
-	 */
-	public static FixType NONE = new FixType("none");
-	/**
-	 * Constant that defines '2d' Fix type
-	 */
-	public static FixType TWO_D = new FixType("2d");
-	/**
-	 * Constant that defines '3d' Fix type
-	 */
-	public static FixType THREE_D = new FixType("3d");
-	/**
-	 * Constant that defines 'dgps' Fix type
-	 */
-	public static FixType DGPS = new FixType("dgps");
-	/**
-	 * Constant that defines 'pps' Fix type
-	 */
-	public static FixType PPS = new FixType("pps");
-	
-	public String toString() {
-		return value;
-	}
+public enum FixType {
+    NONE("none"),
+    TWO_D("2d"),
+    THREE_D("3d"),
+    DGPS("dgps"),
+    PPS("pps");
+
+    private final String value;
+
+    FixType(String value) {
+        this.value = value;
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public static FixType returnType(String value) {
+        if (NONE.getValue().equals(value)) {
+            return NONE;
+        } else if (TWO_D.getValue().equals(value)) {
+            return TWO_D;
+        } else if (THREE_D.getValue().equals(value)) {
+            return THREE_D;
+        } else if (DGPS.getValue().equals(value)) {
+            return DGPS;
+        } else if (PPS.getValue().equals(value)) {
+            return PPS;
+        }
+        return null;
+    }
+
+    public String toString() {
+        return value;
+    }
 }

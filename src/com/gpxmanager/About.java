@@ -15,9 +15,11 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Toolkit;
+import java.io.Serial;
 
 final class About extends JDialog {
-    static final long serialVersionUID = 150505;
+    @Serial
+    private static final long serialVersionUID = -158428413568095125L;
     private final JButton ok = new JButton("OK");
     private final JLabel MyCellarLabel1 = new JLabel("MyGPXManager");
     private final JLabel MyCellarLabel2 = new JLabel("Copyright: S.Duché");
@@ -51,7 +53,8 @@ final class About extends JDialog {
     }
 
     private static class IconPanel extends JPanel {
-        static final long serialVersionUID = 1505051;
+        @Serial
+        private static final long serialVersionUID = -2976693500039013650L;
         private final ImageIcon img;
 
         private IconPanel(ImageIcon img) {

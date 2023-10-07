@@ -1,6 +1,6 @@
 /*
  * IExtensionParser
- * 
+ *
  * Copyright (c) 2012, AlternativeVision. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -29,7 +29,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
 /**
- * This interface defines extension parsers methods. 
+ * This interface defines extension parsers methods.
  * <br>
  * <p>All custom extension parser must implement this interface.</p>
  * <p>Any custom parser must be added to {@link com.gpxmanager.gpx.GPXParser} as an extension parser
@@ -44,7 +44,7 @@ import org.w3c.dom.Node;
  * <li>parseWaypointExtension() for parsing &lt;extensions&gt; of a &lt;wpt&gt; node</li>
  * </ul>
  * <br>
- * 
+ *
  * <p>{@link com.gpxmanager.gpx.GPXParser} writeGPX method also calls several methods from the registered
  * extensions parsers at different steps of writing data:</p>
  * <ul>
@@ -52,26 +52,26 @@ import org.w3c.dom.Node;
  * <li>writeTrackExtensionData() when writing  the &lt;extensions&gt;  from the {@link Track}</li>
  * <li>writeRouteExtensionData() when writing  the &lt;extensions&gt;  from the {@link Route}</li>
  * <li>writeWaypointExtensionData() when writing  the &lt;extensions&gt;  from the {@link Waypoint}</li>
- * </ul> 
+ * </ul>
  */
 public interface IExtensionParser {
 
-	public String getId();
-	
-	public Object parseWaypointExtension(Node node);
-	
-	public Object parseTrackExtension(Node node);
-	
-	public Object parseGPXExtension(Node node);
-	
-	public Object parseRouteExtension(Node node);
+    String getId();
 
-	public void writeGPXExtensionData(Node node, GPX wpt, Document doc);
-	
-	public void writeWaypointExtensionData(Node node, Waypoint wpt, Document doc);
-	
-	public void writeTrackExtensionData(Node node, Track wpt, Document doc);
-	
-	public void writeRouteExtensionData(Node node, Route wpt, Document doc);
+    Object parseWaypointExtension(Node node);
+
+    Object parseTrackExtension(Node node);
+
+    Object parseGPXExtension(Node node);
+
+    Object parseRouteExtension(Node node);
+
+    void writeGPXExtensionData(Node node, GPX wpt, Document doc);
+
+    void writeWaypointExtensionData(Node node, Waypoint wpt, Document doc);
+
+    void writeTrackExtensionData(Node node, Track wpt, Document doc);
+
+    void writeRouteExtensionData(Node node, Route wpt, Document doc);
 
 }

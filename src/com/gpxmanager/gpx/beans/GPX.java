@@ -40,7 +40,6 @@ import java.util.LinkedList;
  */
 public class GPX extends Extension {
 
-
     private String version;
     private String creator;
 

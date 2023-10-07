@@ -31,11 +31,9 @@ public class GarminExtension implements IExtensionParser {
         NodeList childNodes = node.getChildNodes();
         for (int idx = 0; idx < childNodes.getLength(); idx++) {
             Node currentNode = childNodes.item(idx);
-            switch (currentNode.getNodeName()) {
-                case TRACKPOINT_EXT: {
-                    logger.debug("found TrackPointExtension");
-                    parseTrackPointExtension(currentNode, garmin);
-                }
+            if (currentNode.getNodeName().equals(TRACKPOINT_EXT)) {
+                logger.debug("found TrackPointExtension");
+                parseTrackPointExtension(currentNode, garmin);
             }
         }
         return garmin;
@@ -49,11 +47,9 @@ public class GarminExtension implements IExtensionParser {
         NodeList childNodes = node.getChildNodes();
         for (int idx = 0; idx < childNodes.getLength(); idx++) {
             Node currentNode = childNodes.item(idx);
-            switch (currentNode.getNodeName()) {
-                case ATEMP: {
-                    logger.debug("found atemp");
-                    garmin.setTemperature(currentNode.getTextContent());
-                }
+            if (currentNode.getNodeName().equals(ATEMP)) {
+                logger.debug("found atemp");
+                garmin.setTemperature(currentNode.getTextContent());
             }
         }
     }
@@ -75,7 +71,6 @@ public class GarminExtension implements IExtensionParser {
 
     @Override
     public void writeGPXExtensionData(Node node, GPX wpt, Document doc) {
-
     }
 
     @Override
@@ -94,11 +89,9 @@ public class GarminExtension implements IExtensionParser {
 
     @Override
     public void writeTrackExtensionData(Node node, Track wpt, Document doc) {
-
     }
 
     @Override
     public void writeRouteExtensionData(Node node, Route wpt, Document doc) {
-
     }
 }

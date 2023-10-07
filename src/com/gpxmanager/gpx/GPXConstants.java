@@ -1,6 +1,6 @@
 /*
  * GPXConstants.java
- * 
+ *
  * Copyright (c) 2012, AlternativeVision. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -21,56 +21,56 @@
 
 package com.gpxmanager.gpx;
 
-public interface GPXConstants {
-	/*GPX nodes and attributes*/
-	String GPX_NODE = "gpx";
-	String WPT_NODE = "wpt";
-	String TRK_NODE = "trk";
-	String VERSION_ATTR = "version";
-	String CREATOR_ATTR = "creator";
-	/*End GPX nodes and attributes*/
-	
-	/*Waypoint nodes and attributes*/
-	String LAT_ATTR = "lat";
-	String LON_ATTR = "lon";
-	String ELE_NODE = "ele";
-	String TIME_NODE = "time";
-	String NAME_NODE = "name";
-	String CMT_NODE = "cmt";
-	String DESC_NODE = "desc";
-	String SRC_NODE = "src";
-	String MAGVAR_NODE = "magvar";
-	String GEOIDHEIGHT_NODE = "geoidheight";
-	String LINK_NODE = "link";
-	String SYM_NODE = "sym";
-	String TYPE_NODE = "type";
-	String FIX_NODE = "fix";
-	String SAT_NODE = "sat";
-	String HDOP_NODE = "hdop";
-	String VDOP_NODE = "vdop";
-	String PDOP_NODE = "pdop";
-	String AGEOFGPSDATA_NODE = "ageofdgpsdata";
-	String DGPSID_NODE = "dgpsid";
-	String EXTENSIONS_NODE = "extensions";
-	/*End Waypoint nodes and attributes*/
-	
-	/*Track nodes and attributes*/
-	String NUMBER_NODE = "number";
-	String TRKSEG_NODE = "trkseg";
-	String TRKPT_NODE = "trkpt";
-	/*End Track nodes and attributes*/
-	
-	/*Route Nodes*/
-	String RTE_NODE = "rte";
-	String RTEPT_NODE = "rtept";
-	/*End route nodes*/
+public final class GPXConstants {
+    /*GPX nodes and attributes*/
+    final static String GPX_NODE = "gpx";
+    final static String WPT_NODE = "wpt";
+    final static String TRK_NODE = "trk";
+    final static String VERSION_ATTR = "version";
+    final static String CREATOR_ATTR = "creator";
+    /*End GPX nodes and attributes*/
 
-	/*Metadata*/
-	String METADATA_NODE = "metadata";
-	String METADATA_NAME = "name";
-	String METADATA_DESCRIPTION = "desc";
-	String METADATA_AUTHOR = "author";
-	String METADATA_TIME = "time";
-	String METADATA_KEYWORDS = "keywords";
-	/*End Metadata*/
+    /*Waypoint nodes and attributes*/
+    final static String LAT_ATTR = "lat";
+    final static String LON_ATTR = "lon";
+    final static String ELE_NODE = "ele";
+    final static String TIME_NODE = "time";
+    final static String NAME_NODE = "name";
+    final static String CMT_NODE = "cmt";
+    final static String DESC_NODE = "desc";
+    final static String SRC_NODE = "src";
+    final static String MAGVAR_NODE = "magvar";
+    final static String GEOIDHEIGHT_NODE = "geoidheight";
+    final static String LINK_NODE = "link";
+    final static String SYM_NODE = "sym";
+    final static String TYPE_NODE = "type";
+    final static String FIX_NODE = "fix";
+    final static String SAT_NODE = "sat";
+    final static String HDOP_NODE = "hdop";
+    final static String VDOP_NODE = "vdop";
+    final static String PDOP_NODE = "pdop";
+    final static String AGEOFGPSDATA_NODE = "ageofdgpsdata";
+    final static String DGPSID_NODE = "dgpsid";
+    final static String EXTENSIONS_NODE = "extensions";
+    /*End Waypoint nodes and attributes*/
+
+    /*Track nodes and attributes*/
+    final static String NUMBER_NODE = "number";
+    final static String TRKSEG_NODE = "trkseg";
+    final static String TRKPT_NODE = "trkpt";
+    /*End Track nodes and attributes*/
+
+    /*Route Nodes*/
+    final static String RTE_NODE = "rte";
+    final static String RTEPT_NODE = "rtept";
+    /*End route nodes*/
+
+    /*Metadata*/
+    final static String METADATA_NODE = "metadata";
+    final static String METADATA_NAME = "name";
+    final static String METADATA_DESCRIPTION = "desc";
+    final static String METADATA_AUTHOR = "author";
+    final static String METADATA_TIME = "time";
+    final static String METADATA_KEYWORDS = "keywords";
+    /*End Metadata*/
 }
