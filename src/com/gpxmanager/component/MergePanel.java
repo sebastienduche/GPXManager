@@ -40,6 +40,10 @@ import static com.gpxmanager.Utils.checkFileExtension;
 import static com.gpxmanager.Utils.checkFileNameWithExtension;
 import static com.gpxmanager.Utils.createFileChooser;
 import static com.gpxmanager.Utils.getLabel;
+import static com.gpxmanager.component.MergePanel.MergeTableModel.MergeTableColumn.DELETE;
+import static com.gpxmanager.component.MergePanel.MergeTableModel.MergeTableColumn.DOWN;
+import static com.gpxmanager.component.MergePanel.MergeTableModel.MergeTableColumn.FILE;
+import static com.gpxmanager.component.MergePanel.MergeTableModel.MergeTableColumn.UP;
 
 public class MergePanel extends JPanel implements ITabListener {
     private final MergeTableModel model = new MergeTableModel();
@@ -51,17 +55,17 @@ public class MergePanel extends JPanel implements ITabListener {
         setLayout(new MigLayout("", "[grow]", "[][grow]"));
         JTable table = new JTable(model);
         TableColumnModel tcm = table.getColumnModel();
-        TableColumn tc = tcm.getColumn(MergeTableModel.UP);
+        TableColumn tc = tcm.getColumn(UP.ordinal());
         tc.setCellRenderer(new ButtonCellRenderer(MyGPXManagerImage.ARROW_UP));
         tc.setCellEditor(new ButtonCellEditor());
         tc.setMinWidth(25);
         tc.setMaxWidth(25);
-        tc = tcm.getColumn(MergeTableModel.DOWN);
+        tc = tcm.getColumn(DOWN.ordinal());
         tc.setCellRenderer(new ButtonCellRenderer(MyGPXManagerImage.ARROW_DOWN));
         tc.setCellEditor(new ButtonCellEditor());
         tc.setMinWidth(25);
         tc.setMaxWidth(25);
-        tc = tcm.getColumn(MergeTableModel.DELETE);
+        tc = tcm.getColumn(DELETE.ordinal());
         tc.setCellRenderer(new ButtonCellRenderer(MyGPXManagerImage.DELETE));
         tc.setCellEditor(new ButtonCellEditor());
         tc.setMinWidth(25);
@@ -156,11 +160,14 @@ public class MergePanel extends JPanel implements ITabListener {
         }
     }
 
-    private static class MergeTableModel extends DefaultTableModel {
-        public static final int UP = 0;
-        public static final int DOWN = 1;
-        public static final int DELETE = 2;
-        public static final int FILE = 3;
+    static class MergeTableModel extends DefaultTableModel {
+
+        enum MergeTableColumn {
+            UP,
+            DOWN,
+            DELETE,
+            FILE,
+        }
 
         ArrayList<File> files = new ArrayList<>();
 
@@ -171,12 +178,13 @@ public class MergePanel extends JPanel implements ITabListener {
 
         @Override
         public int getColumnCount() {
-            return 4;
+            return MergeTableColumn.values().length;
         }
 
         @Override
         public String getColumnName(int column) {
-            if (column == FILE) {
+            MergeTableColumn mergeTableColumn = MergeTableColumn.values()[column];
+            if (mergeTableColumn == FILE) {
                 return getLabel("merge.file");
             }
             return "";
@@ -184,12 +192,13 @@ public class MergePanel extends JPanel implements ITabListener {
 
         @Override
         public boolean isCellEditable(int row, int column) {
-            return column < FILE;
+            return MergeTableColumn.values()[column] != FILE;
         }
 
         @Override
         public Object getValueAt(int row, int column) {
-            if (column == FILE) {
+            MergeTableColumn mergeTableColumn = MergeTableColumn.values()[column];
+            if (mergeTableColumn == FILE) {
                 return files.get(row).getAbsolutePath();
             }
             return Boolean.FALSE;
@@ -197,7 +206,8 @@ public class MergePanel extends JPanel implements ITabListener {
 
         @Override
         public void setValueAt(Object aValue, int row, int column) {
-            if (column == UP) {
+            MergeTableColumn mergeTableColumn = MergeTableColumn.values()[column];
+            if (mergeTableColumn == UP) {
                 if (row > 0) {
                     File file = files.remove(row);
                     files.add(row - 1, file);
@@ -205,7 +215,7 @@ public class MergePanel extends JPanel implements ITabListener {
                 } else {
                     JOptionPane.showMessageDialog(null, getLabel("merge.unable.move.up"), getLabel("information"), JOptionPane.ERROR_MESSAGE);
                 }
-            } else if (column == DOWN) {
+            } else if (mergeTableColumn == DOWN) {
                 if (row < files.size() - 1) {
                     File file = files.remove(row);
                     files.add(row + 1, file);
@@ -213,7 +223,7 @@ public class MergePanel extends JPanel implements ITabListener {
                 } else {
                     JOptionPane.showMessageDialog(null, getLabel("merge.unable.move.down"), getLabel("information"), JOptionPane.ERROR_MESSAGE);
                 }
-            } else if (column == DELETE) {
+            } else if (mergeTableColumn == DELETE) {
                 File file = files.get(row);
                 if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(null, MessageFormat.format(getLabel("merge.confirm.remove"), file.getAbsolutePath()), getLabel("question"), JOptionPane.YES_NO_OPTION)) {
                     files.remove(file);

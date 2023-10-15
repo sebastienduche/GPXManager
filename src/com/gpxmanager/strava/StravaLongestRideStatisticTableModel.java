@@ -15,12 +15,14 @@ import static com.gpxmanager.Utils.getLabel;
 
 public class StravaLongestRideStatisticTableModel extends DefaultTableModel {
 
-    public static final int COL_LONGEST_DATE = 0;
-    public static final int COL_LONGEST_DISTANCE = 1;
-    public static final int COL_LONGEST_TIME = 2;
-    public static final int COL_LONGEST_AVG_SPEED = 3;
-    public static final int COL_LONGEST_SPEED_MAX = 4;
-    public static final int COL_LONGEST_ALTITUDE = 5;
+    enum StravaLongestRideStatisticColumns {
+    COL_LONGEST_DATE,
+    COL_LONGEST_DISTANCE,
+    COL_LONGEST_TIME,
+    COL_LONGEST_AVG_SPEED,
+    COL_LONGEST_SPEED_MAX,
+    COL_LONGEST_ALTITUDE,
+    }
 
     private final List<String> columns = List.of(
             getLabel("strava.table.year"),
@@ -54,16 +56,13 @@ public class StravaLongestRideStatisticTableModel extends DefaultTableModel {
 
     @Override
     public int getRowCount() {
-        if (statistics == null) {
-            return 0;
-        }
-        return statistics.size();
+        return statistics == null ? 0 : statistics.size();
     }
 
     @Override
     public Object getValueAt(int row, int column) {
         Activity statistic = statistics.get(row);
-        switch (column) {
+        switch (StravaLongestRideStatisticColumns.values()[column]) {
             case COL_LONGEST_DATE: {
                 try {
                     Date localDateTime = TIMESTAMP.parse(statistic.getStartDateLocal());
@@ -93,21 +92,11 @@ public class StravaLongestRideStatisticTableModel extends DefaultTableModel {
 
     @Override
     public Class<?> getColumnClass(int columnIndex) {
-        switch (columnIndex) {
-            case COL_LONGEST_DISTANCE:
-            case COL_LONGEST_AVG_SPEED:
-            case COL_LONGEST_TIME:
-            case COL_LONGEST_SPEED_MAX: {
-                return Double.class;
-            }
-            case COL_LONGEST_DATE: {
-                return String.class;
-            }
-            case COL_LONGEST_ALTITUDE: {
-                return Integer.class;
-            }
-        }
-        return Object.class;
+        return switch (StravaLongestRideStatisticColumns.values()[columnIndex]) {
+            case COL_LONGEST_DISTANCE, COL_LONGEST_AVG_SPEED, COL_LONGEST_TIME, COL_LONGEST_SPEED_MAX -> Double.class;
+            case COL_LONGEST_DATE -> String.class;
+            case COL_LONGEST_ALTITUDE -> Integer.class;
+        };
     }
 
 

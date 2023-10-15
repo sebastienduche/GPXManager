@@ -25,19 +25,19 @@ import java.util.stream.Collectors;
 import static com.gpxmanager.Utils.TIMESTAMP;
 import static com.gpxmanager.Utils.getLabel;
 import static com.gpxmanager.Utils.getTotalDistance;
-import static com.gpxmanager.strava.StravaGlobalStatisticTableModel.COL_GLOBAL_ACTIVITY;
-import static com.gpxmanager.strava.StravaGlobalStatisticTableModel.COL_GLOBAL_ALTITUDE;
-import static com.gpxmanager.strava.StravaGlobalStatisticTableModel.COL_GLOBAL_DISTANCE;
-import static com.gpxmanager.strava.StravaGlobalStatisticTableModel.COL_GLOBAL_PR;
-import static com.gpxmanager.strava.StravaGlobalStatisticTableModel.COL_GLOBAL_SPEED_MAX;
-import static com.gpxmanager.strava.StravaGlobalStatisticTableModel.COL_GLOBAL_TIME;
-import static com.gpxmanager.strava.StravaGlobalStatisticTableModel.COL_GLOBAL_YEAR;
-import static com.gpxmanager.strava.StravaLongestRideStatisticTableModel.COL_LONGEST_ALTITUDE;
-import static com.gpxmanager.strava.StravaLongestRideStatisticTableModel.COL_LONGEST_AVG_SPEED;
-import static com.gpxmanager.strava.StravaLongestRideStatisticTableModel.COL_LONGEST_DATE;
-import static com.gpxmanager.strava.StravaLongestRideStatisticTableModel.COL_LONGEST_DISTANCE;
-import static com.gpxmanager.strava.StravaLongestRideStatisticTableModel.COL_LONGEST_SPEED_MAX;
-import static com.gpxmanager.strava.StravaLongestRideStatisticTableModel.COL_LONGEST_TIME;
+import static com.gpxmanager.strava.StravaGlobalStatisticTableModel.StravaGlobalStatisticColumns.COL_GLOBAL_ACTIVITY;
+import static com.gpxmanager.strava.StravaGlobalStatisticTableModel.StravaGlobalStatisticColumns.COL_GLOBAL_ALTITUDE;
+import static com.gpxmanager.strava.StravaGlobalStatisticTableModel.StravaGlobalStatisticColumns.COL_GLOBAL_DISTANCE;
+import static com.gpxmanager.strava.StravaGlobalStatisticTableModel.StravaGlobalStatisticColumns.COL_GLOBAL_PR;
+import static com.gpxmanager.strava.StravaGlobalStatisticTableModel.StravaGlobalStatisticColumns.COL_GLOBAL_SPEED_MAX;
+import static com.gpxmanager.strava.StravaGlobalStatisticTableModel.StravaGlobalStatisticColumns.COL_GLOBAL_TIME;
+import static com.gpxmanager.strava.StravaGlobalStatisticTableModel.StravaGlobalStatisticColumns.COL_GLOBAL_YEAR;
+import static com.gpxmanager.strava.StravaLongestRideStatisticTableModel.StravaLongestRideStatisticColumns.COL_LONGEST_ALTITUDE;
+import static com.gpxmanager.strava.StravaLongestRideStatisticTableModel.StravaLongestRideStatisticColumns.COL_LONGEST_AVG_SPEED;
+import static com.gpxmanager.strava.StravaLongestRideStatisticTableModel.StravaLongestRideStatisticColumns.COL_LONGEST_DATE;
+import static com.gpxmanager.strava.StravaLongestRideStatisticTableModel.StravaLongestRideStatisticColumns.COL_LONGEST_DISTANCE;
+import static com.gpxmanager.strava.StravaLongestRideStatisticTableModel.StravaLongestRideStatisticColumns.COL_LONGEST_SPEED_MAX;
+import static com.gpxmanager.strava.StravaLongestRideStatisticTableModel.StravaLongestRideStatisticColumns.COL_LONGEST_TIME;
 import static java.util.stream.Collectors.groupingBy;
 
 public class StravaStatisticPanel extends JPanel implements ITabListener {
@@ -104,42 +104,42 @@ public class StravaStatisticPanel extends JPanel implements ITabListener {
     private void buildGlobalStatisticsTable(List<StravaGlobalStatistic> statisticList) {
         stravaGlobalStatisticTableModel.setStatistics(statisticList);
         tableGlobal = new JTable(stravaGlobalStatisticTableModel);
-        tableGlobal.getColumnModel().getColumn(COL_GLOBAL_SPEED_MAX).setCellRenderer(new MeterPerSecondToKmHCellRenderer());
-        tableGlobal.getColumnModel().getColumn(COL_GLOBAL_TIME).setCellRenderer(new DurationCellRenderer());
-        tableGlobal.getColumnModel().getColumn(COL_GLOBAL_YEAR).setMinWidth(50);
-        tableGlobal.getColumnModel().getColumn(COL_GLOBAL_YEAR).setMaxWidth(50);
-        tableGlobal.getColumnModel().getColumn(COL_GLOBAL_ACTIVITY).setMinWidth(100);
-        tableGlobal.getColumnModel().getColumn(COL_GLOBAL_ACTIVITY).setMaxWidth(100);
-        tableGlobal.getColumnModel().getColumn(COL_GLOBAL_PR).setMinWidth(50);
-        tableGlobal.getColumnModel().getColumn(COL_GLOBAL_PR).setMaxWidth(50);
-        tableGlobal.getColumnModel().getColumn(COL_GLOBAL_SPEED_MAX).setMinWidth(100);
-        tableGlobal.getColumnModel().getColumn(COL_GLOBAL_SPEED_MAX).setMaxWidth(100);
-        tableGlobal.getColumnModel().getColumn(COL_GLOBAL_TIME).setMinWidth(100);
-        tableGlobal.getColumnModel().getColumn(COL_GLOBAL_TIME).setMaxWidth(100);
-        tableGlobal.getColumnModel().getColumn(COL_GLOBAL_ALTITUDE).setMinWidth(100);
-        tableGlobal.getColumnModel().getColumn(COL_GLOBAL_ALTITUDE).setMaxWidth(100);
-        tableGlobal.getColumnModel().getColumn(COL_GLOBAL_DISTANCE).setMinWidth(100);
-        tableGlobal.getColumnModel().getColumn(COL_GLOBAL_DISTANCE).setMaxWidth(100);
+        tableGlobal.getColumnModel().getColumn(COL_GLOBAL_SPEED_MAX.ordinal()).setCellRenderer(new MeterPerSecondToKmHCellRenderer());
+        tableGlobal.getColumnModel().getColumn(COL_GLOBAL_TIME.ordinal()).setCellRenderer(new DurationCellRenderer());
+        tableGlobal.getColumnModel().getColumn(COL_GLOBAL_YEAR.ordinal()).setMinWidth(50);
+        tableGlobal.getColumnModel().getColumn(COL_GLOBAL_YEAR.ordinal()).setMaxWidth(50);
+        tableGlobal.getColumnModel().getColumn(COL_GLOBAL_ACTIVITY.ordinal()).setMinWidth(100);
+        tableGlobal.getColumnModel().getColumn(COL_GLOBAL_ACTIVITY.ordinal()).setMaxWidth(100);
+        tableGlobal.getColumnModel().getColumn(COL_GLOBAL_PR.ordinal()).setMinWidth(50);
+        tableGlobal.getColumnModel().getColumn(COL_GLOBAL_PR.ordinal()).setMaxWidth(50);
+        tableGlobal.getColumnModel().getColumn(COL_GLOBAL_SPEED_MAX.ordinal()).setMinWidth(100);
+        tableGlobal.getColumnModel().getColumn(COL_GLOBAL_SPEED_MAX.ordinal()).setMaxWidth(100);
+        tableGlobal.getColumnModel().getColumn(COL_GLOBAL_TIME.ordinal()).setMinWidth(100);
+        tableGlobal.getColumnModel().getColumn(COL_GLOBAL_TIME.ordinal()).setMaxWidth(100);
+        tableGlobal.getColumnModel().getColumn(COL_GLOBAL_ALTITUDE.ordinal()).setMinWidth(100);
+        tableGlobal.getColumnModel().getColumn(COL_GLOBAL_ALTITUDE.ordinal()).setMaxWidth(100);
+        tableGlobal.getColumnModel().getColumn(COL_GLOBAL_DISTANCE.ordinal()).setMinWidth(100);
+        tableGlobal.getColumnModel().getColumn(COL_GLOBAL_DISTANCE.ordinal()).setMaxWidth(100);
     }
 
     private void buildLongestRideStatisticsTable(List<Activity> statisticList) {
         stravaLongestRideStatisticTableModel.setStatistics(statisticList);
         tableLongestRide = new JTable(stravaLongestRideStatisticTableModel);
-        tableLongestRide.getColumnModel().getColumn(COL_LONGEST_SPEED_MAX).setCellRenderer(new MeterPerSecondToKmHCellRenderer());
-        tableLongestRide.getColumnModel().getColumn(COL_LONGEST_AVG_SPEED).setCellRenderer(new MeterPerSecondToKmHCellRenderer());
-        tableLongestRide.getColumnModel().getColumn(COL_LONGEST_TIME).setCellRenderer(new DurationCellRenderer());
-        tableLongestRide.getColumnModel().getColumn(COL_LONGEST_SPEED_MAX).setMinWidth(100);
-        tableLongestRide.getColumnModel().getColumn(COL_LONGEST_SPEED_MAX).setMaxWidth(100);
-        tableLongestRide.getColumnModel().getColumn(COL_LONGEST_AVG_SPEED).setMinWidth(100);
-        tableLongestRide.getColumnModel().getColumn(COL_LONGEST_AVG_SPEED).setMaxWidth(100);
-        tableLongestRide.getColumnModel().getColumn(COL_LONGEST_TIME).setMinWidth(100);
-        tableLongestRide.getColumnModel().getColumn(COL_LONGEST_TIME).setMaxWidth(100);
-        tableLongestRide.getColumnModel().getColumn(COL_LONGEST_DATE).setMinWidth(100);
-        tableLongestRide.getColumnModel().getColumn(COL_LONGEST_DATE).setMinWidth(100);
-        tableLongestRide.getColumnModel().getColumn(COL_LONGEST_DISTANCE).setMaxWidth(100);
-        tableLongestRide.getColumnModel().getColumn(COL_LONGEST_DISTANCE).setMaxWidth(100);
-        tableLongestRide.getColumnModel().getColumn(COL_LONGEST_ALTITUDE).setMaxWidth(100);
-        tableLongestRide.getColumnModel().getColumn(COL_LONGEST_ALTITUDE).setMaxWidth(100);
+        tableLongestRide.getColumnModel().getColumn(COL_LONGEST_SPEED_MAX.ordinal()).setCellRenderer(new MeterPerSecondToKmHCellRenderer());
+        tableLongestRide.getColumnModel().getColumn(COL_LONGEST_AVG_SPEED.ordinal()).setCellRenderer(new MeterPerSecondToKmHCellRenderer());
+        tableLongestRide.getColumnModel().getColumn(COL_LONGEST_TIME.ordinal()).setCellRenderer(new DurationCellRenderer());
+        tableLongestRide.getColumnModel().getColumn(COL_LONGEST_SPEED_MAX.ordinal()).setMinWidth(100);
+        tableLongestRide.getColumnModel().getColumn(COL_LONGEST_SPEED_MAX.ordinal()).setMaxWidth(100);
+        tableLongestRide.getColumnModel().getColumn(COL_LONGEST_AVG_SPEED.ordinal()).setMinWidth(100);
+        tableLongestRide.getColumnModel().getColumn(COL_LONGEST_AVG_SPEED.ordinal()).setMaxWidth(100);
+        tableLongestRide.getColumnModel().getColumn(COL_LONGEST_TIME.ordinal()).setMinWidth(100);
+        tableLongestRide.getColumnModel().getColumn(COL_LONGEST_TIME.ordinal()).setMaxWidth(100);
+        tableLongestRide.getColumnModel().getColumn(COL_LONGEST_DATE.ordinal()).setMinWidth(100);
+        tableLongestRide.getColumnModel().getColumn(COL_LONGEST_DATE.ordinal()).setMinWidth(100);
+        tableLongestRide.getColumnModel().getColumn(COL_LONGEST_DISTANCE.ordinal()).setMaxWidth(100);
+        tableLongestRide.getColumnModel().getColumn(COL_LONGEST_DISTANCE.ordinal()).setMaxWidth(100);
+        tableLongestRide.getColumnModel().getColumn(COL_LONGEST_ALTITUDE.ordinal()).setMaxWidth(100);
+        tableLongestRide.getColumnModel().getColumn(COL_LONGEST_ALTITUDE.ordinal()).setMaxWidth(100);
     }
 
     private int getStartYear(Activity activity) {

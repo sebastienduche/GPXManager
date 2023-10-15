@@ -16,35 +16,35 @@ import static com.gpxmanager.Utils.getPersonalRecords;
 import static com.gpxmanager.strava.StravaPanel.downloadGPXActivityOnStrava;
 import static com.gpxmanager.strava.StravaPanel.openActivityOnStrava;
 import static com.gpxmanager.strava.StravaPanel.updateActivityFromStrava;
+import static com.gpxmanager.strava.StravaTableModel.StravaTableColumn.COL_DOWNLOAD;
+import static com.gpxmanager.strava.StravaTableModel.StravaTableColumn.COL_REFRESH;
+import static com.gpxmanager.strava.StravaTableModel.StravaTableColumn.COL_VIEW;
 
 public class StravaTableModel extends DefaultTableModel {
 
-    public static final int COL_DATE = 0;
-    public static final int COL_NAME = 1;
-    public static final int COL_DISTANCE = 2;
-    public static final int COL_TIME = 3;
-    public static final int COL_SPEED_MAX = 4;
-    public static final int COL_SPEED_AVG = 5;
-    public static final int COL_ALTITUDE = 6;
-    public static final int COL_PR = 7;
-    public static final int COL_VIEW = 8;
-    public static final int COL_DOWNLOAD = 9;
-    public static final int COL_REFRESH = 10;
+    enum StravaTableColumn {
+    COL_DATE("strava.table.date"),
+    COL_NAME("strava.table.name"),
+    COL_DISTANCE("strava.table.distance"),
+    COL_TIME("strava.table.time"),
+    COL_SPEED_MAX("strava.table.max"),
+    COL_SPEED_AVG("strava.table.avg"),
+    COL_ALTITUDE("strava.table.altitude"),
+    COL_PR("strava.table.pr"),
+    COL_VIEW(""),
+    COL_DOWNLOAD(""),
+    COL_REFRESH("");
 
+        private final String key;
 
-    private final List<String> columns = List.of(
-            getLabel("strava.table.date"),
-            getLabel("strava.table.name"),
-            getLabel("strava.table.distance"),
-            getLabel("strava.table.time"),
-            getLabel("strava.table.max"),
-            getLabel("strava.table.avg"),
-            getLabel("strava.table.altitude"),
-            getLabel("strava.table.pr"),
-            "",
-            "",
-            ""
-    );
+        StravaTableColumn(String key) {
+        this.key = key;
+    }
+
+        public String getKwyLabel() {
+            return key.isEmpty() ? "" : getLabel(key);
+        }
+    }
 
     private List<Activity> activities;
 
@@ -54,114 +54,71 @@ public class StravaTableModel extends DefaultTableModel {
 
     @Override
     public boolean isCellEditable(int row, int column) {
-        return column == COL_DOWNLOAD
-                || column == COL_VIEW
-                || column == COL_REFRESH;
+        StravaTableColumn value = StravaTableColumn.values()[column];
+        return value == COL_DOWNLOAD
+                || value == COL_VIEW
+                || value == COL_REFRESH;
     }
 
     @Override
     public int getColumnCount() {
-        return columns.size();
+        return StravaTableColumn.values().length;
     }
 
     @Override
     public String getColumnName(int column) {
-        return columns.get(column);
+        return StravaTableColumn.values()[column].getKwyLabel();
     }
 
     @Override
     public int getRowCount() {
-        if (activities == null) {
-            return 0;
-        }
-        return activities.size();
+        return activities == null ? 0 : activities.size();
     }
 
     @Override
     public Object getValueAt(int row, int column) {
         Activity activity = activities.get(row);
-        switch (column) {
-            case COL_DATE: {
-                try {
-                    Date localDateTime = TIMESTAMP.parse(activity.getStartDateLocal());
-                    return DATE_HOUR_MINUTE.format(localDateTime);
-                } catch (ParseException e) {
-                    return null;
-                }
-            }
-            case COL_NAME: {
-                return activity.getName();
-            }
-            case COL_DISTANCE: {
-                return activity.getDistance() / 1000;
-            }
-            case COL_TIME: {
-                return activity.getMovingTime();
-            }
-            case COL_SPEED_MAX: {
-                return activity.getMaxSpeed();
-            }
-            case COL_SPEED_AVG: {
-                return activity.getAverageSpeed();
-            }
-            case COL_ALTITUDE: {
-                return (int) activity.getTotalElevationGain();
-            }
-            case COL_PR: {
-                return getPersonalRecords(activity).size();
-            }
-            case COL_VIEW:
-            case COL_REFRESH:
-            case COL_DOWNLOAD: {
-                return Boolean.FALSE;
-            }
+        return switch (StravaTableColumn.values()[column]) {
+            case COL_DATE -> formatStartDate(activity);
+            case COL_NAME -> activity.getName();
+            case COL_DISTANCE -> activity.getDistance() / 1000;
+            case COL_TIME -> activity.getMovingTime();
+            case COL_SPEED_MAX -> activity.getMaxSpeed();
+            case COL_SPEED_AVG -> activity.getAverageSpeed();
+            case COL_ALTITUDE -> (int) activity.getTotalElevationGain();
+            case COL_PR -> getPersonalRecords(activity).size();
+            case COL_VIEW, COL_REFRESH, COL_DOWNLOAD -> Boolean.FALSE;
+        };
+    }
+
+    private static String formatStartDate(Activity activity) {
+        try {
+            Date localDateTime = TIMESTAMP.parse(activity.getStartDateLocal());
+            return DATE_HOUR_MINUTE.format(localDateTime);
+        } catch (ParseException e) {
+            return null;
         }
-        return null;
     }
 
     @Override
     public Class<?> getColumnClass(int columnIndex) {
-        switch (columnIndex) {
-            case COL_DATE:
-            case COL_NAME: {
-                return String.class;
-            }
-            case COL_DISTANCE:
-            case COL_TIME:
-            case COL_SPEED_MAX:
-            case COL_SPEED_AVG: {
-                return Double.class;
-            }
-            case COL_PR:
-            case COL_ALTITUDE: {
-                return Integer.class;
-            }
-            case COL_VIEW:
-            case COL_REFRESH:
-            case COL_DOWNLOAD: {
-                return Boolean.class;
-            }
-        }
-        return Object.class;
+        return switch (StravaTableColumn.values()[columnIndex]) {
+            case COL_DATE, COL_NAME -> String.class;
+            case COL_DISTANCE, COL_TIME, COL_SPEED_MAX, COL_SPEED_AVG -> Double.class;
+            case COL_PR, COL_ALTITUDE -> Integer.class;
+            case COL_VIEW, COL_REFRESH, COL_DOWNLOAD -> Boolean.class;
+        };
     }
 
 
     @Override
     public void setValueAt(Object aValue, int row, int column) {
         Activity activity = activities.get(row);
-        switch (column) {
-            case COL_VIEW: {
-                openActivityOnStrava(activity);
-                break;
-            }
-            case COL_DOWNLOAD: {
-                downloadGPXActivityOnStrava(activity);
-                break;
-            }
-            case COL_REFRESH: {
-                updateActivityFromStrava(activity, row);
-                break;
-            }
+        switch (StravaTableColumn.values()[column]) {
+            case COL_VIEW -> openActivityOnStrava(activity);
+            case COL_DOWNLOAD -> downloadGPXActivityOnStrava(activity);
+            case COL_REFRESH -> updateActivityFromStrava(activity, row);
+            default -> throw new IllegalStateException("Can't set a value for column: " + StravaTableColumn.values()[column]);
         }
     }
 

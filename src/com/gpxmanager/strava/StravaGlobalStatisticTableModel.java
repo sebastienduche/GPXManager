@@ -9,13 +9,15 @@ import static com.gpxmanager.Utils.getLabel;
 
 public class StravaGlobalStatisticTableModel extends DefaultTableModel {
 
-    public static final int COL_GLOBAL_YEAR = 0;
-    public static final int COL_GLOBAL_ACTIVITY = 1;
-    public static final int COL_GLOBAL_DISTANCE = 2;
-    public static final int COL_GLOBAL_TIME = 3;
-    public static final int COL_GLOBAL_SPEED_MAX = 4;
-    public static final int COL_GLOBAL_ALTITUDE = 5;
-    public static final int COL_GLOBAL_PR = 6;
+    enum StravaGlobalStatisticColumns {
+        COL_GLOBAL_YEAR,
+        COL_GLOBAL_ACTIVITY,
+        COL_GLOBAL_DISTANCE,
+        COL_GLOBAL_TIME,
+        COL_GLOBAL_SPEED_MAX,
+        COL_GLOBAL_ALTITUDE,
+        COL_GLOBAL_PR,
+    }
 
     private final List<String> columns = List.of(
             getLabel("strava.table.year"),
@@ -50,59 +52,30 @@ public class StravaGlobalStatisticTableModel extends DefaultTableModel {
 
     @Override
     public int getRowCount() {
-        if (statistics == null) {
-            return 0;
-        }
-        return statistics.size();
+        return statistics == null ? 0 : statistics.size();
     }
 
     @Override
     public Object getValueAt(int row, int column) {
         StravaGlobalStatistic statistic = statistics.get(row);
-        switch (column) {
-            case COL_GLOBAL_YEAR: {
-                return statistic.year();
-            }
-            case COL_GLOBAL_ACTIVITY: {
-                return statistic.activityCount();
-            }
-            case COL_GLOBAL_DISTANCE: {
-                return statistic.distance();
-            }
-            case COL_GLOBAL_TIME: {
-                return statistic.time();
-            }
-            case COL_GLOBAL_SPEED_MAX: {
-                return statistic.maxSpeed();
-            }
-            case COL_GLOBAL_ALTITUDE: {
-                return (int) statistic.altitude();
-            }
-            case COL_GLOBAL_PR: {
-                return statistic.prCount();
-            }
-        }
-        return null;
+        return switch (StravaGlobalStatisticColumns.values()[column]) {
+            case COL_GLOBAL_YEAR -> statistic.year();
+            case COL_GLOBAL_ACTIVITY -> statistic.activityCount();
+            case COL_GLOBAL_DISTANCE -> statistic.distance();
+            case COL_GLOBAL_TIME -> statistic.time();
+            case COL_GLOBAL_SPEED_MAX -> statistic.maxSpeed();
+            case COL_GLOBAL_ALTITUDE -> (int) statistic.altitude();
+            case COL_GLOBAL_PR -> statistic.prCount();
+        };
     }
 
     @Override
     public Class<?> getColumnClass(int columnIndex) {
-        switch (columnIndex) {
-            case COL_GLOBAL_SPEED_MAX: {
-                return Double.class;
-            }
-            case COL_GLOBAL_DISTANCE:
-            case COL_GLOBAL_ALTITUDE: {
-                return String.class;
-            }
-            case COL_GLOBAL_PR:
-            case COL_GLOBAL_YEAR:
-            case COL_GLOBAL_TIME:
-            case COL_GLOBAL_ACTIVITY: {
-                return Integer.class;
-            }
-        }
-        return Object.class;
+        return switch (StravaGlobalStatisticColumns.values()[columnIndex]) {
+            case COL_GLOBAL_SPEED_MAX -> Double.class;
+            case COL_GLOBAL_DISTANCE, COL_GLOBAL_ALTITUDE -> String.class;
+            case COL_GLOBAL_PR, COL_GLOBAL_YEAR, COL_GLOBAL_TIME, COL_GLOBAL_ACTIVITY -> Integer.class;
+        };
     }
 
 
@@ -113,7 +86,4 @@ public class StravaGlobalStatisticTableModel extends DefaultTableModel {
         });
     }
 
-    public StravaGlobalStatistic getActivityAt(int selectedRow) {
-        return statistics.get(selectedRow);
-    }
 }
