@@ -16,6 +16,7 @@ import javax.swing.JTable;
 import javax.swing.SwingUtilities;
 import java.text.MessageFormat;
 import java.text.ParseException;
+import java.time.Month;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -52,7 +53,7 @@ public class StravaStatisticPanel extends JPanel implements ITabListener {
     private final JLabel labelCommute = new JLabel();
 
     public StravaStatisticPanel(List<Activity> activities) {
-        setLayout(new MigLayout("", "[grow][grow]", "[][200:200:200]"));
+        setLayout(new MigLayout("", "[grow][grow]", "[][200:200:200][grow]"));
         JPanel panelGlobal = new JPanel();
         panelGlobal.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), getLabel("strava.statistics.global")));
         panelGlobal.setLayout(new MigLayout("", "[]", "[]"));
@@ -97,8 +98,30 @@ public class StravaStatisticPanel extends JPanel implements ITabListener {
             panelTableLongest.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), getLabel("strava.statistics.per.distance")));
             panelTableLongest.add(new JScrollPane(tableLongestRide), "grow");
             add(panelTableGlobal, "split 2");
-            add(panelTableLongest);
+            add(panelTableLongest, "wrap");
+            StravaChartPanel stravaChartPanel = new StravaChartPanel();
+            List<StatData> stats = buildStatsKmPerYear(activitiesPerYear);
+            stravaChartPanel.setDataBarChart(stats, "");
+            add(stravaChartPanel, "grow");
         });
+    }
+
+    private List<StatData> buildStatsKmPerYear(Map<Integer, List<Activity>> activitiesPerYear) {
+        List<StatData> stats = new ArrayList<>();
+        for (Integer year : activitiesPerYear.keySet()) {
+            List<Activity> activitiesThisYear = activitiesPerYear.get(year);
+            Map<Integer, List<Activity>> activityPerMonth = activitiesThisYear
+                .stream()
+                .collect(groupingBy(this::getStartMonth));
+            for (Integer month : activityPerMonth.keySet()) {
+                Double sum = activityPerMonth.get(month)
+                    .stream()
+                    .map(Activity::getDistance)
+                    .reduce(0.0, Double::sum);
+                stats.add(new StatData(sum / 1000, ""+year, Month.of(month+1).toString()));
+            }
+        }
+        return stats;
     }
 
     private void buildGlobalStatisticsTable(List<StravaGlobalStatistic> statisticList) {
@@ -148,7 +171,13 @@ public class StravaStatisticPanel extends JPanel implements ITabListener {
         } catch (ParseException e) {
             throw new RuntimeException(e);
         }
-
+    }
+    private int getStartMonth(Activity activity) {
+        try {
+            return TIMESTAMP.parse(activity.getStartDateLocal()).getMonth();
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void setStatisticsPerYear(List<Activity> activities) {

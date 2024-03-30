@@ -50,6 +50,7 @@ public class MergePanel extends JPanel implements ITabListener {
     private final PropertiesPanel propertiesPanel = new PropertiesPanel(null);
     private final MyAutoHideLabel infoLabel = new MyAutoHideLabel();
     private static final String MERGE_PANEL = "MERGE_PANEL";
+    private File previousDir;
 
     public MergePanel() {
         setLayout(new MigLayout("", "[grow]", "[][grow]"));
@@ -103,9 +104,11 @@ public class MergePanel extends JPanel implements ITabListener {
         public void actionPerformed(ActionEvent e) {
             JFileChooser fileChooser = createFileChooser();
             fileChooser.setMultiSelectionEnabled(true);
+            fileChooser.setCurrentDirectory(previousDir);
             if (JFileChooser.APPROVE_OPTION == fileChooser.showOpenDialog(null)) {
                 File[] files = fileChooser.getSelectedFiles();
                 if (files != null) {
+                    previousDir = files.length > 0 ? files[0].getParentFile() : null;
                     for (File file : files) {
                         if (checkFileExtension(file)) {
                             model.addFile(file);
