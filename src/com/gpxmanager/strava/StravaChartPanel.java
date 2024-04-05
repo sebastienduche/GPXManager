@@ -4,6 +4,9 @@ import net.miginfocom.swing.MigLayout;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.axis.NumberTickUnit;
+import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.data.category.DefaultCategoryDataset;
 
@@ -31,6 +34,9 @@ public class StravaChartPanel extends JPanel {
         true,
         true);
 
+    CategoryPlot plot = (CategoryPlot) chart.getPlot();
+    NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
+    rangeAxis.setTickUnit(new NumberTickUnit(100));
     ChartPanel chartPanel = new ChartPanel(chart);
     add(chartPanel, "grow");
     updateUI();

@@ -12,6 +12,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -35,6 +36,7 @@ public class Utils {
     public static final int METER_IN_KM = 1000;
 
     private static ResourceBundle labels;
+    private static Locale locale;
 
     public static File getOpenSaveDirectory() {
         return new File(getPreference(DIR, System.getProperty("user.home")));
@@ -44,7 +46,8 @@ public class Utils {
         setPreference(DIR, file.getAbsolutePath());
     }
 
-    public static void initResources(Locale locale) {
+    public static void initResources(Locale locale1) {
+        locale = locale1;
         labels = ResourceBundle.getBundle("label", locale);
     }
 
@@ -53,6 +56,10 @@ public class Utils {
             throw new RuntimeException("Resources not initialized!");
         }
         return labels.getString(s);
+    }
+
+    public static Locale getLocale() {
+        return locale;
     }
 
     public static void saveError(Throwable e) {
@@ -168,5 +175,20 @@ public class Utils {
         fileChooser.removeChoosableFileFilter(fileChooser.getFileFilter());
         fileChooser.addChoosableFileFilter(Filter.FILTER_GPX);
         return fileChooser;
+    }
+
+    public static int getStartYear(Activity activity) {
+        try {
+            return TIMESTAMP.parse(activity.getStartDateLocal()).getYear() + 1900;
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    public static int getStartMonth(Activity activity) {
+        try {
+            return TIMESTAMP.parse(activity.getStartDateLocal()).getMonth();
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

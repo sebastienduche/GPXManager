@@ -1,6 +1,7 @@
 package com.gpxmanager.strava;
 
 import com.gpxmanager.MyGPXManager;
+import com.gpxmanager.Utils;
 import com.gpxmanager.component.renderer.DurationCellRenderer;
 import com.gpxmanager.component.renderer.MeterPerSecondToKmHCellRenderer;
 import com.mytabbedpane.ITabListener;
@@ -15,15 +16,14 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
 import java.text.MessageFormat;
-import java.text.ParseException;
 import java.time.Month;
+import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static com.gpxmanager.Utils.TIMESTAMP;
 import static com.gpxmanager.Utils.getLabel;
 import static com.gpxmanager.Utils.getTotalDistance;
 import static com.gpxmanager.strava.StravaGlobalStatisticTableModel.StravaGlobalStatisticColumns.COL_GLOBAL_ACTIVITY;
@@ -53,7 +53,7 @@ public class StravaStatisticPanel extends JPanel implements ITabListener {
     private final JLabel labelCommute = new JLabel();
 
     public StravaStatisticPanel(List<Activity> activities) {
-        setLayout(new MigLayout("", "[grow][grow]", "[][200:200:200][grow]"));
+        setLayout(new MigLayout("", "[grow][grow]", "[][200:200:200][grow]0px"));
         JPanel panelGlobal = new JPanel();
         panelGlobal.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), getLabel("strava.statistics.global")));
         panelGlobal.setLayout(new MigLayout("", "[]", "[]"));
@@ -64,7 +64,7 @@ public class StravaStatisticPanel extends JPanel implements ITabListener {
         SwingUtilities.invokeLater(() -> {
             Map<Integer, List<Activity>> activitiesPerYear = activities
                     .stream()
-                    .collect(groupingBy(this::getStartYear));
+                    .collect(groupingBy(Utils::getStartYear));
             stravaGlobalStatisticTableModel = new StravaGlobalStatisticTableModel();
             stravaLongestRideStatisticTableModel = new StravaLongestRideStatisticTableModel();
             List<StravaGlobalStatistic> statisticList = new ArrayList<>();
@@ -78,7 +78,7 @@ public class StravaStatisticPanel extends JPanel implements ITabListener {
                                 totalDistance,
                                 activitiesYear.stream().map(Activity::getMovingTime).reduce(0, Integer::sum),
                                 activitiesYear.stream().mapToDouble(Activity::getMaxSpeed).max().orElse(0),
-                                activitiesYear.stream().map(Activity::getTotalElevationGain).reduce((double) 0, Double::sum),
+                                activitiesYear.stream().map(Activity::getTotalElevationGain).reduce(0.0, Double::sum),
                                 activitiesYear.stream().map(Activity::getPrCount).reduce(0, Integer::sum)
 
                         ));
@@ -112,13 +112,13 @@ public class StravaStatisticPanel extends JPanel implements ITabListener {
             List<Activity> activitiesThisYear = activitiesPerYear.get(year);
             Map<Integer, List<Activity>> activityPerMonth = activitiesThisYear
                 .stream()
-                .collect(groupingBy(this::getStartMonth));
+                .collect(groupingBy(Utils::getStartMonth));
             for (Integer month : activityPerMonth.keySet()) {
                 Double sum = activityPerMonth.get(month)
                     .stream()
                     .map(Activity::getDistance)
                     .reduce(0.0, Double::sum);
-                stats.add(new StatData(sum / 1000, ""+year, Month.of(month+1).toString()));
+                stats.add(new StatData(sum / 1000, String.valueOf(year), Month.of(month+1).getDisplayName(TextStyle.SHORT, Utils.getLocale())));
             }
         }
         return stats;
@@ -163,21 +163,6 @@ public class StravaStatisticPanel extends JPanel implements ITabListener {
         tableLongestRide.getColumnModel().getColumn(COL_LONGEST_DISTANCE.ordinal()).setMaxWidth(100);
         tableLongestRide.getColumnModel().getColumn(COL_LONGEST_ALTITUDE.ordinal()).setMaxWidth(100);
         tableLongestRide.getColumnModel().getColumn(COL_LONGEST_ALTITUDE.ordinal()).setMaxWidth(100);
-    }
-
-    private int getStartYear(Activity activity) {
-        try {
-            return TIMESTAMP.parse(activity.getStartDateLocal()).getYear() + 1900;
-        } catch (ParseException e) {
-            throw new RuntimeException(e);
-        }
-    }
-    private int getStartMonth(Activity activity) {
-        try {
-            return TIMESTAMP.parse(activity.getStartDateLocal()).getMonth();
-        } catch (ParseException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     private void setStatisticsPerYear(List<Activity> activities) {
