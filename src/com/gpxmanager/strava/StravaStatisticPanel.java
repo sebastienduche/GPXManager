@@ -10,15 +10,19 @@ import net.miginfocom.swing.MigLayout;
 import org.jstrava.entities.Activity;
 
 import javax.swing.BorderFactory;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
+import java.awt.event.ItemEvent;
 import java.text.MessageFormat;
+import java.time.LocalDate;
 import java.time.Month;
 import java.time.format.TextStyle;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +47,7 @@ import static java.util.stream.Collectors.groupingBy;
 
 public class StravaStatisticPanel extends JPanel implements ITabListener {
 
+    private final List<Activity> activities;
     private JTable tableGlobal;
     private JTable tableLongestRide;
     private StravaGlobalStatisticTableModel stravaGlobalStatisticTableModel;
@@ -51,17 +56,39 @@ public class StravaStatisticPanel extends JPanel implements ITabListener {
     private final JLabel labelCount = new JLabel();
     private final JLabel labelKm = new JLabel();
     private final JLabel labelCommute = new JLabel();
+    StravaChartPanel stravaChartPanel = new StravaChartPanel();
+    private final JComboBox<GraphType> graphTypeCombo = new JComboBox<>();
+
+    private enum GraphType {
+        DISTANCE_PER_MONTH(getLabel("strava.statistics.graph.distance.month")),
+        DISTANCE_PROGRESS(getLabel("strava.statistics.graph.distance.progress")),
+        DISTANCE_PROGRESS_TODAY(getLabel("strava.statistics.graph.distance.progress.today")),
+        ;
+        private final String label;
+
+      GraphType(String label) {
+        this.label = label;
+      }
+
+        @Override
+        public String toString() {
+            return label;
+        }
+    }
 
     public StravaStatisticPanel(List<Activity> activities) {
+        this.activities = activities;
         setLayout(new MigLayout("", "[grow][grow]", "[][200:200:200][grow]0px"));
         JPanel panelGlobal = new JPanel();
         panelGlobal.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), getLabel("strava.statistics.global")));
         panelGlobal.setLayout(new MigLayout("", "[]", "[]"));
         panelGlobal.add(labelCount, " split 3, gapright 100px");
         panelGlobal.add(labelKm, "gapright 100px");
-        panelGlobal.add(labelCommute, "wrap");
+        panelGlobal.add(labelCommute, "gapright 100px");
+        panelGlobal.add(graphTypeCombo);
         add(panelGlobal, "span 2, growx, wrap");
         SwingUtilities.invokeLater(() -> {
+            Arrays.stream(GraphType.values()).forEach(graphTypeCombo::addItem);
             Map<Integer, List<Activity>> activitiesPerYear = activities
                     .stream()
                     .collect(groupingBy(Utils::getStartYear));
@@ -99,11 +126,39 @@ public class StravaStatisticPanel extends JPanel implements ITabListener {
             panelTableLongest.add(new JScrollPane(tableLongestRide), "grow");
             add(panelTableGlobal, "split 2");
             add(panelTableLongest, "wrap");
-            StravaChartPanel stravaChartPanel = new StravaChartPanel();
             List<StatData> stats = buildStatsKmPerYear(activitiesPerYear);
             stravaChartPanel.setDataBarChart(stats, "");
             add(stravaChartPanel, "grow");
+
+            graphTypeCombo.addItemListener(e -> {
+                if (e.getStateChange() == ItemEvent.SELECTED) {
+                    GraphType item = (GraphType) e.getItem();
+                    if (GraphType.DISTANCE_PER_MONTH.equals(item)) {
+                        createDistancePerYearGraph();
+                    } else if (GraphType.DISTANCE_PROGRESS.equals(item)) {
+                        createDistanceProgressGraph(LocalDate.now().withMonth(12).withDayOfMonth(31));
+                    }else if (GraphType.DISTANCE_PROGRESS_TODAY.equals(item)) {
+                        createDistanceProgressGraph(LocalDate.now());
+                    }
+                }
+            });
         });
+    }
+
+    private void createDistanceProgressGraph(LocalDate endDate) {
+        Map<Integer, List<Activity>> activitiesPerYear = activities
+            .stream()
+            .collect(groupingBy(Utils::getStartYear));
+        List<StatXYData> stats = buildStatsKmProgressPerDay(activitiesPerYear, endDate);
+        stravaChartPanel.setXYLineChart(stats, "");
+    }
+
+    private void createDistancePerYearGraph() {
+        Map<Integer, List<Activity>> activitiesPerYear = activities
+            .stream()
+            .collect(groupingBy(Utils::getStartYear));
+        List<StatData> stats = buildStatsKmPerYear(activitiesPerYear);
+        stravaChartPanel.setDataBarChart(stats, "");
     }
 
     private List<StatData> buildStatsKmPerYear(Map<Integer, List<Activity>> activitiesPerYear) {
@@ -119,6 +174,30 @@ public class StravaStatisticPanel extends JPanel implements ITabListener {
                     .map(Activity::getDistance)
                     .reduce(0.0, Double::sum);
                 stats.add(new StatData(sum / 1000, String.valueOf(year), Month.of(month+1).getDisplayName(TextStyle.SHORT, Utils.getLocale())));
+            }
+        }
+        return stats;
+    }
+
+    private List<StatXYData> buildStatsKmProgressPerDay(Map<Integer, List<Activity>> activitiesPerYear, LocalDate endDate) {
+        List<StatXYData> stats = new ArrayList<>();
+        int endDateDayOfYear = endDate.getDayOfYear();
+        for (Integer year : activitiesPerYear.keySet()) {
+            List<Activity> activitiesThisYear = activitiesPerYear.get(year);
+            Map<Integer, List<Activity>> activityPerDay = activitiesThisYear
+                .stream()
+                .collect(groupingBy(Utils::getStartDay));
+            double totalDistance = 0;
+            for (Integer day : activityPerDay.keySet()) {
+                if (day > endDateDayOfYear) {
+                    continue;
+                }
+                Double sum = activityPerDay.get(day)
+                    .stream()
+                    .map(Activity::getDistance)
+                    .reduce(0.0, Double::sum);
+                totalDistance += sum;
+                stats.add(new StatXYData(String.valueOf(year), day, totalDistance / 1000));
             }
         }
         return stats;

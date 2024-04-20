@@ -14,9 +14,11 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -184,9 +186,19 @@ public class Utils {
             throw new RuntimeException(e);
         }
     }
+
     public static int getStartMonth(Activity activity) {
         try {
             return TIMESTAMP.parse(activity.getStartDateLocal()).getMonth();
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static int getStartDay(Activity activity) {
+        try {
+            Date parse = TIMESTAMP.parse(activity.getStartDateLocal());
+            return LocalDate.of(parse.getYear(), parse.getMonth() + 1, parse.getDate()).getDayOfYear();
         } catch (ParseException e) {
             throw new RuntimeException(e);
         }
