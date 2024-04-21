@@ -133,13 +133,12 @@ public class StravaStatisticPanel extends JPanel implements ITabListener {
             graphTypeCombo.addItemListener(e -> {
                 if (e.getStateChange() == ItemEvent.SELECTED) {
                     GraphType item = (GraphType) e.getItem();
-                    if (GraphType.DISTANCE_PER_MONTH.equals(item)) {
-                        createDistancePerYearGraph();
-                    } else if (GraphType.DISTANCE_PROGRESS.equals(item)) {
+                  switch (item) {
+                    case DISTANCE_PER_MONTH -> createDistancePerYearGraph();
+                    case DISTANCE_PROGRESS ->
                         createDistanceProgressGraph(LocalDate.now().withMonth(12).withDayOfMonth(31));
-                    }else if (GraphType.DISTANCE_PROGRESS_TODAY.equals(item)) {
-                        createDistanceProgressGraph(LocalDate.now());
-                    }
+                    case DISTANCE_PROGRESS_TODAY -> createDistanceProgressGraph(LocalDate.now());
+                  }
                 }
             });
         });
@@ -173,7 +172,7 @@ public class StravaStatisticPanel extends JPanel implements ITabListener {
                     .stream()
                     .map(Activity::getDistance)
                     .reduce(0.0, Double::sum);
-                stats.add(new StatData(sum / 1000, String.valueOf(year), Month.of(month+1).getDisplayName(TextStyle.SHORT, Utils.getLocale())));
+                stats.add(new StatData(sum / 1000, String.valueOf(year), Month.of(month + 1).getDisplayName(TextStyle.SHORT, Utils.getLocale())));
             }
         }
         return stats;
