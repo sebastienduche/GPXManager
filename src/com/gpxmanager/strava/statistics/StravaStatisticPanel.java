@@ -1,9 +1,11 @@
-package com.gpxmanager.strava;
+package com.gpxmanager.strava.statistics;
 
 import com.gpxmanager.MyGPXManager;
 import com.gpxmanager.Utils;
 import com.gpxmanager.component.renderer.DurationCellRenderer;
 import com.gpxmanager.component.renderer.MeterPerSecondToKmHCellRenderer;
+import com.gpxmanager.strava.StatData;
+import com.gpxmanager.strava.StravaChartPanel;
 import com.mytabbedpane.ITabListener;
 import com.mytabbedpane.TabEvent;
 import net.miginfocom.swing.MigLayout;
@@ -26,23 +28,25 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.gpxmanager.Utils.getLabel;
+import static com.gpxmanager.Utils.getStartYear;
 import static com.gpxmanager.Utils.getTotalDistance;
-import static com.gpxmanager.strava.StravaGlobalStatisticTableModel.StravaGlobalStatisticColumns.COL_GLOBAL_ACTIVITY;
-import static com.gpxmanager.strava.StravaGlobalStatisticTableModel.StravaGlobalStatisticColumns.COL_GLOBAL_ALTITUDE;
-import static com.gpxmanager.strava.StravaGlobalStatisticTableModel.StravaGlobalStatisticColumns.COL_GLOBAL_DISTANCE;
-import static com.gpxmanager.strava.StravaGlobalStatisticTableModel.StravaGlobalStatisticColumns.COL_GLOBAL_PR;
-import static com.gpxmanager.strava.StravaGlobalStatisticTableModel.StravaGlobalStatisticColumns.COL_GLOBAL_SPEED_MAX;
-import static com.gpxmanager.strava.StravaGlobalStatisticTableModel.StravaGlobalStatisticColumns.COL_GLOBAL_TIME;
-import static com.gpxmanager.strava.StravaGlobalStatisticTableModel.StravaGlobalStatisticColumns.COL_GLOBAL_YEAR;
-import static com.gpxmanager.strava.StravaLongestRideStatisticTableModel.StravaLongestRideStatisticColumns.COL_LONGEST_ALTITUDE;
-import static com.gpxmanager.strava.StravaLongestRideStatisticTableModel.StravaLongestRideStatisticColumns.COL_LONGEST_AVG_SPEED;
-import static com.gpxmanager.strava.StravaLongestRideStatisticTableModel.StravaLongestRideStatisticColumns.COL_LONGEST_DATE;
-import static com.gpxmanager.strava.StravaLongestRideStatisticTableModel.StravaLongestRideStatisticColumns.COL_LONGEST_DISTANCE;
-import static com.gpxmanager.strava.StravaLongestRideStatisticTableModel.StravaLongestRideStatisticColumns.COL_LONGEST_SPEED_MAX;
-import static com.gpxmanager.strava.StravaLongestRideStatisticTableModel.StravaLongestRideStatisticColumns.COL_LONGEST_TIME;
+import static com.gpxmanager.strava.statistics.StravaGlobalStatisticTableModel.StravaGlobalStatisticColumns.COL_GLOBAL_ACTIVITY;
+import static com.gpxmanager.strava.statistics.StravaGlobalStatisticTableModel.StravaGlobalStatisticColumns.COL_GLOBAL_ALTITUDE;
+import static com.gpxmanager.strava.statistics.StravaGlobalStatisticTableModel.StravaGlobalStatisticColumns.COL_GLOBAL_DISTANCE;
+import static com.gpxmanager.strava.statistics.StravaGlobalStatisticTableModel.StravaGlobalStatisticColumns.COL_GLOBAL_PR;
+import static com.gpxmanager.strava.statistics.StravaGlobalStatisticTableModel.StravaGlobalStatisticColumns.COL_GLOBAL_SPEED_MAX;
+import static com.gpxmanager.strava.statistics.StravaGlobalStatisticTableModel.StravaGlobalStatisticColumns.COL_GLOBAL_TIME;
+import static com.gpxmanager.strava.statistics.StravaGlobalStatisticTableModel.StravaGlobalStatisticColumns.COL_GLOBAL_YEAR;
+import static com.gpxmanager.strava.statistics.StravaLongestRideStatisticTableModel.StravaLongestRideStatisticColumns.COL_LONGEST_ALTITUDE;
+import static com.gpxmanager.strava.statistics.StravaLongestRideStatisticTableModel.StravaLongestRideStatisticColumns.COL_LONGEST_AVG_SPEED;
+import static com.gpxmanager.strava.statistics.StravaLongestRideStatisticTableModel.StravaLongestRideStatisticColumns.COL_LONGEST_DATE;
+import static com.gpxmanager.strava.statistics.StravaLongestRideStatisticTableModel.StravaLongestRideStatisticColumns.COL_LONGEST_DISTANCE;
+import static com.gpxmanager.strava.statistics.StravaLongestRideStatisticTableModel.StravaLongestRideStatisticColumns.COL_LONGEST_SPEED_MAX;
+import static com.gpxmanager.strava.statistics.StravaLongestRideStatisticTableModel.StravaLongestRideStatisticColumns.COL_LONGEST_TIME;
 import static java.util.stream.Collectors.groupingBy;
 
 public class StravaStatisticPanel extends JPanel implements ITabListener {
@@ -58,8 +62,11 @@ public class StravaStatisticPanel extends JPanel implements ITabListener {
     private final JLabel labelCommute = new JLabel();
     StravaChartPanel stravaChartPanel = new StravaChartPanel();
     private final JComboBox<GraphType> graphTypeCombo = new JComboBox<>();
+    private final JComboBox<GraphCompare> graphCompareCombo = new JComboBox<>();
 
-    private enum GraphType {
+    private final int currentYear = LocalDate.now().getYear();
+
+  private enum GraphType {
         DISTANCE_PER_MONTH(getLabel("strava.statistics.graph.distance.month")),
         DISTANCE_PROGRESS(getLabel("strava.statistics.graph.distance.progress")),
         DISTANCE_PROGRESS_TODAY(getLabel("strava.statistics.graph.distance.progress.today")),
@@ -86,9 +93,12 @@ public class StravaStatisticPanel extends JPanel implements ITabListener {
         panelGlobal.add(labelKm, "gapright 100px");
         panelGlobal.add(labelCommute, "gapright 100px");
         panelGlobal.add(graphTypeCombo);
+        panelGlobal.add(new JLabel(getLabel("strava.statistics.compare")));
+        panelGlobal.add(graphCompareCombo);
         add(panelGlobal, "span 2, growx, wrap");
         SwingUtilities.invokeLater(() -> {
             Arrays.stream(GraphType.values()).forEach(graphTypeCombo::addItem);
+            graphCompareCombo.addItem(new GraphCompare(-1, getLabel("strava.statistics.compare.all")));
             Map<Integer, List<Activity>> activitiesPerYear = activities
                     .stream()
                     .collect(groupingBy(Utils::getStartYear));
@@ -97,6 +107,7 @@ public class StravaStatisticPanel extends JPanel implements ITabListener {
             List<StravaGlobalStatistic> statisticList = new ArrayList<>();
             activitiesPerYear.keySet()
                     .forEach(year -> {
+                        graphCompareCombo.addItem(new GraphCompare(year, Integer.toString(year)));
                         List<Activity> activitiesYear = activitiesPerYear.get(year);
                         String totalDistance = getTotalDistance(activitiesYear);
                         statisticList.add(new StravaGlobalStatistic(
@@ -133,31 +144,57 @@ public class StravaStatisticPanel extends JPanel implements ITabListener {
             graphTypeCombo.addItemListener(e -> {
                 if (e.getStateChange() == ItemEvent.SELECTED) {
                     GraphType item = (GraphType) e.getItem();
+                    GraphCompare graphCompare = (GraphCompare) graphCompareCombo.getSelectedItem();
                   switch (item) {
-                    case DISTANCE_PER_MONTH -> createDistancePerYearGraph();
+                    case DISTANCE_PER_MONTH -> createDistancePerYearGraph(graphCompare.value());
                     case DISTANCE_PROGRESS ->
-                        createDistanceProgressGraph(LocalDate.now().withMonth(12).withDayOfMonth(31));
-                    case DISTANCE_PROGRESS_TODAY -> createDistanceProgressGraph(LocalDate.now());
+                        createDistanceProgressGraph(LocalDate.now().withMonth(12).withDayOfMonth(31), graphCompare.value());
+                    case DISTANCE_PROGRESS_TODAY -> createDistanceProgressGraph(LocalDate.now(), graphCompare.value());
                   }
+                }
+            });
+
+            graphCompareCombo.addItemListener(e -> {
+                if (e.getStateChange() == ItemEvent.SELECTED) {
+                    GraphCompare graphCompare = (GraphCompare) e.getItem();
+                    GraphType item = (GraphType) graphTypeCombo.getSelectedItem();
+                    switch (item) {
+                        case DISTANCE_PER_MONTH -> createDistancePerYearGraph(graphCompare.value());
+                        case DISTANCE_PROGRESS ->
+                            createDistanceProgressGraph(LocalDate.now().withMonth(12).withDayOfMonth(31), graphCompare.value());
+                        case DISTANCE_PROGRESS_TODAY -> createDistanceProgressGraph(LocalDate.now(), graphCompare.value());
+                    }
                 }
             });
         });
     }
 
-    private void createDistanceProgressGraph(LocalDate endDate) {
+    private void createDistanceProgressGraph(LocalDate endDate, int year) {
         Map<Integer, List<Activity>> activitiesPerYear = activities
             .stream()
+            .filter(validYears(year))
             .collect(groupingBy(Utils::getStartYear));
         List<StatXYData> stats = buildStatsKmProgressPerDay(activitiesPerYear, endDate);
         stravaChartPanel.setXYLineChart(stats, "");
     }
 
-    private void createDistancePerYearGraph() {
+    private void createDistancePerYearGraph(int year) {
         Map<Integer, List<Activity>> activitiesPerYear = activities
             .stream()
+            .filter(validYears(year))
             .collect(groupingBy(Utils::getStartYear));
         List<StatData> stats = buildStatsKmPerYear(activitiesPerYear);
         stravaChartPanel.setDataBarChart(stats, "");
+    }
+
+    private Predicate<Activity> validYears(int year) {
+      if (year == -1) {
+          return activity -> true;
+      }
+      return activity -> {
+            int startYear = getStartYear(activity);
+            return startYear == year || startYear == currentYear;
+        };
     }
 
     private List<StatData> buildStatsKmPerYear(Map<Integer, List<Activity>> activitiesPerYear) {

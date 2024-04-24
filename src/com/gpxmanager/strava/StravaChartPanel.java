@@ -1,5 +1,6 @@
 package com.gpxmanager.strava;
 
+import com.gpxmanager.strava.statistics.StatXYData;
 import net.miginfocom.swing.MigLayout;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -65,12 +66,12 @@ public class StravaChartPanel extends JPanel {
     removeAll();
     XYSeriesCollection dataset = new XYSeriesCollection();
     Map<String, List<StatXYData>> mapPerSerie = datas.stream()
-        .collect(groupingBy(StatXYData::getSerie));
+        .collect(groupingBy(StatXYData::serie));
     for (String serie : mapPerSerie.keySet()) {
     XYSeries xySeries = new XYSeries(serie);
     dataset.addSeries(xySeries);
       mapPerSerie.get(serie)
-          .forEach(statData -> xySeries.add(new XYDataItem(statData.getX(), statData.getY())));
+          .forEach(statData -> xySeries.add(new XYDataItem(statData.x(), statData.y())));
     }
 
     JFreeChart chart = ChartFactory.createXYLineChart(title,

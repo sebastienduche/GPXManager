@@ -8,6 +8,7 @@ import com.gpxmanager.component.renderer.ButtonCellRenderer;
 import com.gpxmanager.component.renderer.DurationCellRenderer;
 import com.gpxmanager.component.renderer.MeterPerSecondToKmHCellRenderer;
 import com.gpxmanager.component.renderer.RoundDoubleCellRenderer;
+import com.gpxmanager.strava.statistics.StravaStatisticPanel;
 import com.mycomponents.MyAutoHideLabel;
 import com.mytabbedpane.ITabListener;
 import com.mytabbedpane.TabEvent;

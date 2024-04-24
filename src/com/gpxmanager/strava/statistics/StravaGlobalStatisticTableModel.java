@@ -1,4 +1,4 @@
-package com.gpxmanager.strava;
+package com.gpxmanager.strava.statistics;
 
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;

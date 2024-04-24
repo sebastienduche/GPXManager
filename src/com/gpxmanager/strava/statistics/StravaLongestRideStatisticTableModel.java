@@ -1,4 +1,4 @@
-package com.gpxmanager.strava;
+package com.gpxmanager.strava.statistics;
 
 import org.jstrava.entities.Activity;
 
