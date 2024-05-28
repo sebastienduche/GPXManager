@@ -26,12 +26,13 @@ public class StravaChartPanel extends JPanel {
   public StravaChartPanel() {
     setLayout(new MigLayout("", "grow", "grow"));
   }
+
   public void setDataBarChart(List<StatData> datas, String title) {
     removeAll();
     DefaultCategoryDataset dataset = new DefaultCategoryDataset();
     datas.stream()
-        .filter(statData -> statData.getCount() > 0)
-        .forEach(statData -> dataset.addValue(statData.getCount(), statData.getName(), statData.getSerie()));
+        .filter(statData -> statData.count() > 0)
+        .forEach(statData -> dataset.addValue(statData.count(), statData.name(), statData.serie()));
     JFreeChart chart = ChartFactory.createBarChart(title,          // chart title
         "", getLabel("strava.table.distance"),
         dataset,                // data
@@ -52,7 +53,7 @@ public class StravaChartPanel extends JPanel {
     removeAll();
 
     DefaultCategoryDataset dataset = new DefaultCategoryDataset();
-    datas.forEach(statData -> dataset.addValue(statData.getCount(), title, statData.getName()));
+    datas.forEach(statData -> dataset.addValue(statData.count(), title, statData.name()));
 
     final JFreeChart chart = ChartFactory.createLineChart(title,
         null, getLabel("strava.table.distance"),
@@ -68,8 +69,8 @@ public class StravaChartPanel extends JPanel {
     Map<String, List<StatXYData>> mapPerSerie = datas.stream()
         .collect(groupingBy(StatXYData::serie));
     for (String serie : mapPerSerie.keySet()) {
-    XYSeries xySeries = new XYSeries(serie);
-    dataset.addSeries(xySeries);
+      XYSeries xySeries = new XYSeries(serie);
+      dataset.addSeries(xySeries);
       mapPerSerie.get(serie)
           .forEach(statData -> xySeries.add(new XYDataItem(statData.x(), statData.y())));
     }
