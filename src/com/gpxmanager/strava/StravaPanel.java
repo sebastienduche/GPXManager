@@ -8,6 +8,7 @@ import com.gpxmanager.component.renderer.ButtonCellRenderer;
 import com.gpxmanager.component.renderer.DurationCellRenderer;
 import com.gpxmanager.component.renderer.MeterPerSecondToKmHCellRenderer;
 import com.gpxmanager.component.renderer.RoundDoubleCellRenderer;
+import com.gpxmanager.strava.statistics.StravaGraphPanel;
 import com.gpxmanager.strava.statistics.StravaStatisticPanel;
 import com.mycomponents.MyAutoHideLabel;
 import com.mytabbedpane.ITabListener;
@@ -90,6 +91,7 @@ public class StravaPanel extends JPanel implements ITabListener {
     private final JButton downloadNewActivities = new JButton(new DownloadNewActivitiesAction());
     private final JButton downloadActivity = new JButton(new DownloadActivityAction());
     private final JButton showStatistics = new JButton(new ShowStatisticsAction());
+    private final JButton showGraphs = new JButton(new ShowGraphAction());
     private final MyAutoHideLabel infoLabel = new MyAutoHideLabel();
 
     private final JLabel labelCount = new JLabel();
@@ -169,10 +171,11 @@ public class StravaPanel extends JPanel implements ITabListener {
             popup.add(new JMenuItem(new UpdateActivityFromStravaAction()));
             popup.add(new JMenuItem(new ShowJSONAction()));
             table.setComponentPopupMenu(popup);
-            add(downloadAllActivities, "split 4");
+            add(downloadAllActivities, "split 5");
             add(downloadNewActivities, "gapleft 10px");
             add(downloadActivity, "gapleft 10px");
-            add(showStatistics, "gapleft 10px, wrap");
+            add(showStatistics, "gapleft 10px");
+            add(showGraphs, "gapleft 10px, wrap");
             add(new JLabel(), "split 8, growx");
             add(comboGear);
             add(comboCommute);
@@ -449,6 +452,18 @@ public class StravaPanel extends JPanel implements ITabListener {
         @Override
         public void actionPerformed(ActionEvent e) {
             getMyTabbedPane().addTab(getLabel("strava.statistics"), MyGPXManagerImage.STATS, new StravaStatisticPanel(activities), true);
+        }
+    }
+
+    class ShowGraphAction extends AbstractAction {
+
+        public ShowGraphAction() {
+            super(getLabel("strava.graphs"), MyGPXManagerImage.STATS);
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            getMyTabbedPane().addTab(getLabel("strava.graphs"), MyGPXManagerImage.STATS, new StravaGraphPanel(activities), true);
         }
     }
 
