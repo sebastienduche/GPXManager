@@ -22,12 +22,15 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static com.gpxmanager.ProgramPreferences.DIR;
 import static com.gpxmanager.ProgramPreferences.getPreference;
 import static com.gpxmanager.ProgramPreferences.setPreference;
+import static java.util.stream.Collectors.groupingBy;
 
 public class Utils {
 
@@ -109,6 +112,17 @@ public class Utils {
         .map(Activity::getDistance)
         .reduce(Double::sum)
         .orElseGet(() -> (double) 0) / METER_IN_KM;
+  }
+
+  public static int getDaysOverHundred(List<Activity> activities) {
+    AtomicInteger count = new AtomicInteger();
+    Map<Integer, List<Activity>> activitiesPerDay = activities
+        .stream()
+        .collect(groupingBy(Utils::getStartDay));
+    activitiesPerDay.forEach((s, activities1) -> {
+      if (getTotalDistance(activities1) >= 100) count.getAndIncrement();
+    });
+    return count.get();
   }
 
   public static String roundValue(double value) {

@@ -17,7 +17,8 @@ public class StravaGlobalStatisticTableModel extends DefaultTableModel {
       getLabel("strava.table.max"),
       getLabel("strava.table.altitude"),
       getLabel("strava.table.pr"),
-      getLabel("strava.table.km.day")
+      getLabel("strava.table.km.day"),
+      getLabel("strava.table.day.100")
   );
   private List<StravaGlobalStatistic> statistics;
 
@@ -57,6 +58,7 @@ public class StravaGlobalStatisticTableModel extends DefaultTableModel {
       case COL_GLOBAL_ALTITUDE -> (int) statistic.altitude();
       case COL_GLOBAL_PR -> statistic.prCount();
       case COL_GLOBAL_KM_PER_DAY -> statistic.kmPerDay();
+      case COL_GLOBAL_KM_100 -> statistic.daysOverHundred();
     };
   }
 
@@ -65,7 +67,7 @@ public class StravaGlobalStatisticTableModel extends DefaultTableModel {
     return switch (StravaGlobalStatisticColumns.values()[columnIndex]) {
       case COL_GLOBAL_SPEED_MAX -> Double.class;
       case COL_GLOBAL_DISTANCE, COL_GLOBAL_ALTITUDE, COL_GLOBAL_KM_PER_DAY -> String.class;
-      case COL_GLOBAL_PR, COL_GLOBAL_YEAR, COL_GLOBAL_TIME, COL_GLOBAL_ACTIVITY -> Integer.class;
+      case COL_GLOBAL_PR, COL_GLOBAL_YEAR, COL_GLOBAL_TIME, COL_GLOBAL_ACTIVITY, COL_GLOBAL_KM_100 -> Integer.class;
     };
   }
 
@@ -84,7 +86,8 @@ public class StravaGlobalStatisticTableModel extends DefaultTableModel {
     COL_GLOBAL_SPEED_MAX,
     COL_GLOBAL_ALTITUDE,
     COL_GLOBAL_PR,
-    COL_GLOBAL_KM_PER_DAY
+    COL_GLOBAL_KM_PER_DAY,
+    COL_GLOBAL_KM_100
   }
 
 }

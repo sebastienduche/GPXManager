@@ -95,7 +95,7 @@ import static com.gpxmanager.gpx.GPXUtils.initWatchDir;
 import static com.gpxmanager.gpx.GPXUtils.watchDirContains;
 
 public final class MyGPXManager extends JFrame {
-  public static final String INTERNAL_VERSION = "17.7";
+  public static final String INTERNAL_VERSION = "18.1";
   public static final String VERSION = "5.9";
   public static final Gson GSON = new Gson();
   private static final MyAutoHideLabel INFO_LABEL = new MyAutoHideLabel();
