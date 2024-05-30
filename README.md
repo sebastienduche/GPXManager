@@ -13,7 +13,8 @@ Currently, the application allows to:
 - Display elevation graph for each track and routes
 - Merge several GPX files in 1
 - Invert the tracks/routes to do it in the opposite direction
-- Access Strava activities
+- Access Strava activities: Download the GPX of activities
+- Display statistics based on Strava activities
 
 Probably the application will never display the GPX file on a map.
 
