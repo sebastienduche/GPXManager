@@ -67,6 +67,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -95,7 +96,7 @@ import static com.gpxmanager.gpx.GPXUtils.initWatchDir;
 import static com.gpxmanager.gpx.GPXUtils.watchDirContains;
 
 public final class MyGPXManager extends JFrame {
-  public static final String INTERNAL_VERSION = "18.4";
+  public static final String INTERNAL_VERSION = "18.5";
   public static final String VERSION = "6.0";
   public static final Gson GSON = new Gson();
   private static final MyAutoHideLabel INFO_LABEL = new MyAutoHideLabel();
@@ -737,22 +738,26 @@ public final class MyGPXManager extends JFrame {
     @Override
     public void actionPerformed(ActionEvent e) {
       JFileChooser fileChooser = createFileChooser();
+      fileChooser.setMultiSelectionEnabled(true);
       if (JFileChooser.APPROVE_OPTION == fileChooser.showOpenDialog(instance)) {
-        File openedFile = fileChooser.getSelectedFile();
-        openedFile = checkFileNameWithExtension(openedFile);
-        if (openedFile == null) {
+        List<File> openedFile = List.of(fileChooser.getSelectedFiles());
+        boolean hasError = openedFile.stream().map(Utils::checkFileNameWithExtension)
+            .anyMatch(Objects::isNull);
+        if (hasError) {
           setCursor(Cursor.getDefaultCursor());
           return;
         }
-        GPX gpx = GPXUtils.loadFile(openedFile);
-        if (gpx != null) {
-          try {
-            GPXUtils.uploadToDevice(gpx, openedFile.getName());
-            INFO_LABEL.setText(MessageFormat.format(getLabel("file.device.saved"), openedFile.getName()), true);
-          } catch (IOException | ParserConfigurationException | TransformerException ex) {
-            throw new RuntimeException(ex);
+        openedFile.forEach(file -> {
+          GPX gpx = GPXUtils.loadFile(file);
+          if (gpx != null) {
+            try {
+              GPXUtils.uploadToDevice(gpx, file.getName());
+              INFO_LABEL.setText(MessageFormat.format(getLabel("file.device.saved"), file.getName()), true);
+            } catch (IOException | ParserConfigurationException | TransformerException ex) {
+              throw new RuntimeException(ex);
+            }
           }
-        }
+        });
       }
     }
   }
