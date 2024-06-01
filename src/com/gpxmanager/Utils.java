@@ -96,7 +96,7 @@ public class Utils {
     if (value.endsWith("\"")) {
       value = value.substring(0, value.length() - 1);
     }
-    return value;
+    return value.trim();
   }
 
   public static double getTrackDistance(List<Waypoint> waypoints) {

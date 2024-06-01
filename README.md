@@ -12,6 +12,7 @@ Currently, the application allows to:
 - Display some information about the tracks and routes
 - Display elevation graph for each track and routes
 - Merge several GPX files in 1
+- Build a GPX file from a CSV with coordinates
 - Invert the tracks/routes to do it in the opposite direction
 - Access Strava activities: Download the GPX of activities
 - Display statistics based on Strava activities
@@ -31,7 +32,14 @@ If you want to invert a GPX file or merge several files via command line, it's p
 Run MyGPXManagerCommand.jar with options.
 Usages:  
 -invert -file <.file.> -target <.file.>  
--merge -files <file,file...> -target <.file.>
+-merge -files <file,file...> -target <.file.>   
+-csvgpx -file <.file.> -target <.file.>
+
+CSV line example:  
+<.latitude>,<.longitude>,<.name>,<.options>  
+2.130114, 5.192440, De Leijen,W  
+name can be empty, options can be empty  
+options: W: create a waypoint
 
 Supported languages:
 
