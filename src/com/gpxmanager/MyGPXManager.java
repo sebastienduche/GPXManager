@@ -11,6 +11,7 @@ import com.gpxmanager.gpx.extensions.GarminExtension;
 import com.gpxmanager.launcher.MyGPXManagerServer;
 import com.gpxmanager.strava.StravaPanel;
 import com.gpxmanager.watchdir.WatchDirListener;
+import com.gpxmanager.watchdir.WatchDirUtil;
 import com.mycomponents.MyAutoHideLabel;
 import com.mytabbedpane.MyTabbedPane;
 import net.miginfocom.swing.MigLayout;
@@ -56,7 +57,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.text.MessageFormat;
 import java.text.ParseException;
 import java.time.LocalDate;
@@ -76,9 +76,6 @@ import static com.gpxmanager.ProgramPreferences.FILE1;
 import static com.gpxmanager.ProgramPreferences.FILE2;
 import static com.gpxmanager.ProgramPreferences.FILE3;
 import static com.gpxmanager.ProgramPreferences.FILE4;
-import static com.gpxmanager.ProgramPreferences.GPS_MOUNT_DIR;
-import static com.gpxmanager.ProgramPreferences.GPS_MOUNT_ROOT;
-import static com.gpxmanager.ProgramPreferences.GPS_TARGET_DIR;
 import static com.gpxmanager.ProgramPreferences.LOCALE;
 import static com.gpxmanager.ProgramPreferences.LOCATION_X;
 import static com.gpxmanager.ProgramPreferences.LOCATION_Y;
@@ -92,8 +89,6 @@ import static com.gpxmanager.Utils.checkFileNameWithExtension;
 import static com.gpxmanager.Utils.createFileChooser;
 import static com.gpxmanager.Utils.getLabel;
 import static com.gpxmanager.gpx.GPXUtils.getGpxParser;
-import static com.gpxmanager.gpx.GPXUtils.initWatchDir;
-import static com.gpxmanager.gpx.GPXUtils.watchDirContains;
 
 public final class MyGPXManager extends JFrame {
   public static final String INTERNAL_VERSION = "18.5";
@@ -113,6 +108,10 @@ public final class MyGPXManager extends JFrame {
   private final JMenuItem closeFile;
   private final LinkedList<File> openedFiles = new LinkedList<>();
   private final LinkedList<File> reopenedFiles = new LinkedList<>();
+
+  // TODO
+  // button to save open file to garmin
+  // Save / Configure Strava connection and file in a Zip file
 
   public MyGPXManager() throws HeadlessException {
     instance = this;
@@ -367,16 +366,14 @@ public final class MyGPXManager extends JFrame {
   }
 
   private void watchDir() throws IOException {
-    String rootDir = getPreference(GPS_MOUNT_ROOT, "");
-    String mountDir = getPreference(GPS_MOUNT_DIR, "");
-    String targetDir = getPreference(GPS_TARGET_DIR, "");
-    if (rootDir.isEmpty() || mountDir.isEmpty() || targetDir.isEmpty()) {
+    WatchDirUtil watchDirUtil = WatchDirUtil.getInstance();
+    if (watchDirUtil.isInvalid()) {
       return;
     }
-    initWatchDir(new WatchDirListener() {
+    watchDirUtil.initWatchDir(new WatchDirListener() {
       @Override
       public void eventCreated(Path path) {
-        if (mountDir.equals(path.toString())) {
+        if (watchDirUtil.isValidMountDir(path)) {
           setInfoLabel(MessageFormat.format(getLabel("device.connected"), path));
           sendToDevice.setEnabled(true);
         }
@@ -384,7 +381,7 @@ public final class MyGPXManager extends JFrame {
 
       @Override
       public void eventDeleted(Path path) {
-        if (mountDir.equals(path.toString())) {
+        if (watchDirUtil.isValidMountDir(path)) {
           setInfoLabel(MessageFormat.format(getLabel("device.disconnected"), path));
           sendToDevice.setEnabled(false);
         }
@@ -395,7 +392,7 @@ public final class MyGPXManager extends JFrame {
         setInfoLabel(MessageFormat.format(getLabel("device.updated"), path));
       }
     });
-    sendToDevice.setEnabled(watchDirContains(Paths.get(mountDir)));
+    sendToDevice.setEnabled(watchDirUtil.watchDirContainsMountPath());
   }
 
   public void closeFile(GPXPropertiesPanel gpxPropertiesPanel) {
@@ -626,13 +623,16 @@ public final class MyGPXManager extends JFrame {
     public void actionPerformed(ActionEvent e) {
       JFileChooser fileChooser = createFileChooser();
       fileChooser.setCurrentDirectory(Utils.getOpenSaveDirectory());
+      fileChooser.setMultiSelectionEnabled(true);
       if (JFileChooser.APPROVE_OPTION == fileChooser.showOpenDialog(instance)) {
-        File file = fileChooser.getSelectedFile();
-        file = checkFileNameWithExtension(file);
-        if (file != null) {
-          Utils.setOpenSaveDirectory(file.getParentFile());
-          open(file);
-        }
+        List<File> files = List.of(fileChooser.getSelectedFiles());
+        files.forEach(file -> {
+          file = checkFileNameWithExtension(file);
+          if (file != null) {
+            Utils.setOpenSaveDirectory(file.getParentFile());
+            open(file);
+          }
+        });
         setCursor(Cursor.getDefaultCursor());
       }
     }
