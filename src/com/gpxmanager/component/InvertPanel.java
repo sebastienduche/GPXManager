@@ -37,7 +37,7 @@ import static com.gpxmanager.Utils.getLabel;
 
 public class InvertPanel extends JPanel implements ITabListener {
   private static final String INVERT_PANEL = "INVERT_PANEL";
-  private final PropertiesPanel propertiesPanel = new PropertiesPanel(null);
+  private final PropertiesPanel propertiesPanel = new PropertiesPanel(null, null);
   private final MyAutoHideLabel infoLabel = new MyAutoHideLabel();
   private final JModifyTextField fileTextField = new JModifyTextField();
   private final JButton browse = new JButton(new BrowseAction());

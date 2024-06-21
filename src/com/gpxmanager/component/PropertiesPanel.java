@@ -1,19 +1,28 @@
 package com.gpxmanager.component;
 
 import com.gpxmanager.MyTime;
+import com.gpxmanager.actions.SendToDeviceAction;
 import com.gpxmanager.gpx.beans.GPX;
 import com.gpxmanager.gpx.beans.Metadata;
 import com.gpxmanager.gpx.beans.Track;
+import com.gpxmanager.watchdir.WatchDirListener;
+import com.gpxmanager.watchdir.WatchDirUtil;
 import com.mycomponents.JModifyFormattedTextField;
 import com.mycomponents.JModifyTextField;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;
+import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.text.MessageFormat;
 import java.text.ParseException;
 
+import static com.gpxmanager.MyGPXManager.setInfoLabel;
 import static com.gpxmanager.MyTime.getTrackTime;
 import static com.gpxmanager.Utils.TIMESTAMP;
 import static com.gpxmanager.Utils.getLabel;
@@ -28,7 +37,7 @@ public class PropertiesPanel extends JPanel {
   private final JModifyTextField metadataKeywords = new JModifyTextField();
   private final JModifyFormattedTextField metadataTime = new JModifyFormattedTextField(TIMESTAMP, true);
 
-  public PropertiesPanel(GPX gpx) {
+  public PropertiesPanel(File file, GPX gpx) {
     setLayout(new MigLayout("", "[][grow]10px[][grow]10px[][grow]", "grow"));
     setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), getLabel("properties.title")));
     if (gpx != null) {
@@ -81,6 +90,43 @@ public class PropertiesPanel extends JPanel {
       metadataKeywords.setModified(false);
       metadataTime.setModified(false);
     }
+    JButton sendToDevice = new JButton(new SendToDeviceAction(file));
+    add(sendToDevice);
+    try {
+      watchDir(sendToDevice);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private void watchDir(JButton sendToDevice) throws IOException {
+    WatchDirUtil watchDirUtil = WatchDirUtil.getInstance();
+    if (watchDirUtil.isInvalid()) {
+      return;
+    }
+    watchDirUtil.initWatchDir(new WatchDirListener() {
+      @Override
+      public void eventCreated(Path path) {
+        if (watchDirUtil.isValidMountDir(path)) {
+          setInfoLabel(MessageFormat.format(getLabel("device.connected"), path));
+          sendToDevice.setEnabled(true);
+        }
+      }
+
+      @Override
+      public void eventDeleted(Path path) {
+        if (watchDirUtil.isValidMountDir(path)) {
+          setInfoLabel(MessageFormat.format(getLabel("device.disconnected"), path));
+          sendToDevice.setEnabled(false);
+        }
+      }
+
+      @Override
+      public void eventModified(Path path) {
+        setInfoLabel(MessageFormat.format(getLabel("device.updated"), path));
+      }
+    });
+    sendToDevice.setEnabled(watchDirUtil.watchDirContainsMountPath());
   }
 
   private String getTrackCount(GPX gpx) {

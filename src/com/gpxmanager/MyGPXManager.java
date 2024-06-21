@@ -1,11 +1,11 @@
 package com.gpxmanager;
 
 import com.google.gson.Gson;
+import com.gpxmanager.actions.SendToDeviceAction;
 import com.gpxmanager.component.ConfigureDevicePanel;
 import com.gpxmanager.component.ConfigureStravaStoragePanel;
 import com.gpxmanager.component.InvertPanel;
 import com.gpxmanager.component.MergePanel;
-import com.gpxmanager.gpx.GPXUtils;
 import com.gpxmanager.gpx.beans.GPX;
 import com.gpxmanager.gpx.extensions.GarminExtension;
 import com.gpxmanager.launcher.MyGPXManagerServer;
@@ -67,7 +67,6 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -91,8 +90,8 @@ import static com.gpxmanager.Utils.getLabel;
 import static com.gpxmanager.gpx.GPXUtils.getGpxParser;
 
 public final class MyGPXManager extends JFrame {
-  public static final String INTERNAL_VERSION = "18.5";
-  public static final String VERSION = "6.0";
+  public static final String INTERNAL_VERSION = "19.0";
+  public static final String VERSION = "6.1";
   public static final Gson GSON = new Gson();
   private static final MyAutoHideLabel INFO_LABEL = new MyAutoHideLabel();
   static JButton stravaButton = null;
@@ -110,7 +109,7 @@ public final class MyGPXManager extends JFrame {
   private final LinkedList<File> reopenedFiles = new LinkedList<>();
 
   // TODO
-  // button to save open file to garmin
+  // Fix file list
   // Save / Configure Strava connection and file in a Zip file
 
   public MyGPXManager() throws HeadlessException {
@@ -726,38 +725,6 @@ public final class MyGPXManager extends JFrame {
         Utils.setOpenSaveDirectory(file.getParentFile());
         GPXPropertiesPanel selectedComponent = myTabbedPane.getSelectedComponent(GPXPropertiesPanel.class);
         save(selectedComponent.getGpx(), file);
-      }
-    }
-  }
-
-  class SendToDeviceAction extends AbstractAction {
-    public SendToDeviceAction() {
-      super(getLabel("menu.sendToDevice"), MyGPXManagerImage.UPLOAD);
-    }
-
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      JFileChooser fileChooser = createFileChooser();
-      fileChooser.setMultiSelectionEnabled(true);
-      if (JFileChooser.APPROVE_OPTION == fileChooser.showOpenDialog(instance)) {
-        List<File> openedFile = List.of(fileChooser.getSelectedFiles());
-        boolean hasError = openedFile.stream().map(Utils::checkFileNameWithExtension)
-            .anyMatch(Objects::isNull);
-        if (hasError) {
-          setCursor(Cursor.getDefaultCursor());
-          return;
-        }
-        openedFile.forEach(file -> {
-          GPX gpx = GPXUtils.loadFile(file);
-          if (gpx != null) {
-            try {
-              GPXUtils.uploadToDevice(gpx, file.getName());
-              INFO_LABEL.setText(MessageFormat.format(getLabel("file.device.saved"), file.getName()), true);
-            } catch (IOException | ParserConfigurationException | TransformerException ex) {
-              throw new RuntimeException(ex);
-            }
-          }
-        });
       }
     }
   }
