@@ -52,6 +52,7 @@ public class SendToDeviceAction extends AbstractAction {
   public void actionPerformed(ActionEvent e) {
     if (gpxFile != null) {
       sendToDevice(List.of(gpxFile));
+      return;
     }
     JFileChooser fileChooser = createFileChooser();
     fileChooser.setMultiSelectionEnabled(true);
