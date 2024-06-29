@@ -3,11 +3,15 @@ package com.gpxmanager;
 import com.gpxmanager.geocalc.Degree;
 import com.gpxmanager.geocalc.EarthCalc;
 import com.gpxmanager.gpx.beans.Waypoint;
+import com.gpxmanager.strava.StravaData;
 import org.jstrava.entities.Activity;
 import org.jstrava.entities.SegmentEffort;
 
 import javax.swing.JFileChooser;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.DecimalFormat;
@@ -26,8 +30,15 @@ import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 
+import static com.gpxmanager.MyGPXManager.GSON;
 import static com.gpxmanager.ProgramPreferences.DIR;
+import static com.gpxmanager.ProgramPreferences.STRAVA;
+import static com.gpxmanager.ProgramPreferences.STRAVA_ALL_DATA;
+import static com.gpxmanager.ProgramPreferences.STRAVA_ZIP_DATA;
 import static com.gpxmanager.ProgramPreferences.getPreference;
 import static com.gpxmanager.ProgramPreferences.setPreference;
 import static java.util.stream.Collectors.groupingBy;
@@ -42,6 +53,8 @@ public class Utils {
 
   private static ResourceBundle labels;
   private static Locale locale;
+  private static boolean workDirCalculated = false;
+  private static String workDir;
 
   public static File getOpenSaveDirectory() {
     return new File(getPreference(DIR, System.getProperty("user.home")));
@@ -176,11 +189,25 @@ public class Utils {
     return file;
   }
 
+  public static File checkFileNameWithZIPExtension(File file) {
+    if (file == null) {
+      return null;
+    }
+    if (!file.getName().toLowerCase().endsWith(Filter.FILTER_ZIP.toString())) {
+      return new File(file.getAbsolutePath() + Filter.FILTER_ZIP);
+    }
+    return file;
+  }
+
   public static boolean checkFileExtension(File file) {
+    return checkFileExtension(file, Filter.FILTER_GPX);
+  }
+
+  public static boolean checkFileExtension(File file, Filter filter) {
     if (file == null) {
       return false;
     }
-    if (!file.getName().toLowerCase().endsWith(Filter.FILTER_GPX.toString())) {
+    if (!file.getName().toLowerCase().endsWith(filter.toString())) {
       return false;
     }
     return true;
@@ -216,5 +243,133 @@ public class Utils {
     } catch (ParseException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  public static StravaData loadStravaDataFile() {
+    String existingFile = getPreference(STRAVA_ZIP_DATA, null);
+    File file = new File(existingFile);
+    if (checkFileExtension(file, Filter.FILTER_ZIP) && file.exists()) {
+      try {
+        unzipFile(file, new File(getWorkDir()));
+        ProgramPreferences.removePreference(STRAVA_ALL_DATA);
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+      return new StravaData(new File(existingFile),
+          new File(getWorkDir(), "stravaConnection.txt"),
+          new File(getWorkDir(), "stravaAll.json"));
+    }
+    return new StravaData(null,
+        new File(getPreference(STRAVA, null)),
+        new File(getPreference(STRAVA_ALL_DATA, null)));
+  }
+
+  public static void saveFile(List<Activity> activities) {
+    StravaData stravaData = MyGPXManager.getStravaData();
+    if (checkFileExtension(stravaData.getZipFile(), Filter.FILTER_ZIP)) {
+      writeToFile(GSON.toJson(activities), stravaData.getJsonDataFile());
+      try {
+        zipFiles(stravaData.getFilesToSave(), stravaData.getZipFile());
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    } else {
+      String existingFile = getPreference(STRAVA_ALL_DATA, null);
+      writeToFile(GSON.toJson(activities), new File(existingFile));
+    }
+  }
+
+  public static String getWorkDir() {
+    if (workDirCalculated) {
+      return workDir;
+    }
+    workDirCalculated = true;
+    String sDir = System.getProperty("user.home");
+    if (sDir.isEmpty()) {
+      workDir = "." + File.separator + "MyGpxManager";
+    } else {
+      workDir = sDir + File.separator + "MyGpxManager";
+    }
+    File file = new File(workDir);
+    if (!file.exists()) {
+      if (!file.mkdir()) {
+        // erreur?
+      }
+    }
+    return workDir;
+  }
+
+  public static void zipFiles(List<String> filePaths, File zipFile) throws IOException {
+    if (zipFile == null) {
+      throw new FileNotFoundException("zipFile is null");
+    }
+
+    final FileOutputStream fos = new FileOutputStream(zipFile);
+    ZipOutputStream zipOut = new ZipOutputStream(fos);
+
+    for (String srcFile : filePaths) {
+      File fileToZip = new File(srcFile);
+      if (!fileToZip.exists()) {
+        continue;
+      }
+      FileInputStream fis = new FileInputStream(fileToZip);
+      ZipEntry zipEntry = new ZipEntry(fileToZip.getName());
+      zipOut.putNextEntry(zipEntry);
+
+      byte[] bytes = new byte[1024];
+      int length;
+      while ((length = fis.read(bytes)) >= 0) {
+        zipOut.write(bytes, 0, length);
+      }
+      fis.close();
+    }
+
+    zipOut.close();
+    fos.close();
+  }
+
+  public static void unzipFile(File zipFile, File targetDirectory) throws IOException {
+    byte[] buffer = new byte[1024];
+    ZipInputStream zis = new ZipInputStream(new FileInputStream(zipFile));
+    ZipEntry zipEntry = zis.getNextEntry();
+    while (zipEntry != null) {
+      File newFile = newFile(targetDirectory, zipEntry);
+      if (zipEntry.isDirectory()) {
+        if (!newFile.isDirectory() && !newFile.mkdirs()) {
+          throw new IOException("Failed to create directory " + newFile);
+        }
+      } else {
+        // fix for Windows-created archives
+        File parent = newFile.getParentFile();
+        if (!parent.isDirectory() && !parent.mkdirs()) {
+          throw new IOException("Failed to create directory " + parent);
+        }
+
+        // write file content
+        FileOutputStream fos = new FileOutputStream(newFile);
+        int len;
+        while ((len = zis.read(buffer)) > 0) {
+          fos.write(buffer, 0, len);
+        }
+        fos.close();
+      }
+      zipEntry = zis.getNextEntry();
+    }
+
+    zis.closeEntry();
+    zis.close();
+  }
+
+  public static File newFile(File destinationDir, ZipEntry zipEntry) throws IOException {
+    File destFile = new File(destinationDir, zipEntry.getName());
+
+    String destDirPath = destinationDir.getCanonicalPath();
+    String destFilePath = destFile.getCanonicalPath();
+
+    if (!destFilePath.startsWith(destDirPath + File.separator)) {
+      throw new IOException("Entry is outside of the target dir: " + zipEntry.getName());
+    }
+
+    return destFile;
   }
 }

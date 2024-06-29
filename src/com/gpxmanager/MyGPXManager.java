@@ -4,11 +4,13 @@ import com.google.gson.Gson;
 import com.gpxmanager.actions.SendToDeviceAction;
 import com.gpxmanager.component.ConfigureDevicePanel;
 import com.gpxmanager.component.ConfigureStravaStoragePanel;
+import com.gpxmanager.component.FilePanel;
 import com.gpxmanager.component.InvertPanel;
 import com.gpxmanager.component.MergePanel;
 import com.gpxmanager.gpx.beans.GPX;
 import com.gpxmanager.gpx.extensions.GarminExtension;
 import com.gpxmanager.launcher.MyGPXManagerServer;
+import com.gpxmanager.strava.StravaData;
 import com.gpxmanager.strava.StravaPanel;
 import com.gpxmanager.watchdir.WatchDirListener;
 import com.gpxmanager.watchdir.WatchDirUtil;
@@ -79,7 +81,7 @@ import static com.gpxmanager.ProgramPreferences.LOCALE;
 import static com.gpxmanager.ProgramPreferences.LOCATION_X;
 import static com.gpxmanager.ProgramPreferences.LOCATION_Y;
 import static com.gpxmanager.ProgramPreferences.STRAVA;
-import static com.gpxmanager.ProgramPreferences.STRAVA_ALL_DATA;
+import static com.gpxmanager.ProgramPreferences.STRAVA_ZIP_DATA;
 import static com.gpxmanager.ProgramPreferences.getPreference;
 import static com.gpxmanager.ProgramPreferences.setPreference;
 import static com.gpxmanager.Utils.DATE_FORMATER_DD_MM_YYYY;
@@ -87,11 +89,12 @@ import static com.gpxmanager.Utils.DEBUG_DIRECTORY;
 import static com.gpxmanager.Utils.checkFileNameWithExtension;
 import static com.gpxmanager.Utils.createFileChooser;
 import static com.gpxmanager.Utils.getLabel;
+import static com.gpxmanager.Utils.loadStravaDataFile;
 import static com.gpxmanager.gpx.GPXUtils.getGpxParser;
 
 public final class MyGPXManager extends JFrame {
-  public static final String INTERNAL_VERSION = "19.0";
-  public static final String VERSION = "6.1";
+  public static final String INTERNAL_VERSION = "19.8";
+  public static final String VERSION = "6.2";
   public static final Gson GSON = new Gson();
   private static final MyAutoHideLabel INFO_LABEL = new MyAutoHideLabel();
   static JButton stravaButton = null;
@@ -107,10 +110,12 @@ public final class MyGPXManager extends JFrame {
   private final JMenuItem closeFile;
   private final LinkedList<File> openedFiles = new LinkedList<>();
   private final LinkedList<File> reopenedFiles = new LinkedList<>();
+  private StravaData stravaData;
 
   // TODO
   // Fix file list
-  // Save / Configure Strava connection and file in a Zip file
+  // ConfigureStravaStoragePanel fix
+  // Clean MyGpxManager directory
 
   public MyGPXManager() throws HeadlessException {
     instance = this;
@@ -298,6 +303,15 @@ public final class MyGPXManager extends JFrame {
   }
 
   public static void main(String[] args) {
+//    Utils.zipFiles(List.of("/Users/sebastien/Documents/StravaConnection.txt",
+//            "/Users/sebastien/Downloads/stravaAll.json"),
+//        new File("/Users/sebastien/Documents/strava.zip"));
+//    System.out.println(ProgramPreferences.getPreference(ProgramPreferences.STRAVA_ALL_DATA, ""));
+//    System.out.println(ProgramPreferences.getPreference(ProgramPreferences.STRAVA, ""));
+//    System.out.println(ProgramPreferences.getPreference(STRAVA_ZIP_DATA, ""));
+//    ProgramPreferences.setPreference(ProgramPreferences.STRAVA, "/Users/sebastien/Documents/StravaConnection.txt");
+//    ProgramPreferences.setPreference(ProgramPreferences.STRAVA_ZIP_DATA, "/Users/sebastien/Documents/strava.zip");
+//    ProgramPreferences.setPreference(ProgramPreferences.STRAVA_ALL_DATA, "");
     SwingUtilities.invokeLater(MyGPXManager::new);
   }
 
@@ -311,11 +325,12 @@ public final class MyGPXManager extends JFrame {
   }
 
   private static List<Activity> loadDataIfExist() {
-    String existingFile = getPreference(STRAVA_ALL_DATA, null);
-    if (existingFile != null && new File(existingFile).exists()) {
-      try (FileReader fileReader = new FileReader(existingFile);
+    StravaData loadedStravaDataFile = loadStravaDataFile();
+    if (loadedStravaDataFile.hasJsonDataFile() && loadedStravaDataFile.getJsonDataFile().exists()) {
+      MyGPXManager.setStravaData(loadedStravaDataFile);
+      try (FileReader fileReader = new FileReader(loadedStravaDataFile.getJsonDataFile());
            BufferedReader bufferedReader = new BufferedReader(fileReader)) {
-        String json = bufferedReader.lines().reduce(String::concat).orElseThrow();
+        String json = bufferedReader.lines().reduce(String::concat).orElseThrow(() -> new RuntimeException("Erreur while concatening the json"));
         return new ArrayList<>(List.of(GSON.fromJson(json, Activity[].class)));
       } catch (IOException e) {
         throw new RuntimeException(e);
@@ -362,6 +377,14 @@ public final class MyGPXManager extends JFrame {
 
   public static MyTabbedPane getMyTabbedPane() {
     return myTabbedPane;
+  }
+
+  public static StravaData getStravaData() {
+    return instance.stravaData;
+  }
+
+  public static void setStravaData(StravaData stravaData) {
+    instance.stravaData = stravaData;
   }
 
   private void watchDir() throws IOException {
@@ -486,6 +509,16 @@ public final class MyGPXManager extends JFrame {
           connectToStravaMenuItem.setEnabled(isAvailable);
           stravaButton.setEnabled(isAvailable);
         }
+        FilePanel filePanel = new FilePanel(FilePanel.Type.SAVE_ZIP);
+        JOptionPane.showMessageDialog(getInstance(), filePanel,
+            "",
+            JOptionPane.PLAIN_MESSAGE);
+        if (filePanel.getFile() == null) {
+          JOptionPane.showMessageDialog(getInstance(),
+              getLabel("strava.errorFile"), getLabel("error"), JOptionPane.ERROR_MESSAGE);
+          return;
+        }
+        setPreference(STRAVA_ZIP_DATA, filePanel.getFile().getAbsolutePath());
         StravaConnection stravaConnection;
         try {
           stravaConnection = new StravaConnection(identificationStorage);

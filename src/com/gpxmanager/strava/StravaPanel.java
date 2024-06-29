@@ -2,6 +2,7 @@ package com.gpxmanager.strava;
 
 import com.gpxmanager.MyGPXManager;
 import com.gpxmanager.MyGPXManagerImage;
+import com.gpxmanager.Utils;
 import com.gpxmanager.component.FilePanel;
 import com.gpxmanager.component.renderer.ButtonCellEditor;
 import com.gpxmanager.component.renderer.ButtonCellRenderer;
@@ -59,13 +60,11 @@ import java.util.stream.Collectors;
 import static com.gpxmanager.MyGPXManager.GSON;
 import static com.gpxmanager.MyGPXManager.getInstance;
 import static com.gpxmanager.MyGPXManager.getMyTabbedPane;
-import static com.gpxmanager.ProgramPreferences.STRAVA_ALL_DATA;
-import static com.gpxmanager.ProgramPreferences.getPreference;
-import static com.gpxmanager.ProgramPreferences.setPreference;
 import static com.gpxmanager.Utils.METER_IN_KM;
 import static com.gpxmanager.Utils.getLabel;
+import static com.gpxmanager.Utils.getWorkDir;
 import static com.gpxmanager.Utils.roundValue;
-import static com.gpxmanager.Utils.writeToFile;
+import static com.gpxmanager.Utils.saveFile;
 import static com.gpxmanager.strava.StravaTableModel.StravaTableColumn.COL_ALTITUDE;
 import static com.gpxmanager.strava.StravaTableModel.StravaTableColumn.COL_DATE;
 import static com.gpxmanager.strava.StravaTableModel.StravaTableColumn.COL_DISTANCE;
@@ -184,7 +183,7 @@ public class StravaPanel extends JPanel implements ITabListener {
       add(labelKm, "split 2, growx");
       add(labelCount, "alignright, wrap");
       add(infoLabel, "center");
-      downloadNewActivities.setEnabled(existStravaFile());
+      downloadNewActivities.setEnabled(MyGPXManager.getStravaData().hasJsonDataFile());
       searchTextField.getDocument().addDocumentListener(new DocumentListener() {
         @Override
         public void insertUpdate(DocumentEvent e) {
@@ -298,10 +297,7 @@ public class StravaPanel extends JPanel implements ITabListener {
   }
 
   private static void save() {
-    String existingFile = getPreference(STRAVA_ALL_DATA, null);
-    if (existingFile != null && new File(existingFile).exists()) {
-      writeToFile(GSON.toJson(stravaPanel.activities), new File(existingFile));
-    }
+    Utils.saveFile(stravaPanel.activities);
   }
 
   private void populateGearCombo() {
@@ -342,11 +338,6 @@ public class StravaPanel extends JPanel implements ITabListener {
             Long.toString(activity.getId()).equals(filter));
   }
 
-  private boolean existStravaFile() {
-    String existingFile = getPreference(STRAVA_ALL_DATA, null);
-    return existingFile != null && new File(existingFile).exists();
-  }
-
   @Override
   public boolean tabWillClose(TabEvent tabEvent) {
     return true;
@@ -368,7 +359,7 @@ public class StravaPanel extends JPanel implements ITabListener {
     labelKm.setText(MessageFormat.format(getLabel("strava.km"), totalDistance));
   }
 
-  private void downloadLatestActivities(String existingFile) {
+  private void downloadLatestActivities() {
     setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
     infoLabel.setText(getLabel("download"), false);
     SwingUtilities.invokeLater(() -> {
@@ -410,7 +401,7 @@ public class StravaPanel extends JPanel implements ITabListener {
       activities = activities.stream().sorted(comparingLong(Activity::getId).reversed()).collect(Collectors.toList());
       gears = enrichWithGear(activities);
       setActivities(activities);
-      writeToFile(GSON.toJson(activities), new File(existingFile));
+      saveFile(activities);
       populateGearCombo();
       infoLabel.setText(MessageFormat.format(getLabel("strava.countNew"), newActivities.size()), true);
       setCursor(Cursor.getDefaultCursor());
@@ -470,24 +461,29 @@ public class StravaPanel extends JPanel implements ITabListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-      String existingFile = getPreference(STRAVA_ALL_DATA, null);
-      if (existingFile != null && new File(existingFile).exists()) {
+      StravaData stravaData = MyGPXManager.getStravaData();
+      if (stravaData.hasJsonDataFile() && stravaData.getJsonDataFile().exists()) {
         if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(getInstance(),
-            MessageFormat.format(getLabel("strava.fileExist"), existingFile), getLabel("question"), JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)) {
-          downloadLatestActivities(existingFile);
+            MessageFormat.format(getLabel("strava.fileExist"), stravaData.getJsonDataFile()), getLabel("question"), JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)) {
+          downloadLatestActivities();
           return;
         }
       }
-      FilePanel filePanel = new FilePanel(FilePanel.Type.SAVE);
-      JOptionPane.showMessageDialog(getInstance(), filePanel,
-          "",
-          JOptionPane.PLAIN_MESSAGE);
-      if (filePanel.getFile() == null) {
-        JOptionPane.showMessageDialog(getInstance(),
-            getLabel("strava.errorFile"), getLabel("error"), JOptionPane.ERROR_MESSAGE);
-        return;
+      if (MyGPXManager.getStravaData() == null) {
+        FilePanel filePanel = new FilePanel(FilePanel.Type.SAVE_ZIP);
+        JOptionPane.showMessageDialog(getInstance(), filePanel,
+            "",
+            JOptionPane.PLAIN_MESSAGE);
+        if (filePanel.getFile() == null) {
+          JOptionPane.showMessageDialog(getInstance(),
+              getLabel("strava.errorFile"), getLabel("error"), JOptionPane.ERROR_MESSAGE);
+          return;
+        }
+        // TODO Check this
+        MyGPXManager.setStravaData(new StravaData(filePanel.getFile(),
+            new File(getWorkDir(), "stravaConnection.txt"),
+            new File(getWorkDir(), "stravaAll.json")));
       }
-      setPreference(STRAVA_ALL_DATA, filePanel.getFile().getAbsolutePath());
       infoLabel.setText(getLabel("download"), false);
       setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
       SwingUtilities.invokeLater(() -> {
@@ -496,8 +492,7 @@ public class StravaPanel extends JPanel implements ITabListener {
           currentAthleteActivities = stravaConnection.getStrava().getCurrentAthleteActivitiesAll();
           gears = enrichWithGear(currentAthleteActivities);
           setActivities(currentAthleteActivities);
-          String json = GSON.toJson(currentAthleteActivities);
-          writeToFile(json, filePanel.getFile());
+          Utils.saveFile(currentAthleteActivities);
           infoLabel.setText("", true);
           populateGearCombo();
         } catch (StravaException ex) {
@@ -517,13 +512,13 @@ public class StravaPanel extends JPanel implements ITabListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-      String existingFile = getPreference(STRAVA_ALL_DATA, null);
-      if (existingFile == null || !new File(existingFile).exists()) {
+      StravaData existingFile = MyGPXManager.getStravaData();
+      if (!existingFile.hasJsonDataFile() || !existingFile.getJsonDataFile().exists()) {
         JOptionPane.showMessageDialog(getInstance(),
             getLabel("strava.errorNoFile"), getLabel("error"), JOptionPane.ERROR_MESSAGE);
         return;
       }
-      downloadLatestActivities(existingFile);
+      downloadLatestActivities();
     }
   }
 
