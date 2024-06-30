@@ -58,6 +58,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.MessageFormat;
 import java.text.ParseException;
@@ -89,11 +90,12 @@ import static com.gpxmanager.Utils.DEBUG_DIRECTORY;
 import static com.gpxmanager.Utils.checkFileNameWithExtension;
 import static com.gpxmanager.Utils.createFileChooser;
 import static com.gpxmanager.Utils.getLabel;
+import static com.gpxmanager.Utils.getWorkDir;
 import static com.gpxmanager.Utils.loadStravaDataFile;
 import static com.gpxmanager.gpx.GPXUtils.getGpxParser;
 
 public final class MyGPXManager extends JFrame {
-  public static final String INTERNAL_VERSION = "19.8";
+  public static final String INTERNAL_VERSION = "19.9";
   public static final String VERSION = "6.2";
   public static final Gson GSON = new Gson();
   private static final MyAutoHideLabel INFO_LABEL = new MyAutoHideLabel();
@@ -113,9 +115,8 @@ public final class MyGPXManager extends JFrame {
   private StravaData stravaData;
 
   // TODO
-  // Fix file list
+  // Is it possible to find a coordinate in a file (or first common coordinate in 2 files) and cut
   // ConfigureStravaStoragePanel fix
-  // Clean MyGpxManager directory
 
   public MyGPXManager() throws HeadlessException {
     instance = this;
@@ -163,7 +164,7 @@ public final class MyGPXManager extends JFrame {
       AtomicBoolean hasSeparator = new AtomicBoolean(false);
       reopenedFiles.stream()
           .distinct()
-          .filter(File::isFile)
+          .filter(File::exists)
           .forEach(file -> {
             if (!hasSeparator.get()) {
               menuFile.addSeparator();
@@ -262,6 +263,16 @@ public final class MyGPXManager extends JFrame {
 
   public static void setInfoLabel(String text) {
     INFO_LABEL.setText(text, true);
+  }
+
+  private static void cleanWorkDirectory() {
+    Path workDir = Path.of(getWorkDir());
+    try (var list = Files.list(workDir)) {
+      list.forEach(MyGPXManager::delete);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    delete(workDir);
   }
 
   private static void cleanDebugFiles() {
@@ -385,6 +396,14 @@ public final class MyGPXManager extends JFrame {
 
   public static void setStravaData(StravaData stravaData) {
     instance.stravaData = stravaData;
+  }
+
+  private static void delete(Path path) {
+    try {
+      Files.delete(path);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   private void watchDir() throws IOException {
@@ -779,6 +798,7 @@ public final class MyGPXManager extends JFrame {
         setPreference(ProgramPreferences.WIDTH, String.valueOf(getSize().width));
         setPreference(ProgramPreferences.HEIGHT, String.valueOf(getSize().height));
         cleanDebugFiles();
+        cleanWorkDirectory();
         closeDebug();
         System.exit(0);
       }

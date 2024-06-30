@@ -16,11 +16,9 @@ import java.awt.Cursor;
 import java.awt.event.ActionEvent;
 import java.io.File;
 
-import static com.gpxmanager.ProgramPreferences.STRAVA_ALL_DATA;
+import static com.gpxmanager.ProgramPreferences.STRAVA_ZIP_DATA;
 import static com.gpxmanager.Utils.getLabel;
 
-// Configure zip file here
-@Deprecated
 public class ConfigureStravaStoragePanel extends JPanel {
 
   private final JTextField filePath = new JTextField();
@@ -31,7 +29,7 @@ public class ConfigureStravaStoragePanel extends JPanel {
     add(new JLabel(getLabel("configure.strava.file")), "");
     add(filePath, "growx, split 2");
     add(new JButton(new BrowseAction()), "wrap");
-    filePath.setText(ProgramPreferences.getPreference(STRAVA_ALL_DATA, ""));
+    filePath.setText(ProgramPreferences.getPreference(STRAVA_ZIP_DATA, ""));
   }
 
   public void save() {
@@ -39,7 +37,7 @@ public class ConfigureStravaStoragePanel extends JPanel {
     if (Utils.checkFileNameWithZIPExtension(file) == null) {
       return;
     }
-    ProgramPreferences.setPreference(STRAVA_ALL_DATA, filePath.getText());
+    ProgramPreferences.setPreference(STRAVA_ZIP_DATA, filePath.getText());
   }
 
   private class BrowseAction extends AbstractAction {
