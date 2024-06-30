@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static com.gpxmanager.Utils.METER_IN_KM;
 import static com.gpxmanager.Utils.getDaysOverHundred;
 import static com.gpxmanager.Utils.getLabel;
 import static com.gpxmanager.Utils.getTotalDistance;
@@ -89,8 +90,9 @@ public class StravaStatisticPanel extends JPanel implements ITabListener {
             ));
           });
       List<Activity> longestRidesList = activities.stream()
+          .filter(activity -> activity.getDistance() > 100 * METER_IN_KM)
           .sorted(Comparator.comparing(Activity::getDistance).reversed())
-          .collect(Collectors.toList()).subList(0, 10);
+          .collect(Collectors.toList());
       buildGlobalStatisticsTable(statisticList);
       buildLongestRideStatisticsTable(longestRidesList);
       setStatisticsPerYear(activities);
@@ -151,12 +153,12 @@ public class StravaStatisticPanel extends JPanel implements ITabListener {
     tableLongestRide.getColumnModel().getColumn(COL_LONGEST_AVG_SPEED.ordinal()).setMaxWidth(150);
     tableLongestRide.getColumnModel().getColumn(COL_LONGEST_TIME.ordinal()).setMinWidth(100);
     tableLongestRide.getColumnModel().getColumn(COL_LONGEST_TIME.ordinal()).setMaxWidth(100);
-    tableLongestRide.getColumnModel().getColumn(COL_LONGEST_DATE.ordinal()).setMinWidth(100);
-    tableLongestRide.getColumnModel().getColumn(COL_LONGEST_DATE.ordinal()).setMinWidth(100);
-    tableLongestRide.getColumnModel().getColumn(COL_LONGEST_DISTANCE.ordinal()).setMaxWidth(150);
-    tableLongestRide.getColumnModel().getColumn(COL_LONGEST_DISTANCE.ordinal()).setMaxWidth(150);
-    tableLongestRide.getColumnModel().getColumn(COL_LONGEST_ALTITUDE.ordinal()).setMaxWidth(150);
-    tableLongestRide.getColumnModel().getColumn(COL_LONGEST_ALTITUDE.ordinal()).setMaxWidth(150);
+    tableLongestRide.getColumnModel().getColumn(COL_LONGEST_DATE.ordinal()).setMinWidth(200);
+    tableLongestRide.getColumnModel().getColumn(COL_LONGEST_DATE.ordinal()).setMaxWidth(200);
+    tableLongestRide.getColumnModel().getColumn(COL_LONGEST_DISTANCE.ordinal()).setMinWidth(100);
+    tableLongestRide.getColumnModel().getColumn(COL_LONGEST_DISTANCE.ordinal()).setMaxWidth(100);
+    tableLongestRide.getColumnModel().getColumn(COL_LONGEST_ALTITUDE.ordinal()).setMinWidth(100);
+    tableLongestRide.getColumnModel().getColumn(COL_LONGEST_ALTITUDE.ordinal()).setMaxWidth(100);
   }
 
   private void setStatisticsPerYear(List<Activity> activities) {
