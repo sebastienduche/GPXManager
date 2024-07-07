@@ -15,6 +15,7 @@ public class ProgramPreferences {
   public static String LOCATION_Y = "MyGPXManager.y";
   public static String WIDTH = "MyGPXManager.width";
   public static String HEIGHT = "MyGPXManager.height";
+  @Deprecated
   public static String STRAVA = "MyGPXManager.strava";
   @Deprecated
   public static String STRAVA_ALL_DATA = "strava.allData";

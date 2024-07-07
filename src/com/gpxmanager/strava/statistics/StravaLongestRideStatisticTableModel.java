@@ -12,6 +12,7 @@ import java.util.List;
 import static com.gpxmanager.Utils.DATE_HOUR_MINUTE;
 import static com.gpxmanager.Utils.TIMESTAMP;
 import static com.gpxmanager.Utils.getLabel;
+import static com.gpxmanager.strava.StravaPanel.openActivityOnStrava;
 
 public class StravaLongestRideStatisticTableModel extends DefaultTableModel {
 
@@ -21,7 +22,8 @@ public class StravaLongestRideStatisticTableModel extends DefaultTableModel {
       getLabel("strava.table.time"),
       getLabel("strava.table.avg"),
       getLabel("strava.table.max"),
-      getLabel("strava.table.altitude")
+      getLabel("strava.table.altitude"),
+      ""
   );
   private List<Activity> statistics;
 
@@ -31,7 +33,7 @@ public class StravaLongestRideStatisticTableModel extends DefaultTableModel {
 
   @Override
   public boolean isCellEditable(int row, int column) {
-    return false;
+    return StravaLongestRideStatisticColumns.values()[column] == StravaLongestRideStatisticColumns.COL_LONGEST_VIEW;
   }
 
   @Override
@@ -76,8 +78,20 @@ public class StravaLongestRideStatisticTableModel extends DefaultTableModel {
       case COL_LONGEST_ALTITUDE: {
         return (int) statistic.getTotalElevationGain();
       }
+      case COL_LONGEST_VIEW:
+        return false;
     }
     return null;
+  }
+
+  @Override
+  public void setValueAt(Object aValue, int row, int column) {
+    Activity activity = statistics.get(row);
+    switch (StravaLongestRideStatisticColumns.values()[column]) {
+      case COL_LONGEST_VIEW -> openActivityOnStrava(activity);
+      default ->
+          throw new IllegalStateException("Can't set a value for column: " + StravaLongestRideStatisticColumns.values()[column]);
+    }
   }
 
   @Override
@@ -86,6 +100,7 @@ public class StravaLongestRideStatisticTableModel extends DefaultTableModel {
       case COL_LONGEST_DISTANCE, COL_LONGEST_AVG_SPEED, COL_LONGEST_TIME, COL_LONGEST_SPEED_MAX -> Double.class;
       case COL_LONGEST_DATE -> String.class;
       case COL_LONGEST_ALTITUDE -> Integer.class;
+      case COL_LONGEST_VIEW -> Boolean.class;
     };
   }
 
@@ -107,5 +122,6 @@ public class StravaLongestRideStatisticTableModel extends DefaultTableModel {
     COL_LONGEST_AVG_SPEED,
     COL_LONGEST_SPEED_MAX,
     COL_LONGEST_ALTITUDE,
+    COL_LONGEST_VIEW
   }
 }

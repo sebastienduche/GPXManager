@@ -1,7 +1,10 @@
 package com.gpxmanager.strava.statistics;
 
 import com.gpxmanager.MyGPXManager;
+import com.gpxmanager.MyGPXManagerImage;
 import com.gpxmanager.Utils;
+import com.gpxmanager.component.renderer.ButtonCellEditor;
+import com.gpxmanager.component.renderer.ButtonCellRenderer;
 import com.gpxmanager.component.renderer.DurationCellRenderer;
 import com.gpxmanager.component.renderer.MeterPerSecondToKmHCellRenderer;
 import com.mytabbedpane.ITabListener;
@@ -43,6 +46,7 @@ import static com.gpxmanager.strava.statistics.StravaLongestRideStatisticTableMo
 import static com.gpxmanager.strava.statistics.StravaLongestRideStatisticTableModel.StravaLongestRideStatisticColumns.COL_LONGEST_DISTANCE;
 import static com.gpxmanager.strava.statistics.StravaLongestRideStatisticTableModel.StravaLongestRideStatisticColumns.COL_LONGEST_SPEED_MAX;
 import static com.gpxmanager.strava.statistics.StravaLongestRideStatisticTableModel.StravaLongestRideStatisticColumns.COL_LONGEST_TIME;
+import static com.gpxmanager.strava.statistics.StravaLongestRideStatisticTableModel.StravaLongestRideStatisticColumns.COL_LONGEST_VIEW;
 import static java.util.stream.Collectors.groupingBy;
 
 public class StravaStatisticPanel extends JPanel implements ITabListener {
@@ -159,6 +163,10 @@ public class StravaStatisticPanel extends JPanel implements ITabListener {
     tableLongestRide.getColumnModel().getColumn(COL_LONGEST_DISTANCE.ordinal()).setMaxWidth(100);
     tableLongestRide.getColumnModel().getColumn(COL_LONGEST_ALTITUDE.ordinal()).setMinWidth(100);
     tableLongestRide.getColumnModel().getColumn(COL_LONGEST_ALTITUDE.ordinal()).setMaxWidth(100);
+    tableLongestRide.getColumnModel().getColumn(COL_LONGEST_VIEW.ordinal()).setCellRenderer(new ButtonCellRenderer("", MyGPXManagerImage.STRAVA, getLabel("strava.view")));
+    tableLongestRide.getColumnModel().getColumn(COL_LONGEST_VIEW.ordinal()).setCellEditor(new ButtonCellEditor());
+    tableLongestRide.getColumnModel().getColumn(COL_LONGEST_VIEW.ordinal()).setMinWidth(25);
+    tableLongestRide.getColumnModel().getColumn(COL_LONGEST_VIEW.ordinal()).setMaxWidth(25);
   }
 
   private void setStatisticsPerYear(List<Activity> activities) {

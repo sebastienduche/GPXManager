@@ -10,6 +10,7 @@ import javax.swing.AbstractAction;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import java.awt.Cursor;
@@ -33,11 +34,11 @@ public class ConfigureStravaStoragePanel extends JPanel {
   }
 
   public void save() {
-    File file = new File(filePath.getText());
-    if (Utils.checkFileNameWithZIPExtension(file) == null) {
+    File file = Utils.checkFileNameWithZIPExtension(new File(filePath.getText()));
+    if (file == null) {
       return;
     }
-    ProgramPreferences.setPreference(STRAVA_ZIP_DATA, filePath.getText());
+    ProgramPreferences.setPreference(STRAVA_ZIP_DATA, file.getAbsolutePath());
   }
 
   private class BrowseAction extends AbstractAction {
@@ -55,6 +56,7 @@ public class ConfigureStravaStoragePanel extends JPanel {
         selectedFile = Utils.checkFileNameWithZIPExtension(selectedFile);
         if (selectedFile == null) {
           MyGPXManager.getInstance().setCursor(Cursor.getDefaultCursor());
+          JOptionPane.showMessageDialog(MyGPXManager.getInstance(), getLabel("configure.strava.browse.error"), "Error", JOptionPane.ERROR_MESSAGE);
           return;
         }
         filePath.setText(selectedFile.getAbsolutePath());
