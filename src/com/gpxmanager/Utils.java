@@ -204,10 +204,14 @@ public class Utils {
   }
 
   public static boolean checkFileExtension(File file, Filter filter) {
+    return checkFileExtension(file, filter.toString());
+  }
+
+  public static boolean checkFileExtension(File file, String extension) {
     if (file == null) {
       return false;
     }
-    if (!file.getName().toLowerCase().endsWith(filter.toString())) {
+    if (!file.getName().toLowerCase().endsWith(extension)) {
       return false;
     }
     return true;

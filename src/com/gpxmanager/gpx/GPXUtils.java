@@ -1,5 +1,6 @@
 package com.gpxmanager.gpx;
 
+import com.gpxmanager.Utils;
 import com.gpxmanager.gpx.beans.GPX;
 import com.gpxmanager.gpx.beans.Route;
 import com.gpxmanager.gpx.beans.Track;
@@ -24,9 +25,14 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.ToDoubleFunction;
+
+import static java.lang.Math.abs;
+import static java.util.Comparator.comparingDouble;
 
 public class GPXUtils {
 
+  private static final String CUT_HERE_KEYWORD = "Cut Here";
   private final static GPXParser GPX_PARSER = new GPXParser();
 
   public static GPXParser getGpxParser() {
@@ -91,6 +97,94 @@ public class GPXUtils {
     }
     return gpx;
   }
+
+  static GPXResult findWaypointCoordinate(File gpxFile, double latitude, double longitude, boolean keepFromPoint) throws IOException, ParserConfigurationException, SAXException, TransformerException {
+    if (!Utils.checkFileExtension(gpxFile, ".gpx")) {
+      return new GPXResult(null, "Input file is not a GPX File");
+    }
+    GPX gpx = new GPXParser().parseGPX(new FileInputStream(gpxFile));
+
+    int count = 0;
+    List<ArrayList<Waypoint>> allWaypoints = new ArrayList<>();
+    if (gpx.getTracks() != null) {
+      count = gpx.getTracks().size();
+      List<ArrayList<Waypoint>> waypointsList = gpx.getTracks()
+          .stream()
+          .map(Track::getTrackPoints)
+          .toList();
+      allWaypoints.addAll(waypointsList);
+    }
+    if (gpx.getRoutes() != null) {
+      count += gpx.getRoutes().size();
+      List<ArrayList<Waypoint>> routesWaypoints = gpx.getRoutes()
+          .stream()
+          .map(Route::getRoutePoints)
+          .toList();
+      allWaypoints.addAll(routesWaypoints);
+    }
+    if (gpx.getWaypoints() != null) {
+      count++;
+      allWaypoints.add(new ArrayList<>(gpx.getWaypoints()));
+    }
+
+    if (markBestPosition(allWaypoints, latitude, longitude)) {
+      if (count != 1) {
+        // Unable to cut, return the file with the tagged waypoint.
+        return new GPXResult(gpx, "Unable to remove part of the route because the current file contains multiple tracks/routes...\n" +
+            " The found waypoint is marked with the name 'Cut Here'.");
+      }
+      // Only 1 route / track... we can cut
+      ArrayList<Waypoint> waypoints = allWaypoints.get(0);
+      ArrayList<Waypoint> finalList = new ArrayList<>();
+      for (Waypoint waypoint : waypoints) {
+        if (CUT_HERE_KEYWORD.equals(waypoint.getName())) {
+          if (keepFromPoint) {
+            waypoints.removeAll(finalList);
+            finalList = waypoints;
+          }
+          if (!gpx.getTracks().isEmpty()) {
+            gpx.getTracks().get(0).setTrackPoints(finalList);
+          } else if (!gpx.getRoutes().isEmpty()) {
+            gpx.getRoutes().get(0).setRoutePoints(finalList);
+          } else {
+            gpx.setWaypoints(new LinkedList<>(finalList));
+          }
+          break;
+        } else {
+          finalList.add(waypoint);
+        }
+      }
+    } else {
+      // Unable to mark the best waypoint
+      return new GPXResult(gpx, "Unable to found a waypoint. The file is not modified.");
+    }
+    return new GPXResult(gpx);
+  }
+
+  private static boolean markBestPosition(List<ArrayList<Waypoint>> list, double latitude, double longitude) {
+    List<Waypoint> foundWaypoints = new ArrayList<>();
+    list
+        .forEach(waypoints -> foundWaypoints.addAll(
+            waypoints
+                .stream()
+                .sorted(comparingDouble(compare(latitude, longitude)))
+                .toList()));
+    if (foundWaypoints.isEmpty()) {
+      return false;
+    }
+    foundWaypoints.get(0).setName(CUT_HERE_KEYWORD);
+    return true;
+  }
+
+  private static ToDoubleFunction<Waypoint> compare(double latitude, double longitude) {
+    return waypoint ->
+        latitude == -1 ?
+            abs(longitude - waypoint.getLongitude())
+            : longitude == -1 ?
+            abs(latitude - waypoint.getLatitude())
+            : abs(latitude - waypoint.getLatitude()) + abs(longitude - waypoint.getLongitude());
+  }
+
 
   public static void writeFile(GPX gpx, File file) throws FileNotFoundException, ParserConfigurationException, TransformerException {
     GPX_PARSER.writeGPX(gpx, new FileOutputStream(file));
@@ -160,5 +254,32 @@ public class GPXUtils {
       return null;
     }
     return new File(stream.getFile());
+  }
+}
+
+class GPXResult {
+  private final GPX gpx;
+  private final String result;
+
+  public GPXResult(GPX gpx, String result) {
+    this.gpx = gpx;
+    this.result = result;
+  }
+
+  public GPXResult(GPX gpx) {
+    this.gpx = gpx;
+    result = null;
+  }
+
+  public boolean hasError() {
+    return result != null;
+  }
+
+  public GPX getGpx() {
+    return gpx;
+  }
+
+  public String getResult() {
+    return result;
   }
 }
