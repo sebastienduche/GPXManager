@@ -48,7 +48,7 @@ import static com.gpxmanager.component.MergePanel.MergeTableModel.MergeTableColu
 public class MergePanel extends JPanel implements ITabListener {
   private static final String MERGE_PANEL = "MERGE_PANEL";
   private final MergeTableModel model = new MergeTableModel();
-  private final PropertiesPanel propertiesPanel = new PropertiesPanel(null, null);
+  private final PropertiesPanel propertiesPanel = new PropertiesPanel(null, null, false);
   private final MyAutoHideLabel infoLabel = new MyAutoHideLabel();
   private File previousDir;
 

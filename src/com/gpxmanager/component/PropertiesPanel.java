@@ -37,7 +37,7 @@ public class PropertiesPanel extends JPanel {
   private final JModifyTextField metadataKeywords = new JModifyTextField();
   private final JModifyFormattedTextField metadataTime = new JModifyFormattedTextField(TIMESTAMP, true);
 
-  public PropertiesPanel(File file, GPX gpx) {
+  public PropertiesPanel(File file, GPX gpx, boolean sendToDeviceVisible) {
     setLayout(new MigLayout("", "[][grow]10px[][grow]10px[][grow]", "grow"));
     setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), getLabel("properties.title")));
     if (gpx != null) {
@@ -91,6 +91,7 @@ public class PropertiesPanel extends JPanel {
       metadataTime.setModified(false);
     }
     JButton sendToDevice = new JButton(new SendToDeviceAction(file));
+    sendToDevice.setVisible(sendToDeviceVisible);
     add(sendToDevice);
     try {
       watchDir(sendToDevice);

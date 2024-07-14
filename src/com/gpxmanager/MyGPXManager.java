@@ -95,7 +95,7 @@ import static com.gpxmanager.Utils.loadStravaDataFile;
 import static com.gpxmanager.gpx.GPXUtils.getGpxParser;
 
 public final class MyGPXManager extends JFrame {
-  public static final String INTERNAL_VERSION = "20.2";
+  public static final String INTERNAL_VERSION = "20.7";
   public static final String VERSION = "6.3";
   public static final Gson GSON = new Gson();
   private static final MyAutoHideLabel INFO_LABEL = new MyAutoHideLabel();
@@ -115,7 +115,8 @@ public final class MyGPXManager extends JFrame {
   private StravaData stravaData;
 
   // TODO
-  // Is it possible to find a coordinate in a file (or first common coordinate in 2 files) and cut
+  // export Strava keys in readable format
+  // Count days strek + best
 
   public MyGPXManager() throws HeadlessException {
     instance = this;

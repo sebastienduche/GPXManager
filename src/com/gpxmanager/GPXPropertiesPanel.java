@@ -42,7 +42,7 @@ public class GPXPropertiesPanel extends JPanel implements ITabListener {
     this.file = file;
     this.gpx = gpx;
     setLayout(new MigLayout("", "[grow]", "[]"));
-    propertiesPanel = new PropertiesPanel(file, gpx);
+    propertiesPanel = new PropertiesPanel(file, gpx, true);
     add(propertiesPanel, "growx, wrap");
     buildTrackRoutes();
     createTracksPanel();
