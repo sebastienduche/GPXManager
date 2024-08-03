@@ -255,6 +255,16 @@ public class GPXUtils {
     }
     return new File(stream.getFile());
   }
+
+  public static GPX fixFile(GPX oldGpx) {
+    File gpxFile = getFileFromResource("empty.gpx");
+    GPX gpx = loadFile(gpxFile);
+    gpx.setWaypoints(oldGpx.getWaypoints());
+    gpx.setTracks(oldGpx.getTracks());
+    gpx.setRoutes(oldGpx.getRoutes());
+    gpx.setMetadata(oldGpx.getMetadata());
+    return gpx;
+  }
 }
 
 class GPXResult {
