@@ -176,9 +176,11 @@ public class GPXTools {
       case FIND_WAYPOINT_ACTION -> {
         System.out.println("Find a waypoint");
         GPXResult gpxResult = GPXUtils.findWaypointCoordinate(action.getFiles().get(0), action.getLatitude(), action.getLongitude(), action.isKeepFromPoint());
-        if (gpxResult.hasError()) {
+        if (gpxResult.hasError() || gpxResult.hasWarning()) {
           System.out.println(gpxResult.getResult());
-          System.exit(1);
+          if (gpxResult.hasError()) {
+            System.exit(1);
+          }
         }
         System.out.println("Creating GPX file '" + action.getTargetFile().getAbsolutePath() + "' from file '" + action.getFiles().get(0) + "'");
         GPXUtils.writeFile(gpxResult.getGpx(), action.getTargetFile());

@@ -131,7 +131,7 @@ public class GPXUtils {
       if (count != 1) {
         // Unable to cut, return the file with the tagged waypoint.
         return new GPXResult(gpx, "Unable to remove part of the route because the current file contains multiple tracks/routes...\n" +
-            " The found waypoint is marked with the name 'Cut Here'.");
+            " The found waypoint is marked with the name 'Cut Here'.", true);
       }
       // Only 1 route / track... we can cut
       ArrayList<Waypoint> waypoints = allWaypoints.get(0);
@@ -270,19 +270,32 @@ public class GPXUtils {
 class GPXResult {
   private final GPX gpx;
   private final String result;
+  private final boolean warning;
 
   public GPXResult(GPX gpx, String result) {
     this.gpx = gpx;
     this.result = result;
+    this.warning = false;
+  }
+
+  public GPXResult(GPX gpx, String result, boolean warning) {
+    this.gpx = gpx;
+    this.result = result;
+    this.warning = warning;
   }
 
   public GPXResult(GPX gpx) {
     this.gpx = gpx;
     result = null;
+    this.warning = false;
   }
 
   public boolean hasError() {
-    return result != null;
+    return result != null && !warning;
+  }
+
+  public boolean hasWarning() {
+    return result != null && warning;
   }
 
   public GPX getGpx() {
