@@ -95,8 +95,8 @@ import static com.gpxmanager.Utils.loadStravaDataFile;
 import static com.gpxmanager.gpx.GPXUtils.getGpxParser;
 
 public final class MyGPXManager extends JFrame {
-  public static final String INTERNAL_VERSION = "20.8";
-  public static final String VERSION = "6.3";
+  public static final String INTERNAL_VERSION = "20.9";
+  public static final String VERSION = "6.4";
   public static final Gson GSON = new Gson();
   private static final MyAutoHideLabel INFO_LABEL = new MyAutoHideLabel();
   static JButton stravaButton = null;

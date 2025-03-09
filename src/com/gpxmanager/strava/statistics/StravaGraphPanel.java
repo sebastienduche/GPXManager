@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Predicate;
 
 import static com.gpxmanager.Utils.getLabel;
@@ -64,8 +65,11 @@ public class StravaGraphPanel extends JPanel implements ITabListener {
         if (e.getStateChange() == ItemEvent.SELECTED) {
           GraphType item = (GraphType) e.getItem();
           GraphCompare graphCompare = (GraphCompare) graphCompareCombo.getSelectedItem();
+          assert graphCompare != null;
           switch (item) {
-            case DISTANCE_PER_MONTH -> createDistancePerYearGraph(graphCompare.value());
+            case DISTANCE_PER_MONTH -> {
+              createDistancePerYearGraph(graphCompare.value());
+            }
             case DISTANCE_PROGRESS ->
                 createDistanceProgressGraph(LocalDate.now().withMonth(12).withDayOfMonth(31), graphCompare.value());
             case DISTANCE_PROGRESS_TODAY -> createDistanceProgressGraph(LocalDate.now(), graphCompare.value());
@@ -77,7 +81,7 @@ public class StravaGraphPanel extends JPanel implements ITabListener {
         if (e.getStateChange() == ItemEvent.SELECTED) {
           GraphCompare graphCompare = (GraphCompare) e.getItem();
           GraphType item = (GraphType) graphTypeCombo.getSelectedItem();
-          switch (item) {
+          switch (Objects.requireNonNull(item)) {
             case DISTANCE_PER_MONTH -> createDistancePerYearGraph(graphCompare.value());
             case DISTANCE_PROGRESS ->
                 createDistanceProgressGraph(LocalDate.now().withMonth(12).withDayOfMonth(31), graphCompare.value());
@@ -143,7 +147,8 @@ public class StravaGraphPanel extends JPanel implements ITabListener {
           .stream()
           .collect(groupingBy(Utils::getStartDay));
       double totalDistance = 0;
-      for (Integer day : activityPerDay.keySet()) {
+      List<Integer> sorted = activityPerDay.keySet().stream().sorted().toList();
+      for (Integer day : sorted) {
         if (day > endDateDayOfYear) {
           continue;
         }
