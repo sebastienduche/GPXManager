@@ -150,6 +150,10 @@ public class Utils {
     return instance.format(value * 3.6);
   }
 
+  public static double kmHToMeterPerSecond(double value) {
+    return value / 3.6;
+  }
+
   public static List<SegmentEffort> getPersonalRecords(Activity activity) {
     if (activity.getSegmentEfforts() == null) {
       return Collections.emptyList();

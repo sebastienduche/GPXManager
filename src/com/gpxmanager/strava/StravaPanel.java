@@ -63,6 +63,8 @@ import static com.gpxmanager.MyGPXManager.getMyTabbedPane;
 import static com.gpxmanager.Utils.METER_IN_KM;
 import static com.gpxmanager.Utils.getLabel;
 import static com.gpxmanager.Utils.getWorkDir;
+import static com.gpxmanager.Utils.kmHToMeterPerSecond;
+import static com.gpxmanager.Utils.meterPerSecondToKmH;
 import static com.gpxmanager.Utils.roundValue;
 import static com.gpxmanager.Utils.saveFile;
 import static com.gpxmanager.strava.StravaTableModel.StravaTableColumn.COL_ALTITUDE;
@@ -165,6 +167,7 @@ public class StravaPanel extends JPanel implements ITabListener {
       popup.add(new JMenuItem(new DownloadFromStravaAction()));
       popup.add(new JMenuItem(new UpdateActivityFromStravaAction()));
       popup.add(new JMenuItem(new ShowJSONAction()));
+      popup.add(new JMenuItem(new UpdateMaxSpeedAction()));
       table.setComponentPopupMenu(popup);
       add(downloadAllActivities, "split 5");
       add(downloadNewActivities, "gapleft 10px");
@@ -644,13 +647,33 @@ public class StravaPanel extends JPanel implements ITabListener {
     @Override
     public void actionPerformed(ActionEvent e) {
       Activity activity = stravaTableModel.getActivityAt(table.convertRowIndexToModel(table.getSelectedRow()));
-      updateActivityFromStrava(activity, table.getSelectedRow());
       JPanel panel = new JPanel();
       panel.setLayout(new MigLayout("", "[500:500:500]", "[500:500:500]"));
       JTextArea textArea = new JTextArea(GSON.toJson(activity).replaceAll(",", ",\n"));
       panel.add(new JScrollPane(textArea));
       panel.setSize(500, 500);
       JOptionPane.showOptionDialog(null, panel, getLabel("strava.showJson"), JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, null, null);
+    }
+  }
+
+  class UpdateMaxSpeedAction extends AbstractAction {
+
+    public UpdateMaxSpeedAction() {
+      super(getLabel("strava.updateMaxSpeed"));
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      Activity activity = stravaTableModel.getActivityAt(table.convertRowIndexToModel(table.getSelectedRow()));
+      JPanel panel = new JPanel();
+      panel.setLayout(new MigLayout("", "[][100:100:100]", "[]"));
+      JTextField text = new JTextField(meterPerSecondToKmH(activity.getMaxSpeed()));
+      panel.add(new JLabel(getLabel("strava.updateMaxSpeed")));
+      panel.add(text, "growx");
+      if (JOptionPane.OK_OPTION == JOptionPane.showOptionDialog(null, panel, getLabel("strava.updateMaxSpeed"), JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, null, null)) {
+        activity.setMaxSpeed(kmHToMeterPerSecond(Double.parseDouble(text.getText().replace(',', '.'))));
+        save();
+      }
     }
   }
 }
