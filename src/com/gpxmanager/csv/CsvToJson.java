@@ -1,5 +1,6 @@
 package com.gpxmanager.csv;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -30,16 +31,21 @@ public class CsvToJson {
   public static final String VALUE_1_0 = "1.0";
   public static final String DISTANCE_JSON = "distance";
   public static final String MOVING_TIME_JSON = "moving_time";
-
+  public static final String TYPE_JSON = "type";
+  public static final String GEAR_ID_JSON = "gear_id";
+  public static final String GEAR_JSON = "gear";
   private static final List<String> ACTIVITY_IDS = List.of("Activiteits-ID", "Activity ID");
   private static final List<String> ACTIVITY_DATES = List.of("Datum van activiteit", "Activity Date");
   private static final List<String> ACTIVITY_NAMES = List.of("Naam activiteit", "Activity Name");
   private static final List<String> ACTIVITY_DISTANCES = List.of("Afstand_2", "Distance_2");
-  private static final List<String> ACTIVITY_MOVING_TIME = List.of("Verstreken tijd_2", "Moving Time");
-  private static final List<String> ACTIVITY_MAX_SPEED = List.of("Max. snelheid", "Max Speed");
-  private static final List<String> ACTIVITY_AVG_SPEED = List.of("Gemiddelde snelheid", "Average Speed");
-  private static final List<String> ACTIVITY_ELEVATION = List.of("Totale stijging", "Elevation Gain");
-  private static final List<String> ACTIVITY_COMMUTE = List.of("Woon-werkverkeer", "Commute");
+  private static final List<String> ACTIVITY_MOVING_TIMES = List.of("Verstreken tijd_2", "Moving Time");
+  private static final List<String> ACTIVITY_MAX_SPEEDS = List.of("Max. snelheid", "Max Speed");
+  private static final List<String> ACTIVITY_AVG_SPEEDS = List.of("Gemiddelde snelheid", "Average Speed");
+  private static final List<String> ACTIVITY_ELEVATIONS = List.of("Totale stijging", "Elevation Gain");
+  private static final List<String> ACTIVITY_COMMUTES = List.of("Woon-werkverkeer", "Commute");
+  private static final List<String> ACTIVITY_TYPES = List.of("Activiteitstype", "Activity Type");
+  private static final List<String> ACTIVITY_BIKES = List.of("Fiets", "Bike");
+  private static final List<String> ACTIVITY_EQUIPEMENTS = List.of("Uitrusting voor activiteit", "Activity Gear");
 
   public static void main(String[] args) throws Exception {
 
@@ -122,6 +128,8 @@ public class CsvToJson {
         );
       }
 
+      postProcessing(jsonObject, mapper);
+
       jsonArray.add(jsonObject);
     }
 
@@ -130,6 +138,25 @@ public class CsvToJson {
             outputFile,
             jsonArray
         );
+  }
+
+  private static void postProcessing(ObjectNode jsonObject, ObjectMapper mapper) {
+    if (jsonObject.hasNonNull(GEAR_JSON)) {
+      createGearObject(jsonObject, mapper);
+    }
+  }
+
+  private static void createGearObject(ObjectNode jsonObject, ObjectMapper mapper) {
+    JsonNode gearNode = jsonObject.get(GEAR_JSON);
+    String name = gearNode.asText();
+    jsonObject.remove(GEAR_JSON);
+    if (jsonObject.hasNonNull(GEAR_ID_JSON)) {
+      String gearId = jsonObject.get(GEAR_ID_JSON).asText();
+      ObjectNode objectNode = mapper.createObjectNode();
+      objectNode.put(ID_JSON, gearId);
+      objectNode.put(NAME_JSON, name);
+      jsonObject.set(GEAR_JSON, objectNode);
+    }
   }
 
   private static String mapValue(String fieldName, String value) {
@@ -235,23 +262,29 @@ public class CsvToJson {
   }
 
   private static String mapFieldNameToJson(String jsonFieldName) {
-    if (ACTIVITY_IDS.stream().anyMatch(e -> e.equalsIgnoreCase(jsonFieldName))) {
+    if (matchFieldName(ACTIVITY_IDS, jsonFieldName)) {
       return ID_JSON;
     }
-    if (ACTIVITY_DATES.stream().anyMatch(e -> e.equalsIgnoreCase(jsonFieldName))) {
+    if (matchFieldName(ACTIVITY_DATES, jsonFieldName)) {
       return START_DATE_LOCAL_JSOON;
     }
-    if (ACTIVITY_NAMES.stream().anyMatch(e -> e.equalsIgnoreCase(jsonFieldName))) {
+    if (matchFieldName(ACTIVITY_NAMES, jsonFieldName)) {
       return NAME_JSON;
     }
-    if (ACTIVITY_DISTANCES.stream().anyMatch(e -> e.equalsIgnoreCase(jsonFieldName))) {
+    if (matchFieldName(ACTIVITY_DISTANCES, jsonFieldName)) {
       return DISTANCE_JSON;
     }
-    if (ACTIVITY_MOVING_TIME.stream().anyMatch(e -> e.equalsIgnoreCase(jsonFieldName))) {
+    if (matchFieldName(ACTIVITY_MOVING_TIMES, jsonFieldName)) {
       return MOVING_TIME_JSON;
     }
-    if ("Activity Type".equals(jsonFieldName)) {
-      return jsonFieldName;
+    if (matchFieldName(ACTIVITY_TYPES, jsonFieldName)) {
+      return TYPE_JSON;
+    }
+    if (matchFieldName(ACTIVITY_BIKES, jsonFieldName)) {
+      return GEAR_ID_JSON;
+    }
+    if (matchFieldName(ACTIVITY_EQUIPEMENTS, jsonFieldName)) {
+      return GEAR_JSON;
     }
     if ("Activity Description".equals(jsonFieldName)) {
       return jsonFieldName;
@@ -265,13 +298,10 @@ public class CsvToJson {
     if ("Relative Effort".equals(jsonFieldName)) {
       return jsonFieldName;
     }
-    if (ACTIVITY_COMMUTE.stream().anyMatch(e -> e.equalsIgnoreCase(jsonFieldName))) {
+    if (matchFieldName(ACTIVITY_COMMUTES, jsonFieldName)) {
       return COMMUTE_JSON;
     }
     if ("Activity Private Note".equals(jsonFieldName)) {
-      return jsonFieldName;
-    }
-    if ("Activity Gear".equals(jsonFieldName)) {
       return jsonFieldName;
     }
     if ("Filename".equals(jsonFieldName)) {
@@ -286,16 +316,13 @@ public class CsvToJson {
     if ("Elapsed Time_2".equals(jsonFieldName)) {
       return jsonFieldName;
     }
-//    if ("Distance_2".equals(jsonFieldName)) {
-//      return "distance";
-//    }
-    if (ACTIVITY_MAX_SPEED.stream().anyMatch(e -> e.equalsIgnoreCase(jsonFieldName))) {
+    if (matchFieldName(ACTIVITY_MAX_SPEEDS, jsonFieldName)) {
       return MAX_SPEED_JSON;
     }
-    if (ACTIVITY_AVG_SPEED.stream().anyMatch(e -> e.equalsIgnoreCase(jsonFieldName))) {
+    if (matchFieldName(ACTIVITY_AVG_SPEEDS, jsonFieldName)) {
       return AVERAGE_SPEED_JSON;
     }
-    if (ACTIVITY_ELEVATION.stream().anyMatch(e -> e.equalsIgnoreCase(jsonFieldName))) {
+    if (matchFieldName(ACTIVITY_ELEVATIONS, jsonFieldName)) {
       return TOTAL_ELEVATION_GAIN_JSON;
     }
     if ("Elevation Loss".equals(jsonFieldName)) {
@@ -367,9 +394,6 @@ public class CsvToJson {
     if ("Perceived Exertion".equals(jsonFieldName)) {
       return jsonFieldName;
     }
-    if ("Type".equals(jsonFieldName)) {
-      return jsonFieldName;
-    }
     if ("Start Time".equals(jsonFieldName)) {
       return jsonFieldName;
     }
@@ -439,12 +463,9 @@ public class CsvToJson {
     if ("Moon Phase".equals(jsonFieldName)) {
       return jsonFieldName;
     }
-    if ("Bike".equals(jsonFieldName)) {
-      return jsonFieldName;
-    }
-    if ("Gear".equals(jsonFieldName)) {
-      return "gear";
-    }
+//    if ("Gear".equals(jsonFieldName)) {
+//      return GEAR_JSON;
+//    }
     if ("Precipitation Probability".equals(jsonFieldName)) {
       return jsonFieldName;
     }
@@ -547,7 +568,11 @@ public class CsvToJson {
     return jsonFieldName;
   }
 
-  public static List<String> formatLine(String line) {
+  private static boolean matchFieldName(List<String> fieldNames, String jsonFieldName) {
+    return fieldNames.stream().anyMatch(e -> e.equalsIgnoreCase(jsonFieldName));
+  }
+
+  private static List<String> formatLine(String line) {
     if (line == null) {
       return null;
     }

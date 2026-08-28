@@ -431,19 +431,19 @@ public class StravaPanel extends JPanel implements ITabListener {
           }
         });
 
-    for (String gearID : gearIDs) {
-      if (!map.containsKey(gearID)) {
-        try {
-          Gear gear = stravaConnection.getStrava().findGear(gearID);
-          map.put(gearID, gear);
-        } catch (StravaException e) {
-          Gear gear = manageStravaException(e, Gear.class);
-          if (gear != null) {
-            map.put(gearID, gear);
-          }
-        }
-      }
-    }
+//    for (String gearID : gearIDs) {
+//      if (!map.containsKey(gearID)) {
+//        try {
+//          Gear gear = stravaConnection.getStrava().findGear(gearID);
+//          map.put(gearID, gear);
+//        } catch (StravaException e) {
+//          Gear gear = manageStravaException(e, Gear.class);
+//          if (gear != null) {
+//            map.put(gearID, gear);
+//          }
+//        }
+//      }
+//    }
 
     for (Activity activity : activities) {
       if (activity.getGear() == null) {

@@ -122,7 +122,7 @@ public final class MyGPXManager extends JFrame {
   private StravaData stravaData;
 
   // TODO
-  // Manage Gears / PRs/ Kudos
+  // Manage PRs/ Kudos
   // Show when file is saved or loading in progress
   // Check behaviours of menus
   // Check recent open
@@ -170,7 +170,7 @@ public final class MyGPXManager extends JFrame {
     JMenu menuAbout = new JMenu("?");
     menuBar.add(menuAbout);
     menuFile.add(new JMenuItem(new OpenJSONFileAction()));
-    menuFile.add(new JMenuItem(new OpenFileAction()));
+    menuFile.add(new JMenuItem(new OpenGPXFileAction()));
     menuFile.add(closeFile = new JMenuItem(new CloseFileAction()));
     menuFile.addSeparator();
     menuFile.add(saveFile);
@@ -233,7 +233,7 @@ public final class MyGPXManager extends JFrame {
     myTabbedPane.setVisible(false);
 
     JToolBar toolBar = new JToolBar();
-    final JButton openButton = new JButton(new OpenFileAction());
+    final JButton openButton = new JButton(new OpenGPXFileAction());
     openButton.setText("");
     toolBar.add(openButton);
     toolBar.add(saveButton);
@@ -286,17 +286,7 @@ public final class MyGPXManager extends JFrame {
   }
 
   private static void cleanWorkDirectory() {
-    deleteDirectory(new File(getWorkDir()));
-  }
-
-  private static void deleteDirectory(File directoryToBeDeleted) {
-    File[] allContents = directoryToBeDeleted.listFiles();
-    if (allContents != null) {
-      for (File file : allContents) {
-        deleteDirectory(file);
-      }
-    }
-    directoryToBeDeleted.delete();
+    Utils.deleteDirectory(new File(getWorkDir()));
   }
 
   private static void cleanDebugFiles() {
@@ -434,14 +424,6 @@ public final class MyGPXManager extends JFrame {
 
   public static void setStravaData(StravaData stravaData) {
     instance.stravaData = stravaData;
-  }
-
-  private static void delete(Path path) {
-    try {
-      Files.delete(path);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
   }
 
   private void watchDir() throws IOException {
@@ -738,8 +720,8 @@ public final class MyGPXManager extends JFrame {
     }
   }
 
-  class OpenFileAction extends AbstractAction {
-    public OpenFileAction() {
+  class OpenGPXFileAction extends AbstractAction {
+    public OpenGPXFileAction() {
       super(getLabel("menu.openFile"), MyGPXManagerImage.OPEN);
     }
 
