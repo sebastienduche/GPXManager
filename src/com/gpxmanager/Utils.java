@@ -1,5 +1,6 @@
 package com.gpxmanager;
 
+import com.gpxmanager.csv.CsvToJson;
 import com.gpxmanager.geocalc.Degree;
 import com.gpxmanager.geocalc.EarthCalc;
 import com.gpxmanager.gpx.beans.Waypoint;
@@ -47,6 +48,8 @@ public class Utils {
 
   public static final SimpleDateFormat TIMESTAMP = new SimpleDateFormat("yyyy-MM-dd'T'kk:mm:ss");
   public static final SimpleDateFormat DATE_HOUR_MINUTE = new SimpleDateFormat("yyyy-MM-dd kk:mm");
+  public static final SimpleDateFormat DATE_HOUR_MINUTE_AM = new SimpleDateFormat("MMM d- yyyy- hh:mm:ss a", Locale.ENGLISH);
+  public static final SimpleDateFormat DATE_MMM_TIME = new SimpleDateFormat("d MMM yyyy- hh:mm:ss");
   public static final DateTimeFormatter DATE_FORMATER_DD_MM_YYYY = DateTimeFormatter.ofPattern("dd-MM-yyyy");
   public static final String DEBUG_DIRECTORY = "MyGPXManagerDebug";
   public static final int METER_IN_KM = 1000;
@@ -193,6 +196,26 @@ public class Utils {
     return file;
   }
 
+  public static File hasGPXExtension(File file) {
+    if (file == null) {
+      return null;
+    }
+    if (!file.getName().toLowerCase().endsWith(Filter.FILTER_GPX.toString())) {
+      return null;
+    }
+    return file;
+  }
+
+  public static File hasJSONExtension(File file) {
+    if (file == null) {
+      return null;
+    }
+    if (!file.getName().toLowerCase().endsWith(Filter.FILTER_JSON.toString())) {
+      return null;
+    }
+    return file;
+  }
+
   public static File checkFileNameWithZIPExtension(File file) {
     if (file == null) {
       return null;
@@ -221,10 +244,28 @@ public class Utils {
     return true;
   }
 
+  public static String getFileWithoutExtension(File file, String extension) {
+    if (file == null) {
+      return "";
+    }
+    String fileName = file.getName().toLowerCase();
+    if (!fileName.endsWith(extension)) {
+      return "";
+    }
+    return fileName.substring(0, fileName.indexOf(extension));
+  }
+
   public static JFileChooser createFileChooser() {
     JFileChooser fileChooser = new JFileChooser();
     fileChooser.removeChoosableFileFilter(fileChooser.getFileFilter());
     fileChooser.addChoosableFileFilter(Filter.FILTER_GPX);
+    return fileChooser;
+  }
+
+  public static JFileChooser createJSONFileChooser() {
+    JFileChooser fileChooser = new JFileChooser();
+    fileChooser.removeChoosableFileFilter(fileChooser.getFileFilter());
+    fileChooser.addChoosableFileFilter(Filter.FILTER_JSON);
     return fileChooser;
   }
 
@@ -253,9 +294,27 @@ public class Utils {
     }
   }
 
-  public static StravaData loadStravaDataFile() {
-    String existingFile = getPreference(STRAVA_ZIP_DATA, null);
-    File file = new File(existingFile);
+  public static Date parseDateHourMinuteAm(String value) {
+    try {
+      return DATE_HOUR_MINUTE_AM.parse(value);
+    } catch (ParseException e) {
+      return null;
+    }
+  }
+
+  public static Date parseDateMmmTime(String value) {
+    try {
+      return DATE_MMM_TIME.parse(value);
+    } catch (ParseException e) {
+      return null;
+    }
+  }
+
+  public static StravaData loadStravaDataFile(File file) {
+    if (file == null) {
+      String existingFile = getPreference(STRAVA_ZIP_DATA, null);
+      file = new File(existingFile);
+    }
     if (checkFileExtension(file, Filter.FILTER_ZIP) && file.exists()) {
       try {
         unzipFile(file, new File(getWorkDir()));
@@ -263,27 +322,48 @@ public class Utils {
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
-      return new StravaData(new File(existingFile),
+      return new StravaData(file,
           new File(getWorkDir(), "stravaConnection.txt"),
           new File(getWorkDir(), "stravaAll.json"));
+    }
+    if (file != null && file.exists()) {
+      return new StravaData(null, file, null, file);
     }
     return new StravaData(null,
         new File(getPreference(STRAVA, null)),
         new File(getPreference(STRAVA_ALL_DATA, null)));
   }
 
+  public static StravaData loadStravaArchiveDataFile(File file) {
+    if (checkFileExtension(file, Filter.FILTER_ZIP) && file.exists()) {
+      try {
+        unzipFile(file, new File(getWorkDir()));
+        CsvToJson.convertCsvToJson(new File(getWorkDir(), "activities.csv"), new File(getWorkDir(), "stravaAll.json"));
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+      return new StravaData(file,
+          new File(file.getParentFile().getAbsolutePath(), getFileWithoutExtension(file, Filter.FILTER_ZIP.toString()) + "temp" + Filter.FILTER_ZIP),
+          new File(getWorkDir(), "stravaConnection.txt"),
+          new File(getWorkDir(), "stravaAll.json"));
+    }
+    return new StravaData(null,
+        new File(getPreference(STRAVA_ALL_DATA, null)),
+        new File(getPreference(STRAVA, null)),
+        new File(getPreference(STRAVA_ALL_DATA, null)));
+  }
+
   public static void saveFile(List<Activity> activities) {
     StravaData stravaData = MyGPXManager.getStravaData();
-    if (checkFileExtension(stravaData.getZipFile(), Filter.FILTER_ZIP)) {
+    if (checkFileExtension(stravaData.getSaveFile(), Filter.FILTER_ZIP)) {
       writeToFile(GSON.toJson(activities), stravaData.getJsonDataFile());
       try {
-        zipFiles(stravaData.getFilesToSave(), stravaData.getZipFile());
+        zipFiles(stravaData.getFilesToSave(), stravaData.getSaveFile());
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
     } else {
-      String existingFile = getPreference(STRAVA_ALL_DATA, null);
-      writeToFile(GSON.toJson(activities), new File(existingFile));
+      writeToFile(GSON.toJson(activities), stravaData.getSaveFile());
     }
   }
 
@@ -299,11 +379,11 @@ public class Utils {
       workDir = sDir + File.separator + "MyGpxManager";
     }
     File file = new File(workDir);
-    if (!file.exists()) {
-      if (!file.mkdir()) {
-        // erreur?
-      }
+    file.deleteOnExit();
+    if (!file.mkdirs()) {
+      new RuntimeException(workDir + " could not be created");
     }
+
     return workDir;
   }
 

@@ -7,17 +7,30 @@ import java.util.stream.Stream;
 
 public class StravaData {
   File zipFile;
+  File saveFile;
   File connectionFile;
   File jsonDataFile;
 
   public StravaData(File zipFile, File connectionFile, File jsonDataFile) {
     this.zipFile = zipFile;
+    this.saveFile = zipFile;
     this.connectionFile = connectionFile;
     this.jsonDataFile = jsonDataFile;
   }
 
-  public File getZipFile() {
-    return zipFile;
+  public StravaData(File zipFile, File saveFile, File connectionFile, File jsonDataFile) {
+    this.zipFile = zipFile;
+    this.saveFile = saveFile;
+    this.connectionFile = connectionFile;
+    this.jsonDataFile = jsonDataFile;
+  }
+
+  public File getSaveFile() {
+    return saveFile;
+  }
+
+  public void setSaveFile(File saveFile) {
+    this.saveFile = saveFile;
   }
 
   public File getConnectionFile() {
@@ -38,4 +51,5 @@ public class StravaData {
         .map(File::getAbsolutePath)
         .toList();
   }
+
 }

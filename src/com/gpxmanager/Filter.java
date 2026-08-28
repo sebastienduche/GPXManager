@@ -9,6 +9,7 @@ public class Filter extends FileFilter {
 
   public static final Filter FILTER_GPX = new Filter("gpx", Utils.getLabel("filter.file"));
   public static final Filter FILTER_ZIP = new Filter("zip", Utils.getLabel("filter.file.zip"));
+  public static final Filter FILTER_JSON = new Filter("json", Utils.getLabel("filter.file.json"));
 
   private final List<String> suffixes;
   private final String description;

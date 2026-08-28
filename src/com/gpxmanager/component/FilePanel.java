@@ -23,7 +23,9 @@ public class FilePanel extends JPanel {
   private File file;
 
   public FilePanel(Type type) {
-    this(type, getLabel("select.file"), type == Type.SAVE_ZIP ? getLabel("select.file.zip") : null);
+    this(type, getLabel("select.file"),
+        type == Type.SAVE_ZIP ? getLabel("select.file.zip") :
+            type == Type.OPEN_ZIP ? getLabel("select.open.zip") : null);
   }
 
 
@@ -53,7 +55,7 @@ public class FilePanel extends JPanel {
     return file;
   }
 
-  public enum Type {OPEN, SAVE, SAVE_ZIP}
+  public enum Type {OPEN, SAVE, SAVE_ZIP, OPEN_ZIP}
 
   private class BrowseAction extends AbstractAction {
     public BrowseAction() {
@@ -68,7 +70,11 @@ public class FilePanel extends JPanel {
         boiteFichier.removeChoosableFileFilter(boiteFichier.getFileFilter());
         boiteFichier.addChoosableFileFilter(Filter.FILTER_ZIP);
       }
-      if (type == Type.OPEN) {
+      if (type == Type.OPEN || type == Type.OPEN_ZIP) {
+        if (type == Type.OPEN_ZIP) {
+          boiteFichier.removeChoosableFileFilter(boiteFichier.getFileFilter());
+          boiteFichier.addChoosableFileFilter(Filter.FILTER_ZIP);
+        }
         if (JFileChooser.APPROVE_OPTION == boiteFichier.showOpenDialog(null)) {
           file = boiteFichier.getSelectedFile();
           updateFileTextField();

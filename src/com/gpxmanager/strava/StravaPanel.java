@@ -299,7 +299,7 @@ public class StravaPanel extends JPanel implements ITabListener {
 
   }
 
-  private static void save() {
+  public static void save() {
     Utils.saveFile(stravaPanel.activities);
   }
 
