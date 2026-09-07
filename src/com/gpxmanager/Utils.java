@@ -1,6 +1,10 @@
 package com.gpxmanager;
 
+import com.gpxmanager.csv.ActivityConverter;
 import com.gpxmanager.csv.CsvToJson;
+import com.gpxmanager.csv.CsvToJsonUtil;
+import com.gpxmanager.csv.Reaction;
+import com.gpxmanager.csv.ReactionConverter;
 import com.gpxmanager.geocalc.Degree;
 import com.gpxmanager.geocalc.EarthCalc;
 import com.gpxmanager.gpx.beans.Waypoint;
@@ -53,6 +57,9 @@ public class Utils {
   public static final DateTimeFormatter DATE_FORMATER_DD_MM_YYYY = DateTimeFormatter.ofPattern("dd-MM-yyyy");
   public static final String DEBUG_DIRECTORY = "MyGPXManagerDebug";
   public static final int METER_IN_KM = 1000;
+  public static final String STRAVA_ARCHIVES_ACTIVITIES_CSV = "activities.csv";
+  public static final String STRAVA_ARCHIVES_REACTIONS_CSV = "reactions.csv";
+  public static final String STRAVA_ALL_JSON = "stravaAll.json";
 
   private static ResourceBundle labels;
   private static Locale locale;
@@ -313,6 +320,9 @@ public class Utils {
   public static StravaData loadStravaDataFile(File file) {
     if (file == null) {
       String existingFile = getPreference(STRAVA_ZIP_DATA, null);
+      if (existingFile == null) {
+        throw new RuntimeException("Unable to load Strava Data file");
+      }
       file = new File(existingFile);
     }
     if (checkFileExtension(file, Filter.FILTER_ZIP) && file.exists()) {
@@ -324,9 +334,9 @@ public class Utils {
       }
       return new StravaData(file,
           new File(getWorkDir(), "stravaConnection.txt"),
-          new File(getWorkDir(), "stravaAll.json"));
+          new File(getWorkDir(), STRAVA_ALL_JSON));
     }
-    if (file != null && file.exists()) {
+    if (file.exists()) {
       return new StravaData(null, file, null, file);
     }
     return new StravaData(null,
@@ -336,16 +346,24 @@ public class Utils {
 
   public static StravaData loadStravaArchiveDataFile(File file) {
     if (checkFileExtension(file, Filter.FILTER_ZIP) && file.exists()) {
+      List<Activity> activities;
       try {
         unzipFile(file, new File(getWorkDir()));
-        CsvToJson.convertCsvToJson(new File(getWorkDir(), "activities.csv"), new File(getWorkDir(), "stravaAll.json"));
+        CsvToJson<Activity> activityCsvToJson = new CsvToJson<>(new ActivityConverter(), Activity.class);
+        activityCsvToJson.convertCsvToJson(new File(getWorkDir(), STRAVA_ARCHIVES_ACTIVITIES_CSV), new File(getWorkDir(), STRAVA_ALL_JSON));
+        List<Reaction> reactions = new CsvToJson<>(new ReactionConverter(), Reaction.class).convertCsvToJsonObject(
+            new File(getWorkDir(), STRAVA_ARCHIVES_REACTIONS_CSV));
+        activities = activityCsvToJson.readJson(new File(getWorkDir(), STRAVA_ALL_JSON));
+        CsvToJsonUtil.mergeReactions(activities, reactions);
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
-      return new StravaData(file,
+      StravaData stravaData = new StravaData(file,
           new File(file.getParentFile().getAbsolutePath(), getFileWithoutExtension(file, Filter.FILTER_ZIP.toString()) + "temp" + Filter.FILTER_ZIP),
           new File(getWorkDir(), "stravaConnection.txt"),
-          new File(getWorkDir(), "stravaAll.json"));
+          new File(getWorkDir(), STRAVA_ALL_JSON));
+      stravaData.setActivities(activities);
+      return stravaData;
     }
     return new StravaData(null,
         new File(getPreference(STRAVA_ALL_DATA, null)),

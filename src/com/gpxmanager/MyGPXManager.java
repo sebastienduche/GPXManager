@@ -100,7 +100,7 @@ import static com.gpxmanager.Utils.loadStravaDataFile;
 import static com.gpxmanager.gpx.GPXUtils.getGpxParser;
 
 public final class MyGPXManager extends JFrame {
-  public static final String INTERNAL_VERSION = "22.6";
+  public static final String INTERNAL_VERSION = "23.5";
   public static final String VERSION = "7.0";
   public static final Gson GSON = new Gson();
   private static final MyAutoHideLabel INFO_LABEL = new MyAutoHideLabel();
@@ -128,7 +128,9 @@ public final class MyGPXManager extends JFrame {
   // Check recent open
   // Check extensions
   // export Strava keys in readable format
-  // Count days strek + best
+  // Count days streak + best
+  // Add list of best climb
+  // Check save -> create a zip with strava archive but without all CSV
 
   public MyGPXManager() throws HeadlessException {
     instance = this;
@@ -368,6 +370,9 @@ public final class MyGPXManager extends JFrame {
     StravaData loadedStravaDataFile = loadStravaArchiveDataFile(file);
     if (loadedStravaDataFile.hasJsonDataFile() && loadedStravaDataFile.getJsonDataFile().exists()) {
       MyGPXManager.setStravaData(loadedStravaDataFile);
+      if (loadedStravaDataFile.hasActivities()) {
+        return loadedStravaDataFile.getActivities();
+      }
       try {
         String json = Files.readString(loadedStravaDataFile.getJsonDataFile().toPath(), StandardCharsets.UTF_8);
         return new ArrayList<>(List.of(GSON.fromJson(json, Activity[].class)));
