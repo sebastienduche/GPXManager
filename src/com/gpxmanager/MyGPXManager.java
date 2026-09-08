@@ -38,6 +38,7 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import java.awt.BorderLayout;
@@ -71,6 +72,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -100,7 +102,7 @@ import static com.gpxmanager.Utils.loadStravaDataFile;
 import static com.gpxmanager.gpx.GPXUtils.getGpxParser;
 
 public final class MyGPXManager extends JFrame {
-  public static final String INTERNAL_VERSION = "23.5";
+  public static final String INTERNAL_VERSION = "23.6";
   public static final String VERSION = "7.0";
   public static final Gson GSON = new Gson();
   private static final MyAutoHideLabel INFO_LABEL = new MyAutoHideLabel();
@@ -109,7 +111,6 @@ public final class MyGPXManager extends JFrame {
   private static JMenuItem saveFile;
   //  private static JMenuItem saveAsFile;
   private static JMenuItem connectToStravaMenuItem;
-  private static JMenuItem openStravaArchiveMenuItem;
   private static JMenuItem sendToDevice;
   private static MyGPXManager instance;
   private static JButton saveButton;
@@ -123,7 +124,7 @@ public final class MyGPXManager extends JFrame {
 
   // TODO
   // Manage PRs/ Kudos (not present in CSV files)
-  // Show when file is saved or loading in progress
+  // Show when file is saved
   // Check behaviours of menus
   // Check recent open
   // Check extensions
@@ -165,8 +166,7 @@ public final class MyGPXManager extends JFrame {
     connectToStravaMenuItem = new JMenuItem(new ConnectToStravaAction());
     menuStrava.add(connectToStravaMenuItem);
     connectToStravaMenuItem.setEnabled(!getPreference(STRAVA, "").isBlank());
-    openStravaArchiveMenuItem = new JMenuItem(new LoadStravaExportAction());
-    menuStrava.add(openStravaArchiveMenuItem);
+    menuStrava.add(new JMenuItem(new LoadStravaExportAction()));
     menuStrava.addSeparator();
     menuStrava.add(new JMenuItem(new ConfigureStravaFileAction()));
     JMenu menuAbout = new JMenu("?");
@@ -620,16 +620,32 @@ public final class MyGPXManager extends JFrame {
             JOptionPane.PLAIN_MESSAGE);
         if (filePanel.getFile() == null) {
           JOptionPane.showMessageDialog(getInstance(),
-              getLabel("strava.errorFile"), getLabel("error"), JOptionPane.ERROR_MESSAGE);
+              getLabel("strava.errorExportFile"), getLabel("error"), JOptionPane.ERROR_MESSAGE);
           return;
         }
         getInstance().setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-        List<Activity> activities = loadDataFromArchive(filePanel.getFile());
-        getInstance().setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+        var swingWorker = new SwingWorker<List<Activity>, List<Activity>>() {
+          @Override
+          protected List<Activity> doInBackground() {
+            return loadDataFromArchive(filePanel.getFile());
+          }
+
+          @Override
+          protected void done() {
+            try {
+              List<Activity> activities = get();
+              getInstance().setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+              myTabbedPane.addTab(getLabel("menu.strava"), MyGPXManagerImage.STRAVA, new StravaPanel(stravaConnection, activities), true);
+            } catch (InterruptedException | ExecutionException ex) {
+              throw new RuntimeException(ex);
+            }
+          }
+        };
+        swingWorker.execute();
+//        List<Activity> activities = loadDataFromArchive(filePanel.getFile());
 //        if (activities.isEmpty()) {
 //          activities = stravaConnection.getStrava().getCurrentAthleteActivities(1, 50);
 //        }
-        myTabbedPane.addTab(getLabel("menu.strava"), MyGPXManagerImage.STRAVA, new StravaPanel(stravaConnection, activities), true);
       } catch (IOException | URISyntaxException | StravaException ex) {
         throw new RuntimeException(ex);
       }
