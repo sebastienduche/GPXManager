@@ -122,7 +122,7 @@ public final class MyGPXManager extends JFrame {
   private StravaData stravaData;
 
   // TODO
-  // Manage PRs/ Kudos
+  // Manage PRs/ Kudos (not present in CSV files)
   // Show when file is saved or loading in progress
   // Check behaviours of menus
   // Check recent open
@@ -623,10 +623,12 @@ public final class MyGPXManager extends JFrame {
               getLabel("strava.errorFile"), getLabel("error"), JOptionPane.ERROR_MESSAGE);
           return;
         }
+        getInstance().setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         List<Activity> activities = loadDataFromArchive(filePanel.getFile());
-        if (activities.isEmpty()) {
-          activities = stravaConnection.getStrava().getCurrentAthleteActivities(1, 50);
-        }
+        getInstance().setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+//        if (activities.isEmpty()) {
+//          activities = stravaConnection.getStrava().getCurrentAthleteActivities(1, 50);
+//        }
         myTabbedPane.addTab(getLabel("menu.strava"), MyGPXManagerImage.STRAVA, new StravaPanel(stravaConnection, activities), true);
       } catch (IOException | URISyntaxException | StravaException ex) {
         throw new RuntimeException(ex);

@@ -148,9 +148,10 @@ public final class CsvToJson<T> {
 
 //    String jsonString = new CsvToJson(new ReactionConverter()).convertCsvToJsonString(new File("/Users/sebastien/Downloads/export_27594890/reactions.csv"));
 //    System.out.println(jsonString);
-    List<Reaction> reactions = new CsvToJson<>(new ReactionConverter(), Reaction.class).convertCsvToJsonObject(
-        new File("/Users/sebastien/Downloads/export_27594890/reactions.csv"));
-    System.out.println(reactions.size());
+//    List<Reaction> reactions = new CsvToJson<>(new ReactionConverter(), Reaction.class).convertCsvToJsonObject(
+//        new File("/Users/sebastien/Downloads/export_27594890/reactions.csv"));
+//    System.out.println(reactions.size());
+//    CsvToJsonUtil.mergeReactions(null, reactions);
   }
 
   public void convertCsvToJson(File inputFile, File outputFile) throws IOException {

@@ -2,9 +2,6 @@ package com.gpxmanager;
 
 import com.gpxmanager.csv.ActivityConverter;
 import com.gpxmanager.csv.CsvToJson;
-import com.gpxmanager.csv.CsvToJsonUtil;
-import com.gpxmanager.csv.Reaction;
-import com.gpxmanager.csv.ReactionConverter;
 import com.gpxmanager.geocalc.Degree;
 import com.gpxmanager.geocalc.EarthCalc;
 import com.gpxmanager.gpx.beans.Waypoint;
@@ -351,10 +348,10 @@ public class Utils {
         unzipFile(file, new File(getWorkDir()));
         CsvToJson<Activity> activityCsvToJson = new CsvToJson<>(new ActivityConverter(), Activity.class);
         activityCsvToJson.convertCsvToJson(new File(getWorkDir(), STRAVA_ARCHIVES_ACTIVITIES_CSV), new File(getWorkDir(), STRAVA_ALL_JSON));
-        List<Reaction> reactions = new CsvToJson<>(new ReactionConverter(), Reaction.class).convertCsvToJsonObject(
-            new File(getWorkDir(), STRAVA_ARCHIVES_REACTIONS_CSV));
+//        List<Reaction> reactions = new CsvToJson<>(new ReactionConverter(), Reaction.class).convertCsvToJsonObject(
+//            new File(getWorkDir(), STRAVA_ARCHIVES_REACTIONS_CSV));
         activities = activityCsvToJson.readJson(new File(getWorkDir(), STRAVA_ALL_JSON));
-        CsvToJsonUtil.mergeReactions(activities, reactions);
+//        CsvToJsonUtil.mergeReactions(activities, reactions);
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
