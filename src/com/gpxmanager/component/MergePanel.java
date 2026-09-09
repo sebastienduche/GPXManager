@@ -38,7 +38,7 @@ import java.util.Objects;
 
 import static com.gpxmanager.Utils.checkFileExtension;
 import static com.gpxmanager.Utils.checkFileNameWithExtension;
-import static com.gpxmanager.Utils.createFileChooser;
+import static com.gpxmanager.Utils.createGPXFileChooser;
 import static com.gpxmanager.Utils.getLabel;
 import static com.gpxmanager.component.MergePanel.MergeTableModel.MergeTableColumn.DELETE;
 import static com.gpxmanager.component.MergePanel.MergeTableModel.MergeTableColumn.DOWN;
@@ -197,7 +197,7 @@ public class MergePanel extends JPanel implements ITabListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-      JFileChooser fileChooser = createFileChooser();
+      JFileChooser fileChooser = createGPXFileChooser();
       fileChooser.setMultiSelectionEnabled(true);
       fileChooser.setCurrentDirectory(previousDir);
       if (JFileChooser.APPROVE_OPTION == fileChooser.showOpenDialog(null)) {
@@ -230,7 +230,7 @@ public class MergePanel extends JPanel implements ITabListener {
         JOptionPane.showMessageDialog(null, getLabel("merge.one.file"), getLabel("error"), JOptionPane.ERROR_MESSAGE);
         return;
       }
-      JFileChooser fileChooser = createFileChooser();
+      JFileChooser fileChooser = createGPXFileChooser();
       fileChooser.setCurrentDirectory(Utils.getOpenSaveDirectory());
       if (JFileChooser.APPROVE_OPTION == fileChooser.showSaveDialog(null)) {
         File file = fileChooser.getSelectedFile();

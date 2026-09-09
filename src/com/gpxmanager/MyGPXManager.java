@@ -91,7 +91,7 @@ import static com.gpxmanager.ProgramPreferences.setPreference;
 import static com.gpxmanager.Utils.DATE_FORMATER_DD_MM_YYYY;
 import static com.gpxmanager.Utils.DEBUG_DIRECTORY;
 import static com.gpxmanager.Utils.checkFileNameWithExtension;
-import static com.gpxmanager.Utils.createFileChooser;
+import static com.gpxmanager.Utils.createGPXFileChooser;
 import static com.gpxmanager.Utils.createJSONFileChooser;
 import static com.gpxmanager.Utils.getLabel;
 import static com.gpxmanager.Utils.getWorkDir;
@@ -750,7 +750,7 @@ public final class MyGPXManager extends JFrame {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-      JFileChooser fileChooser = createFileChooser();
+      JFileChooser fileChooser = createGPXFileChooser();
       fileChooser.setCurrentDirectory(Utils.getOpenSaveDirectory());
       fileChooser.setMultiSelectionEnabled(true);
       if (JFileChooser.APPROVE_OPTION == fileChooser.showOpenDialog(instance)) {
@@ -836,7 +836,7 @@ public final class MyGPXManager extends JFrame {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-      JFileChooser fileChooser = createFileChooser();
+      JFileChooser fileChooser = createGPXFileChooser();
       if (openedFiles.isEmpty()) {
         if (JFileChooser.APPROVE_OPTION == fileChooser.showSaveDialog(instance)) {
           File openedFile = fileChooser.getSelectedFile();
@@ -872,8 +872,12 @@ public final class MyGPXManager extends JFrame {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-      JFileChooser fileChooser = createFileChooser();
-      fileChooser.addChoosableFileFilter(Filter.FILTER_JSON);
+      JFileChooser fileChooser;
+      if (myTabbedPane.getSelectedIndex() != -1 && myTabbedPane.getSelectedComponent() instanceof GPXPropertiesPanel) {
+        fileChooser = createGPXFileChooser();
+      } else {
+        fileChooser = createJSONFileChooser();
+      }
       fileChooser.setCurrentDirectory(Utils.getOpenSaveDirectory());
       if (JFileChooser.APPROVE_OPTION == fileChooser.showSaveDialog(instance)) {
         File file = fileChooser.getSelectedFile();

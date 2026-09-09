@@ -32,7 +32,7 @@ import java.text.ParseException;
 import java.util.Objects;
 
 import static com.gpxmanager.Utils.checkFileNameWithExtension;
-import static com.gpxmanager.Utils.createFileChooser;
+import static com.gpxmanager.Utils.createGPXFileChooser;
 import static com.gpxmanager.Utils.getLabel;
 
 public class InvertPanel extends JPanel implements ITabListener {
@@ -136,7 +136,7 @@ public class InvertPanel extends JPanel implements ITabListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-      JFileChooser fileChooser = createFileChooser();
+      JFileChooser fileChooser = createGPXFileChooser();
       fileChooser.setCurrentDirectory(Utils.getOpenSaveDirectory());
       if (JFileChooser.APPROVE_OPTION == fileChooser.showOpenDialog(null)) {
         file = fileChooser.getSelectedFile();
@@ -163,7 +163,7 @@ public class InvertPanel extends JPanel implements ITabListener {
         JOptionPane.showMessageDialog(null, getLabel("invert.no.file"), getLabel("error"), JOptionPane.ERROR_MESSAGE);
         return;
       }
-      JFileChooser fileChooser = createFileChooser();
+      JFileChooser fileChooser = createGPXFileChooser();
       fileChooser.setCurrentDirectory(Utils.getOpenSaveDirectory());
       if (JFileChooser.APPROVE_OPTION == fileChooser.showSaveDialog(null)) {
         File file = fileChooser.getSelectedFile();

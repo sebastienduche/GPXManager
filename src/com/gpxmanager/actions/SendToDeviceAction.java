@@ -18,7 +18,7 @@ import java.text.MessageFormat;
 import java.util.List;
 import java.util.Objects;
 
-import static com.gpxmanager.Utils.createFileChooser;
+import static com.gpxmanager.Utils.createGPXFileChooser;
 import static com.gpxmanager.Utils.getLabel;
 
 public class SendToDeviceAction extends AbstractAction {
@@ -54,7 +54,7 @@ public class SendToDeviceAction extends AbstractAction {
       sendToDevice(List.of(gpxFile));
       return;
     }
-    JFileChooser fileChooser = createFileChooser();
+    JFileChooser fileChooser = createGPXFileChooser();
     fileChooser.setMultiSelectionEnabled(true);
     if (JFileChooser.APPROVE_OPTION == fileChooser.showOpenDialog(MyGPXManager.getInstance())) {
       List<File> selectedFiles = List.of(fileChooser.getSelectedFiles());

@@ -259,7 +259,7 @@ public class Utils {
     return fileName.substring(0, fileName.indexOf(extension));
   }
 
-  public static JFileChooser createFileChooser() {
+  public static JFileChooser createGPXFileChooser() {
     JFileChooser fileChooser = new JFileChooser();
     fileChooser.removeChoosableFileFilter(fileChooser.getFileFilter());
     fileChooser.addChoosableFileFilter(Filter.FILTER_GPX);
