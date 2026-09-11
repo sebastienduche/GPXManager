@@ -11,30 +11,30 @@ public class StravaData {
   private final File zipFile;
   private final File connectionFile;
   private final File jsonDataFile;
-  private File saveFile;
+  //  private File saveFile;
   private List<Activity> activities;
 
   public StravaData(File zipFile, File connectionFile, File jsonDataFile) {
     this.zipFile = zipFile;
-    this.saveFile = zipFile;
+//    this.saveFile = zipFile;
     this.connectionFile = connectionFile;
     this.jsonDataFile = jsonDataFile;
   }
 
   public StravaData(File zipFile, File saveFile, File connectionFile, File jsonDataFile) {
     this.zipFile = zipFile;
-    this.saveFile = saveFile;
+//    this.saveFile = saveFile;
     this.connectionFile = connectionFile;
     this.jsonDataFile = jsonDataFile;
   }
 
-  public File getSaveFile() {
-    return saveFile;
-  }
-
-  public void setSaveFile(File saveFile) {
-    this.saveFile = saveFile;
-  }
+//  public File getSaveFile() {
+//    return saveFile;
+//  }
+//
+//  public void setSaveFile(File saveFile) {
+//    this.saveFile = saveFile;
+//  }
 
   public File getConnectionFile() {
     return connectionFile;

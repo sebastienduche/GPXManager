@@ -5,6 +5,7 @@ import com.gpxmanager.csv.CsvToJson;
 import com.gpxmanager.geocalc.Degree;
 import com.gpxmanager.geocalc.EarthCalc;
 import com.gpxmanager.gpx.beans.Waypoint;
+import com.gpxmanager.strava.StravaArchiveData;
 import com.gpxmanager.strava.StravaData;
 import org.jstrava.entities.Activity;
 import org.jstrava.entities.SegmentEffort;
@@ -220,6 +221,16 @@ public class Utils {
     return file;
   }
 
+  public static File hasZIPExtension(File file) {
+    if (file == null) {
+      return null;
+    }
+    if (!file.getName().toLowerCase().endsWith(Filter.FILTER_ZIP.toString())) {
+      return null;
+    }
+    return file;
+  }
+
   public static File checkFileNameWithZIPExtension(File file) {
     if (file == null) {
       return null;
@@ -273,6 +284,14 @@ public class Utils {
     return fileChooser;
   }
 
+  public static JFileChooser createJSONZIPFileChooser() {
+    JFileChooser fileChooser = new JFileChooser();
+    fileChooser.removeChoosableFileFilter(fileChooser.getFileFilter());
+    fileChooser.addChoosableFileFilter(Filter.FILTER_JSON);
+    fileChooser.addChoosableFileFilter(Filter.FILTER_ZIP);
+    return fileChooser;
+  }
+
   public static int getStartYear(Activity activity) {
     try {
       return TIMESTAMP.parse(activity.getStartDateLocal()).getYear() + 1900;
@@ -314,13 +333,17 @@ public class Utils {
     }
   }
 
+  public static StravaData loadStravaDataFileFromPreferences() {
+    String existingFile = getPreference(STRAVA_ZIP_DATA, null);
+    if (existingFile == null) {
+      throw new RuntimeException("Unable to load Strava Data file");
+    }
+    return loadStravaDataFile(new File(existingFile));
+  }
+
   public static StravaData loadStravaDataFile(File file) {
     if (file == null) {
-      String existingFile = getPreference(STRAVA_ZIP_DATA, null);
-      if (existingFile == null) {
-        throw new RuntimeException("Unable to load Strava Data file");
-      }
-      file = new File(existingFile);
+      throw new RuntimeException("File is null");
     }
     if (checkFileExtension(file, Filter.FILTER_ZIP) && file.exists()) {
       try {
@@ -341,7 +364,7 @@ public class Utils {
         new File(getPreference(STRAVA_ALL_DATA, null)));
   }
 
-  public static StravaData loadStravaArchiveDataFile(File file) {
+  public static StravaArchiveData loadStravaArchiveDataFile(File file) {
     if (checkFileExtension(file, Filter.FILTER_ZIP) && file.exists()) {
       List<Activity> activities;
       try {
@@ -355,30 +378,34 @@ public class Utils {
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
-      StravaData stravaData = new StravaData(file,
+      StravaArchiveData stravaData = new StravaArchiveData(file,
           new File(file.getParentFile().getAbsolutePath(), getFileWithoutExtension(file, Filter.FILTER_ZIP.toString()) + "temp" + Filter.FILTER_ZIP),
-          new File(getWorkDir(), "stravaConnection.txt"),
           new File(getWorkDir(), STRAVA_ALL_JSON));
       stravaData.setActivities(activities);
       return stravaData;
     }
-    return new StravaData(null,
-        new File(getPreference(STRAVA_ALL_DATA, null)),
-        new File(getPreference(STRAVA, null)),
-        new File(getPreference(STRAVA_ALL_DATA, null)));
+    return null;
   }
 
-  public static void saveFile(List<Activity> activities) {
-    StravaData stravaData = MyGPXManager.getStravaData();
-    if (checkFileExtension(stravaData.getSaveFile(), Filter.FILTER_ZIP)) {
-      writeToFile(GSON.toJson(activities), stravaData.getJsonDataFile());
+  public static void saveArchiveFile(List<Activity> activities, StravaArchiveData file, File newArchiveFile) {
+    if (newArchiveFile == null) {
+      newArchiveFile = file.getZipFileToSave();
+    }
+    if (checkFileExtension(newArchiveFile, Filter.FILTER_ZIP)) {
+      writeToFile(GSON.toJson(activities), file.getJsonDataFile());
       try {
-        zipFiles(stravaData.getFilesToSave(), stravaData.getSaveFile());
+        zipFiles(file.getFilesToSave(), newArchiveFile);
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
     } else {
-      writeToFile(GSON.toJson(activities), stravaData.getSaveFile());
+      throw new RuntimeException("Invalid archive file");
+    }
+  }
+
+  public static void saveFile(List<Activity> activities, File file) {
+    if (checkFileExtension(file, Filter.FILTER_JSON)) {
+      writeToFile(GSON.toJson(activities), file);
     }
   }
 
