@@ -85,7 +85,6 @@ import static com.gpxmanager.ProgramPreferences.FILE4;
 import static com.gpxmanager.ProgramPreferences.LOCALE;
 import static com.gpxmanager.ProgramPreferences.LOCATION_X;
 import static com.gpxmanager.ProgramPreferences.LOCATION_Y;
-import static com.gpxmanager.ProgramPreferences.STRAVA;
 import static com.gpxmanager.ProgramPreferences.STRAVA_ZIP_DATA;
 import static com.gpxmanager.ProgramPreferences.getPreference;
 import static com.gpxmanager.ProgramPreferences.setPreference;
@@ -167,7 +166,7 @@ public final class MyGPXManager extends JFrame {
     menuStrava.add(new JMenuItem(new FirstConnectionToStravaAction()));
     connectToStravaMenuItem = new JMenuItem(new ConnectToStravaAction());
     menuStrava.add(connectToStravaMenuItem);
-    connectToStravaMenuItem.setEnabled(!getPreference(STRAVA, "").isBlank());
+    connectToStravaMenuItem.setEnabled(!getPreference(STRAVA_ZIP_DATA, "").isBlank());
     menuStrava.add(new JMenuItem(new LoadStravaExportAction()));
     menuStrava.addSeparator();
     menuStrava.add(new JMenuItem(new ConfigureStravaFileAction()));
@@ -251,11 +250,10 @@ public final class MyGPXManager extends JFrame {
     toolBar.addSeparator();
     stravaButton = new JButton(new ConnectToStravaAction());
     stravaButton.setText("");
-    stravaButton.setEnabled(!getPreference(STRAVA, "").isBlank());
+    stravaButton.setEnabled(!getPreference(STRAVA_ZIP_DATA, "").isBlank());
     toolBar.add(stravaButton);
     stravaExportButton = new JButton(new LoadStravaExportAction());
     stravaExportButton.setText("");
-    stravaExportButton.setEnabled(!getPreference(STRAVA, "").isBlank());
     toolBar.add(stravaExportButton);
     toolBar.setFloatable(true);
     setFileOpened(null);
@@ -536,7 +534,6 @@ public final class MyGPXManager extends JFrame {
         if (identificationStorage instanceof FileIdentificationStorage) {
           // The file contains the data
           File fileSaved = ((FileIdentificationStorage) identificationStorage).getFile();
-          ProgramPreferences.setPreference(ProgramPreferences.STRAVA, fileSaved.getAbsolutePath());
           boolean isAvailable = fileSaved.exists();
           connectToStravaMenuItem.setEnabled(isAvailable);
           stravaButton.setEnabled(isAvailable);
