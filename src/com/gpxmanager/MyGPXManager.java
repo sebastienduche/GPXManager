@@ -94,6 +94,7 @@ import static com.gpxmanager.Utils.checkFileNameWithExtension;
 import static com.gpxmanager.Utils.createGPXFileChooser;
 import static com.gpxmanager.Utils.createJSONFileChooser;
 import static com.gpxmanager.Utils.createJSONZIPFileChooser;
+import static com.gpxmanager.Utils.createZIPFileChooser;
 import static com.gpxmanager.Utils.deleteWorkDirectory;
 import static com.gpxmanager.Utils.getLabel;
 import static com.gpxmanager.Utils.hasGPXExtension;
@@ -126,7 +127,6 @@ public final class MyGPXManager extends JFrame {
 
   // TODO
   // Manage PRs/ Kudos (not present in CSV files)
-  // Menu to open ZIP filr
   // Show when file is saved
   // Check behaviours of menus
   // Check recent open
@@ -174,6 +174,7 @@ public final class MyGPXManager extends JFrame {
     menuBar.add(menuAbout);
     menuFile.add(new JMenuItem(new OpenJSONFileAction()));
     menuFile.add(new JMenuItem(new OpenGPXFileAction()));
+    menuFile.add(new JMenuItem(new OpenZIPFileAction()));
     menuFile.add(closeFile = new JMenuItem(new CloseFileAction()));
     menuFile.addSeparator();
     menuFile.add(saveFile);
@@ -771,6 +772,33 @@ public final class MyGPXManager extends JFrame {
           return;
         }
         file = hasJSONExtension(file);
+        if (file != null) {
+          Utils.setOpenSaveDirectory(file.getParentFile());
+          StravaData stravaData = loadStravaDataFile(file);
+          List<Activity> activities = loadDataIfExist(stravaData);
+          myTabbedPane.addTab(getLabel("menu.strava"), MyGPXManagerImage.STRAVA, new StravaPanel(null, activities, stravaData), true);
+        }
+        setCursor(Cursor.getDefaultCursor());
+      }
+    }
+  }
+
+  class OpenZIPFileAction extends AbstractAction {
+    public OpenZIPFileAction() {
+      super(getLabel("menu.openZIPFile"), MyGPXManagerImage.OPEN);
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      JFileChooser fileChooser = createZIPFileChooser();
+      fileChooser.setCurrentDirectory(Utils.getOpenSaveDirectory());
+      fileChooser.setMultiSelectionEnabled(false);
+      if (JFileChooser.APPROVE_OPTION == fileChooser.showOpenDialog(instance)) {
+        File file = fileChooser.getSelectedFile();
+        if (file == null) {
+          return;
+        }
+        file = hasZIPExtension(file);
         if (file != null) {
           Utils.setOpenSaveDirectory(file.getParentFile());
           StravaData stravaData = loadStravaDataFile(file);

@@ -283,6 +283,13 @@ public class Utils {
     return fileChooser;
   }
 
+  public static JFileChooser createZIPFileChooser() {
+    JFileChooser fileChooser = new JFileChooser();
+    fileChooser.removeChoosableFileFilter(fileChooser.getFileFilter());
+    fileChooser.addChoosableFileFilter(Filter.FILTER_ZIP);
+    return fileChooser;
+  }
+
   public static JFileChooser createJSONZIPFileChooser() {
     JFileChooser fileChooser = new JFileChooser();
     fileChooser.removeChoosableFileFilter(fileChooser.getFileFilter());
