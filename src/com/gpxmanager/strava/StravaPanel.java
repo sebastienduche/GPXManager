@@ -44,7 +44,6 @@ import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Desktop;
 import java.awt.event.ActionEvent;
-import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.text.MessageFormat;
@@ -64,7 +63,7 @@ import static com.gpxmanager.Utils.getLabel;
 import static com.gpxmanager.Utils.kmHToMeterPerSecond;
 import static com.gpxmanager.Utils.meterPerSecondToKmH;
 import static com.gpxmanager.Utils.roundValue;
-import static com.gpxmanager.Utils.saveFile;
+import static com.gpxmanager.Utils.saveJsonFile;
 import static com.gpxmanager.strava.StravaTableModel.StravaTableColumn.COL_ALTITUDE;
 import static com.gpxmanager.strava.StravaTableModel.StravaTableColumn.COL_DATE;
 import static com.gpxmanager.strava.StravaTableModel.StravaTableColumn.COL_DISTANCE;
@@ -294,7 +293,7 @@ public class StravaPanel extends JPanel implements ITabListener {
   private static void removeActivityAtRow(Activity oldActivity, int selectedRow) {
     stravaPanel.activities.remove(oldActivity);
     stravaPanel.stravaTableModel.fireTableRowsDeleted(selectedRow, selectedRow);
-    save(stravaPanel.stravaData.getJsonDataFile());
+    Utils.saveJsonFile(stravaPanel.activities, stravaPanel.stravaData.getJsonDataFile());
   }
 
   private static void updateActivity(Activity oldActivity, int selectedRow, Activity newActivity) {
@@ -303,7 +302,7 @@ public class StravaPanel extends JPanel implements ITabListener {
     stravaPanel.activities.add(i, newActivity);
     stravaPanel.stravaTableModel.setActivityAt(selectedRow, newActivity);
     stravaPanel.infoLabel.setText(getLabel("strava.updateActivity.done"), true);
-    save(stravaPanel.stravaData.getJsonDataFile());
+    Utils.saveJsonFile(stravaPanel.activities, stravaPanel.stravaData.getJsonDataFile());
   }
 
   public static Activity findActivityFromStrava(long id) throws StravaException {
@@ -312,10 +311,6 @@ public class StravaPanel extends JPanel implements ITabListener {
     }
     return stravaPanel.stravaConnection.getStrava().findActivity(id, true);
 
-  }
-
-  public static void save(File file) {
-    Utils.saveFile(stravaPanel.activities, file);
   }
 
   private void populateGearCombo() {
@@ -411,7 +406,7 @@ public class StravaPanel extends JPanel implements ITabListener {
       activities = activities.stream().sorted(comparingLong(Activity::getId).reversed()).collect(Collectors.toList());
       gears = enrichWithGear(activities);
       setActivities(activities);
-      saveFile(activities, stravaData.getJsonDataFile());
+      saveJsonFile(activities, stravaData.getJsonDataFile());
       populateGearCombo();
       infoLabel.setText(MessageFormat.format(getLabel("strava.countNew"), newActivities.size()), true);
       setCursor(Cursor.getDefaultCursor());
@@ -523,7 +518,7 @@ public class StravaPanel extends JPanel implements ITabListener {
           currentAthleteActivities = stravaConnection.getStrava().getCurrentAthleteActivitiesAll();
           gears = enrichWithGear(currentAthleteActivities);
           setActivities(currentAthleteActivities);
-          Utils.saveFile(currentAthleteActivities, stravaData.getJsonDataFile());
+          Utils.saveJsonFile(currentAthleteActivities, stravaData.getJsonDataFile());
           infoLabel.setText("", true);
           populateGearCombo();
         } catch (StravaException ex) {
@@ -593,13 +588,12 @@ public class StravaPanel extends JPanel implements ITabListener {
           activities.remove(foundActivity);
           activities.add(activityFromStrava);
           setActivities(activities);
-          save(stravaData.getJsonDataFile());
         }
       } else {
         activities.add(activityFromStrava);
         setActivities(activities);
-        save(stravaData.getJsonDataFile());
       }
+      Utils.saveJsonFile(activities, stravaData.getJsonDataFile());
     }
   }
 
@@ -700,7 +694,7 @@ public class StravaPanel extends JPanel implements ITabListener {
       panel.add(text, "growx");
       if (JOptionPane.OK_OPTION == JOptionPane.showOptionDialog(null, panel, getLabel("strava.updateMaxSpeed"), JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, null, null)) {
         activity.setMaxSpeed(kmHToMeterPerSecond(Double.parseDouble(text.getText().replace(',', '.'))));
-        save(stravaData.getJsonDataFile());
+        Utils.saveJsonFile(activities, stravaData.getJsonDataFile());
       }
     }
   }

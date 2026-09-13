@@ -39,7 +39,6 @@ import java.util.zip.ZipOutputStream;
 
 import static com.gpxmanager.MyGPXManager.GSON;
 import static com.gpxmanager.ProgramPreferences.DIR;
-import static com.gpxmanager.ProgramPreferences.STRAVA;
 import static com.gpxmanager.ProgramPreferences.STRAVA_ALL_DATA;
 import static com.gpxmanager.ProgramPreferences.STRAVA_ZIP_DATA;
 import static com.gpxmanager.ProgramPreferences.getPreference;
@@ -350,18 +349,16 @@ public class Utils {
         unzipFile(file, new File(getWorkDir()));
         ProgramPreferences.removePreference(STRAVA_ALL_DATA);
       } catch (IOException e) {
-        throw new RuntimeException(e);
+        throw new RuntimeException("Unable to unzip the file", e);
       }
       return new StravaData(file,
           new File(getWorkDir(), "stravaConnection.txt"),
           new File(getWorkDir(), STRAVA_ALL_JSON));
     }
     if (file.exists()) {
-      return new StravaData(null, file, null, file);
+      return new StravaData(file);
     }
-    return new StravaData(null,
-        new File(getPreference(STRAVA, null)),
-        new File(getPreference(STRAVA_ALL_DATA, null)));
+    throw new RuntimeException("File [%s] does not exist. Unable to load the file".formatted(file.getAbsolutePath()));
   }
 
   public static StravaArchiveData loadStravaArchiveDataFile(File file) {
@@ -396,14 +393,14 @@ public class Utils {
       try {
         zipFiles(file.getFilesToSave(), newArchiveFile);
       } catch (IOException e) {
-        throw new RuntimeException(e);
+        throw new RuntimeException("Unable to zip file [%s]".formatted(newArchiveFile.getAbsolutePath()), e);
       }
     } else {
       throw new RuntimeException("Invalid archive file");
     }
   }
 
-  public static void saveFile(List<Activity> activities, File file) {
+  public static void saveJsonFile(List<Activity> activities, File file) {
     if (checkFileExtension(file, Filter.FILTER_JSON)) {
       writeToFile(GSON.toJson(activities), file);
     }
@@ -503,7 +500,11 @@ public class Utils {
     return destFile;
   }
 
-  public static void deleteDirectory(File directoryToBeDeleted) {
+  public static void deleteWorkDirectory() {
+    Utils.deleteDirectory(new File(workDir));
+  }
+
+  private static void deleteDirectory(File directoryToBeDeleted) {
     File[] allContents = directoryToBeDeleted.listFiles();
     if (allContents != null) {
       for (File file : allContents) {

@@ -95,8 +95,8 @@ import static com.gpxmanager.Utils.checkFileNameWithExtension;
 import static com.gpxmanager.Utils.createGPXFileChooser;
 import static com.gpxmanager.Utils.createJSONFileChooser;
 import static com.gpxmanager.Utils.createJSONZIPFileChooser;
+import static com.gpxmanager.Utils.deleteWorkDirectory;
 import static com.gpxmanager.Utils.getLabel;
-import static com.gpxmanager.Utils.getWorkDir;
 import static com.gpxmanager.Utils.hasGPXExtension;
 import static com.gpxmanager.Utils.hasJSONExtension;
 import static com.gpxmanager.Utils.hasZIPExtension;
@@ -106,7 +106,7 @@ import static com.gpxmanager.Utils.loadStravaDataFileFromPreferences;
 import static com.gpxmanager.gpx.GPXUtils.getGpxParser;
 
 public final class MyGPXManager extends JFrame {
-  public static final String INTERNAL_VERSION = "24.1";
+  public static final String INTERNAL_VERSION = "24.5";
   public static final String VERSION = "7.0";
   public static final Gson GSON = new Gson();
   private static final MyAutoHideLabel INFO_LABEL = new MyAutoHideLabel();
@@ -289,10 +289,6 @@ public final class MyGPXManager extends JFrame {
     INFO_LABEL.setText(text, true);
   }
 
-  private static void cleanWorkDirectory() {
-    Utils.deleteDirectory(new File(getWorkDir()));
-  }
-
   private static void cleanDebugFiles() {
     String sDir = System.getProperty("user.home") + File.separator + "MyGPXManagerDebug";
     File f = new File(sDir);
@@ -353,10 +349,9 @@ public final class MyGPXManager extends JFrame {
     setInfoLabel(MessageFormat.format(getLabel("file.saved"), file.getAbsolutePath()));
   }
 
-  private static List<Activity> loadDataIfExist(StravaData loadedStravaDataFile) {
-    if (loadedStravaDataFile.hasJsonDataFile() && loadedStravaDataFile.getJsonDataFile().exists()) {
-//      MyGPXManager.setStravaData(loadedStravaDataFile);
-      try (FileReader fileReader = new FileReader(loadedStravaDataFile.getJsonDataFile());
+  private static List<Activity> loadDataIfExist(StravaData stravaData) {
+    if (stravaData.hasJsonDataFile() && stravaData.getJsonDataFile().exists()) {
+      try (FileReader fileReader = new FileReader(stravaData.getJsonDataFile());
            BufferedReader bufferedReader = new BufferedReader(fileReader)) {
         String json = bufferedReader.lines().reduce(String::concat).orElseThrow(() -> new RuntimeException("Erreur while concatening the json"));
         return new ArrayList<>(List.of(GSON.fromJson(json, Activity[].class)));
@@ -577,7 +572,6 @@ public final class MyGPXManager extends JFrame {
     @Override
     public void actionPerformed(ActionEvent e) {
       StravaData stravaData = loadStravaDataFileFromPreferences();
-//      File file = new File(getPreference(ProgramPreferences.STRAVA, ""));
       FileIdentificationStorage fileIdentificationStorage = new FileIdentificationStorage(stravaData.getConnectionFile());
 
       StravaConnection stravaConnection;
@@ -782,9 +776,9 @@ public final class MyGPXManager extends JFrame {
         file = hasJSONExtension(file);
         if (file != null) {
           Utils.setOpenSaveDirectory(file.getParentFile());
-          StravaData loadedStravaDataFile = loadStravaDataFile(file);
-          List<Activity> activities = loadDataIfExist(loadedStravaDataFile);
-          myTabbedPane.addTab(getLabel("menu.strava"), MyGPXManagerImage.STRAVA, new StravaPanel(null, activities, loadedStravaDataFile), true);
+          StravaData stravaData = loadStravaDataFile(file);
+          List<Activity> activities = loadDataIfExist(stravaData);
+          myTabbedPane.addTab(getLabel("menu.strava"), MyGPXManagerImage.STRAVA, new StravaPanel(null, activities, stravaData), true);
         }
         setCursor(Cursor.getDefaultCursor());
       }
@@ -881,27 +875,24 @@ public final class MyGPXManager extends JFrame {
           Utils.setOpenSaveDirectory(file.getParentFile());
           GPXPropertiesPanel selectedComponent = myTabbedPane.getSelectedComponent(GPXPropertiesPanel.class);
           save(selectedComponent.getGpx(), file);
-        }
-        tempFile = hasJSONExtension(file);
-        if (tempFile != null) {
-          StravaPanel.save(tempFile);
           setCursor(Cursor.getDefaultCursor());
-          setInfoLabel(MessageFormat.format(getLabel("file.saved"), tempFile.getAbsolutePath()));
           return;
         }
-        tempFile = hasZIPExtension(file);
-        if (tempFile != null && myTabbedPane.getSelectedIndex() != -1 && myTabbedPane.getSelectedComponent() instanceof StravaPanel) {
-          StravaPanel stravaPanel = (StravaPanel) myTabbedPane.getSelectedComponent();
-          if (stravaPanel != null && stravaPanel.getStravaData() instanceof StravaArchiveData) {
+        if (myTabbedPane.getSelectedIndex() != -1 && myTabbedPane.getSelectedComponent() instanceof StravaPanel stravaPanel) {
+          tempFile = hasJSONExtension(file);
+          if (tempFile != null) {
+            Utils.saveJsonFile(stravaPanel.getActivities(), tempFile);
+            setCursor(Cursor.getDefaultCursor());
+            setInfoLabel(MessageFormat.format(getLabel("file.saved"), tempFile.getAbsolutePath()));
+            return;
+          }
+          tempFile = hasZIPExtension(file);
+          if (tempFile != null && stravaPanel.getStravaData() instanceof StravaArchiveData) {
             Utils.saveArchiveFile(stravaPanel.getActivities(), (StravaArchiveData) stravaPanel.getStravaData(), tempFile);
             setInfoLabel(MessageFormat.format(getLabel("file.saved"), tempFile.getAbsolutePath()));
+            setCursor(Cursor.getDefaultCursor());
           }
-          setCursor(Cursor.getDefaultCursor());
         }
-//        StravaData stravaData = MyGPXManager.getStravaData();
-//        if (stravaData != null) {
-//          stravaData.setSaveFile(tempFile);
-//        }
       }
     }
   }
@@ -923,7 +914,7 @@ public final class MyGPXManager extends JFrame {
         setPreference(ProgramPreferences.WIDTH, String.valueOf(getSize().width));
         setPreference(ProgramPreferences.HEIGHT, String.valueOf(getSize().height));
         cleanDebugFiles();
-        cleanWorkDirectory();
+        deleteWorkDirectory();
         closeDebug();
         System.exit(0);
       }
