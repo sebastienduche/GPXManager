@@ -16,15 +16,6 @@ import static com.gpxmanager.strava.StravaPanel.openActivityOnStrava;
 
 public class StravaLongestRideStatisticTableModel extends DefaultTableModel {
 
-  private final List<String> columns = List.of(
-      getLabel("strava.table.year"),
-      getLabel("strava.table.distance"),
-      getLabel("strava.table.time"),
-      getLabel("strava.table.avg"),
-      getLabel("strava.table.max"),
-      getLabel("strava.table.altitude"),
-      ""
-  );
   private List<Activity> statistics;
 
   public StravaLongestRideStatisticTableModel() {
@@ -38,12 +29,12 @@ public class StravaLongestRideStatisticTableModel extends DefaultTableModel {
 
   @Override
   public int getColumnCount() {
-    return columns.size();
+    return StravaLongestRideStatisticColumns.values().length;
   }
 
   @Override
   public String getColumnName(int column) {
-    return columns.get(column);
+    return getLabel(StravaLongestRideStatisticColumns.values()[column].getLabel());
   }
 
   @Override
@@ -116,12 +107,22 @@ public class StravaLongestRideStatisticTableModel extends DefaultTableModel {
   }
 
   enum StravaLongestRideStatisticColumns {
-    COL_LONGEST_DATE,
-    COL_LONGEST_DISTANCE,
-    COL_LONGEST_TIME,
-    COL_LONGEST_AVG_SPEED,
-    COL_LONGEST_SPEED_MAX,
-    COL_LONGEST_ALTITUDE,
-    COL_LONGEST_VIEW
+    COL_LONGEST_DATE("strava.table.year"),
+    COL_LONGEST_DISTANCE("strava.table.distance"),
+    COL_LONGEST_TIME("strava.table.time"),
+    COL_LONGEST_AVG_SPEED("strava.table.avg"),
+    COL_LONGEST_SPEED_MAX("strava.table.max"),
+    COL_LONGEST_ALTITUDE("strava.table.altitude"),
+    COL_LONGEST_VIEW("");
+
+    private final String label;
+
+    StravaLongestRideStatisticColumns(String label) {
+      this.label = label;
+    }
+
+    public String getLabel() {
+      return this.label;
+    }
   }
 }

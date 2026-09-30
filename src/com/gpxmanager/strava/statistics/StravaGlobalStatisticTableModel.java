@@ -9,17 +9,6 @@ import static com.gpxmanager.Utils.getLabel;
 
 public class StravaGlobalStatisticTableModel extends DefaultTableModel {
 
-  private final List<String> columns = List.of(
-      getLabel("strava.table.year"),
-      getLabel("strava.table.activities"),
-      getLabel("strava.table.distance"),
-      getLabel("strava.table.time"),
-      getLabel("strava.table.max"),
-      getLabel("strava.table.altitude"),
-      getLabel("strava.table.pr"),
-      getLabel("strava.table.km.day"),
-      getLabel("strava.table.day.100")
-  );
   private List<StravaGlobalStatistic> statistics;
 
   public StravaGlobalStatisticTableModel() {
@@ -33,12 +22,12 @@ public class StravaGlobalStatisticTableModel extends DefaultTableModel {
 
   @Override
   public int getColumnCount() {
-    return columns.size();
+    return StravaGlobalStatisticColumns.values().length;
   }
 
   @Override
   public String getColumnName(int column) {
-    return columns.get(column);
+    return getLabel(StravaGlobalStatisticColumns.values()[column].getLabel());
   }
 
   @Override
@@ -79,15 +68,24 @@ public class StravaGlobalStatisticTableModel extends DefaultTableModel {
   }
 
   enum StravaGlobalStatisticColumns {
-    COL_GLOBAL_YEAR,
-    COL_GLOBAL_ACTIVITY,
-    COL_GLOBAL_DISTANCE,
-    COL_GLOBAL_TIME,
-    COL_GLOBAL_SPEED_MAX,
-    COL_GLOBAL_ALTITUDE,
-    COL_GLOBAL_PR,
-    COL_GLOBAL_KM_PER_DAY,
-    COL_GLOBAL_KM_100
-  }
+    COL_GLOBAL_YEAR("strava.table.year"),
+    COL_GLOBAL_ACTIVITY("strava.table.activities"),
+    COL_GLOBAL_DISTANCE("strava.table.distance"),
+    COL_GLOBAL_TIME("strava.table.time"),
+    COL_GLOBAL_SPEED_MAX("strava.table.max"),
+    COL_GLOBAL_ALTITUDE("strava.table.altitude"),
+    COL_GLOBAL_PR("strava.table.pr"),
+    COL_GLOBAL_KM_PER_DAY("strava.table.km.day"),
+    COL_GLOBAL_KM_100("strava.table.day.100");
 
+    private final String label;
+
+    StravaGlobalStatisticColumns(String label) {
+      this.label = label;
+    }
+
+    public String getLabel() {
+      return this.label;
+    }
+  }
 }

@@ -80,6 +80,8 @@ public class Utils {
     if (labels == null) {
       throw new RuntimeException("Resources not initialized!");
     }
+    if (s.isBlank())
+      return s;
     return labels.getString(s);
   }
 
