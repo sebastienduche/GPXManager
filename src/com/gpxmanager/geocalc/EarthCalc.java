@@ -47,46 +47,46 @@ import static java.lang.Math.toRadians;
  */
 public class EarthCalc {
 
-    public static final double EARTH_RADIUS = 6_356_752.314245D; // radius at the poles, meters
+  public static final double EARTH_RADIUS = 6_356_752.314245D; // radius at the poles, meters
 
-    public static class gcd {
+  public static double calculateDistance(LinkedList<Degree> list) {
+    double distance = 0;
+    Point start = null;
+    for (Degree degree : list) {
+      Coordinate lat = Coordinate.fromDegrees(degree.latitude());
+      Coordinate lng = Coordinate.fromDegrees(degree.longitude());
+      Point point = Point.at(lat, lng);
+      if (start == null) {
+        start = point;
+        continue;
+      }
 
-        /**
-         * Returns the distance between two points at spherical law of cosines.
-         *
-         * @param standPoint The standpoint
-         * @param forePoint  The fore point
-         * @return The distance, in meters
-         */
-        public static double distance(Point standPoint, Point forePoint) {
-
-            var Δλ = toRadians(abs(forePoint.longitude - standPoint.longitude));
-            var φ1 = toRadians(standPoint.latitude);
-            var φ2 = toRadians(forePoint.latitude);
-
-            //spherical law of cosines
-            var sphereCos = (sin(φ1) * sin(φ2)) + (cos(φ1) * cos(φ2) * cos(Δλ));
-            var c = acos(max(min(sphereCos, 1d), -1d));
-
-            return EARTH_RADIUS * c;
-        }
+      distance += EarthCalc.gcd.distance(start, point);
+      start = point;
     }
+    return distance;
+  }
 
-    public static double calculateDistance(LinkedList<Degree> list) {
-        double distance = 0;
-        Point start = null;
-        for (Degree degree : list) {
-            Coordinate lat = Coordinate.fromDegrees(degree.getLatitude());
-            Coordinate lng = Coordinate.fromDegrees(degree.getLongitude());
-            Point point = Point.at(lat, lng);
-            if (start == null) {
-                start = point;
-                continue;
-            }
+  public static class gcd {
 
-            distance += EarthCalc.gcd.distance(start, point);
-            start = point;
-        }
-        return distance;
+    /**
+     * Returns the distance between two points at spherical law of cosines.
+     *
+     * @param standPoint The standpoint
+     * @param forePoint  The fore point
+     * @return The distance, in meters
+     */
+    public static double distance(Point standPoint, Point forePoint) {
+
+      var Δλ = toRadians(abs(forePoint.longitude() - standPoint.longitude()));
+      var φ1 = toRadians(standPoint.latitude());
+      var φ2 = toRadians(forePoint.latitude());
+
+      //spherical law of cosines
+      var sphereCos = (sin(φ1) * sin(φ2)) + (cos(φ1) * cos(φ2) * cos(Δλ));
+      var c = acos(max(min(sphereCos, 1d), -1d));
+
+      return EARTH_RADIUS * c;
     }
+  }
 }

@@ -92,9 +92,8 @@ import static com.gpxmanager.Utils.DATE_FORMATER_DD_MM_YYYY;
 import static com.gpxmanager.Utils.DEBUG_DIRECTORY;
 import static com.gpxmanager.Utils.checkFileNameWithExtension;
 import static com.gpxmanager.Utils.createGPXFileChooser;
-import static com.gpxmanager.Utils.createJSONFileChooser;
 import static com.gpxmanager.Utils.createJSONZIPFileChooser;
-import static com.gpxmanager.Utils.createZIPFileChooser;
+import static com.gpxmanager.Utils.createJSONZIPGPXFileChooser;
 import static com.gpxmanager.Utils.deleteWorkDirectory;
 import static com.gpxmanager.Utils.getLabel;
 import static com.gpxmanager.Utils.hasGPXExtension;
@@ -106,14 +105,12 @@ import static com.gpxmanager.Utils.loadStravaDataFileFromPreferences;
 import static com.gpxmanager.gpx.GPXUtils.getGpxParser;
 
 public final class MyGPXManager extends JFrame {
-  public static final String INTERNAL_VERSION = "24.5";
+  public static final String INTERNAL_VERSION = "24.7";
   public static final String VERSION = "7.0";
   public static final Gson GSON = new Gson();
   private static final MyAutoHideLabel INFO_LABEL = new MyAutoHideLabel();
   static JButton stravaButton = null;
-  static JButton stravaExportButton = null;
   private static JMenuItem saveFile;
-  //  private static JMenuItem saveAsFile;
   private static JMenuItem connectToStravaMenuItem;
   private static JMenuItem sendToDevice;
   private static MyGPXManager instance;
@@ -172,9 +169,7 @@ public final class MyGPXManager extends JFrame {
     menuStrava.add(new JMenuItem(new ConfigureStravaFileAction()));
     JMenu menuAbout = new JMenu("?");
     menuBar.add(menuAbout);
-    menuFile.add(new JMenuItem(new OpenJSONFileAction()));
-    menuFile.add(new JMenuItem(new OpenGPXFileAction()));
-    menuFile.add(new JMenuItem(new OpenZIPFileAction()));
+    menuFile.add(new JMenuItem(new OpenAllFileAction()));
     menuFile.add(closeFile = new JMenuItem(new CloseFileAction()));
     menuFile.addSeparator();
     menuFile.add(saveFile);
@@ -237,7 +232,7 @@ public final class MyGPXManager extends JFrame {
     myTabbedPane.setVisible(false);
 
     JToolBar toolBar = new JToolBar();
-    final JButton openButton = new JButton(new OpenGPXFileAction());
+    final JButton openButton = new JButton(new OpenAllFileAction());
     openButton.setText("");
     toolBar.add(openButton);
     toolBar.add(saveButton);
@@ -253,9 +248,6 @@ public final class MyGPXManager extends JFrame {
     stravaButton.setText("");
     stravaButton.setEnabled(!getPreference(STRAVA_ZIP_DATA, "").isBlank());
     toolBar.add(stravaButton);
-    stravaExportButton = new JButton(new LoadStravaExportAction());
-    stravaExportButton.setText("");
-    toolBar.add(stravaExportButton);
     toolBar.setFloatable(true);
     setFileOpened(null);
     add(toolBar, BorderLayout.NORTH);
@@ -322,7 +314,6 @@ public final class MyGPXManager extends JFrame {
       myTabbedPane.setVisible(false);
       saveButton.setEnabled(false);
       saveFile.setEnabled(false);
-//      saveAsFile.setEnabled(false);
     }
   }
 
@@ -363,7 +354,6 @@ public final class MyGPXManager extends JFrame {
 
   private static List<Activity> loadDataFromArchive(StravaData stravaData) {
     if (stravaData.hasJsonDataFile() && stravaData.getJsonDataFile().exists()) {
-//      MyGPXManager.setStravaData(loadedStravaDataFile);
       if (stravaData.hasActivities()) {
         return stravaData.getActivities();
       }
@@ -417,6 +407,12 @@ public final class MyGPXManager extends JFrame {
     return myTabbedPane;
   }
 
+  private static void openJSONOrZIPFile(File file) {
+    Utils.setOpenSaveDirectory(file.getParentFile());
+    StravaData stravaData = loadStravaDataFile(file);
+    List<Activity> activities = loadDataIfExist(stravaData);
+    myTabbedPane.addTab(getLabel("menu.strava"), MyGPXManagerImage.STRAVA, new StravaPanel(null, activities, stravaData), true);
+  }
 
   private void watchDir() throws IOException {
     WatchDirUtil watchDirUtil = WatchDirUtil.getInstance();
@@ -449,6 +445,10 @@ public final class MyGPXManager extends JFrame {
   }
 
   public void closeFile(GPXPropertiesPanel gpxPropertiesPanel) {
+    if (gpxPropertiesPanel == null) {
+      JOptionPane.showMessageDialog(instance, getLabel("error.only.gpx"), getLabel("title"), JOptionPane.INFORMATION_MESSAGE);
+      return;
+    }
     if (gpxPropertiesPanel.isModified() && JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(instance, MessageFormat.format(getLabel("question.saveOpenedFile"), gpxPropertiesPanel.getFile()), getLabel("question"), JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)) {
       try {
         gpxPropertiesPanel.save();
@@ -471,7 +471,6 @@ public final class MyGPXManager extends JFrame {
     }
     boolean opened = !openedFiles.isEmpty();
     saveFile.setEnabled(opened);
-//    saveAsFile.setEnabled(opened);
     saveButton.setEnabled(opened);
     closeFile.setEnabled(opened);
   }
@@ -538,7 +537,6 @@ public final class MyGPXManager extends JFrame {
           boolean isAvailable = fileSaved.exists();
           connectToStravaMenuItem.setEnabled(isAvailable);
           stravaButton.setEnabled(isAvailable);
-          stravaExportButton.setEnabled(isAvailable);
         }
         FilePanel filePanel = new FilePanel(FilePanel.Type.SAVE_ZIP);
         JOptionPane.showMessageDialog(getInstance(), filePanel,
@@ -590,18 +588,12 @@ public final class MyGPXManager extends JFrame {
 
   static class LoadStravaExportAction extends AbstractAction {
     public LoadStravaExportAction() {
-      super(getLabel("menu.openArchive"), MyGPXManagerImage.STRAVA);
+      super(getLabel("menu.openArchive"), MyGPXManagerImage.IMPORT);
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-//      File file = new File(getPreference(ProgramPreferences.STRAVA, ""));
-//      FileIdentificationStorage fileIdentificationStorage = new FileIdentificationStorage(file);
-
-//      StravaConnection stravaConnection;
       try {
-//        stravaConnection = new StravaConnection(fileIdentificationStorage);
-//        setInfoLabel(getLabel("strava.connectionOK"));
         FilePanel filePanel = new FilePanel(FilePanel.Type.OPEN_ZIP);
         JOptionPane.showMessageDialog(getInstance(), filePanel,
             "",
@@ -631,10 +623,6 @@ public final class MyGPXManager extends JFrame {
           }
         };
         swingWorker.execute();
-//        List<Activity> activities = loadDataFromArchive(filePanel.getFile());
-//        if (activities.isEmpty()) {
-//          activities = stravaConnection.getStrava().getCurrentAthleteActivities(1, 50);
-//        }
       } catch (StravaException ex) {
         throw new RuntimeException(ex);
       }
@@ -732,79 +720,26 @@ public final class MyGPXManager extends JFrame {
     }
   }
 
-  class OpenGPXFileAction extends AbstractAction {
-    public OpenGPXFileAction() {
+  class OpenAllFileAction extends AbstractAction {
+    public OpenAllFileAction() {
       super(getLabel("menu.openFile"), MyGPXManagerImage.OPEN);
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-      JFileChooser fileChooser = createGPXFileChooser();
+      JFileChooser fileChooser = createJSONZIPGPXFileChooser();
       fileChooser.setCurrentDirectory(Utils.getOpenSaveDirectory());
       fileChooser.setMultiSelectionEnabled(true);
       if (JFileChooser.APPROVE_OPTION == fileChooser.showOpenDialog(instance)) {
         List<File> files = List.of(fileChooser.getSelectedFiles());
         files.forEach(file -> {
-          file = checkFileNameWithExtension(file);
-          if (file != null) {
+          if (hasGPXExtension(file)) {
             Utils.setOpenSaveDirectory(file.getParentFile());
             openGPX(file);
+          } else if (hasZIPExtension(file) || hasJSONExtension(file)) {
+            openJSONOrZIPFile(file);
           }
         });
-        setCursor(Cursor.getDefaultCursor());
-      }
-    }
-  }
-
-  class OpenJSONFileAction extends AbstractAction {
-    public OpenJSONFileAction() {
-      super(getLabel("menu.openJSONFile"), MyGPXManagerImage.OPEN);
-    }
-
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      JFileChooser fileChooser = createJSONFileChooser();
-      fileChooser.setCurrentDirectory(Utils.getOpenSaveDirectory());
-      fileChooser.setMultiSelectionEnabled(false);
-      if (JFileChooser.APPROVE_OPTION == fileChooser.showOpenDialog(instance)) {
-        File file = fileChooser.getSelectedFile();
-        if (file == null) {
-          return;
-        }
-        file = hasJSONExtension(file);
-        if (file != null) {
-          Utils.setOpenSaveDirectory(file.getParentFile());
-          StravaData stravaData = loadStravaDataFile(file);
-          List<Activity> activities = loadDataIfExist(stravaData);
-          myTabbedPane.addTab(getLabel("menu.strava"), MyGPXManagerImage.STRAVA, new StravaPanel(null, activities, stravaData), true);
-        }
-        setCursor(Cursor.getDefaultCursor());
-      }
-    }
-  }
-
-  class OpenZIPFileAction extends AbstractAction {
-    public OpenZIPFileAction() {
-      super(getLabel("menu.openZIPFile"), MyGPXManagerImage.OPEN);
-    }
-
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      JFileChooser fileChooser = createZIPFileChooser();
-      fileChooser.setCurrentDirectory(Utils.getOpenSaveDirectory());
-      fileChooser.setMultiSelectionEnabled(false);
-      if (JFileChooser.APPROVE_OPTION == fileChooser.showOpenDialog(instance)) {
-        File file = fileChooser.getSelectedFile();
-        if (file == null) {
-          return;
-        }
-        file = hasZIPExtension(file);
-        if (file != null) {
-          Utils.setOpenSaveDirectory(file.getParentFile());
-          StravaData stravaData = loadStravaDataFile(file);
-          List<Activity> activities = loadDataIfExist(stravaData);
-          myTabbedPane.addTab(getLabel("menu.strava"), MyGPXManagerImage.STRAVA, new StravaPanel(null, activities, stravaData), true);
-        }
         setCursor(Cursor.getDefaultCursor());
       }
     }
@@ -895,26 +830,23 @@ public final class MyGPXManager extends JFrame {
       fileChooser.setCurrentDirectory(Utils.getOpenSaveDirectory());
       if (JFileChooser.APPROVE_OPTION == fileChooser.showSaveDialog(instance)) {
         File file = fileChooser.getSelectedFile();
-        File tempFile = hasGPXExtension(file);
-        if (tempFile != null) {
-          Utils.setOpenSaveDirectory(file.getParentFile());
+        Utils.setOpenSaveDirectory(file.getParentFile());
+        if (hasGPXExtension(file)) {
           GPXPropertiesPanel selectedComponent = myTabbedPane.getSelectedComponent(GPXPropertiesPanel.class);
           save(selectedComponent.getGpx(), file);
           setCursor(Cursor.getDefaultCursor());
           return;
         }
         if (myTabbedPane.getSelectedIndex() != -1 && myTabbedPane.getSelectedComponent() instanceof StravaPanel stravaPanel) {
-          tempFile = hasJSONExtension(file);
-          if (tempFile != null) {
-            Utils.saveJsonFile(stravaPanel.getActivities(), tempFile);
+          if (hasZIPExtension(file)) {
+            Utils.saveJsonFile(stravaPanel.getActivities(), file);
             setCursor(Cursor.getDefaultCursor());
-            setInfoLabel(MessageFormat.format(getLabel("file.saved"), tempFile.getAbsolutePath()));
+            setInfoLabel(MessageFormat.format(getLabel("file.saved"), file.getAbsolutePath()));
             return;
           }
-          tempFile = hasZIPExtension(file);
-          if (tempFile != null && stravaPanel.getStravaData() instanceof StravaArchiveData) {
-            Utils.saveArchiveFile(stravaPanel.getActivities(), (StravaArchiveData) stravaPanel.getStravaData(), tempFile);
-            setInfoLabel(MessageFormat.format(getLabel("file.saved"), tempFile.getAbsolutePath()));
+          if (hasZIPExtension(file) && stravaPanel.getStravaData() instanceof StravaArchiveData) {
+            Utils.saveArchiveFile(stravaPanel.getActivities(), (StravaArchiveData) stravaPanel.getStravaData(), file);
+            setInfoLabel(MessageFormat.format(getLabel("file.saved"), file.getAbsolutePath()));
             setCursor(Cursor.getDefaultCursor());
           }
         }

@@ -200,34 +200,25 @@ public class Utils {
     return file;
   }
 
-  public static File hasGPXExtension(File file) {
+  public static boolean hasGPXExtension(File file) {
     if (file == null) {
-      return null;
+      return false;
     }
-    if (!file.getName().toLowerCase().endsWith(Filter.FILTER_GPX.toString())) {
-      return null;
-    }
-    return file;
+    return file.getName().toLowerCase().endsWith(Filter.FILTER_GPX.toString());
   }
 
-  public static File hasJSONExtension(File file) {
+  public static boolean hasJSONExtension(File file) {
     if (file == null) {
-      return null;
+      return false;
     }
-    if (!file.getName().toLowerCase().endsWith(Filter.FILTER_JSON.toString())) {
-      return null;
-    }
-    return file;
+    return file.getName().toLowerCase().endsWith(Filter.FILTER_JSON.toString());
   }
 
-  public static File hasZIPExtension(File file) {
+  public static boolean hasZIPExtension(File file) {
     if (file == null) {
-      return null;
+      return false;
     }
-    if (!file.getName().toLowerCase().endsWith(Filter.FILTER_ZIP.toString())) {
-      return null;
-    }
-    return file;
+    return file.getName().toLowerCase().endsWith(Filter.FILTER_ZIP.toString());
   }
 
   public static File checkFileNameWithZIPExtension(File file) {
@@ -298,6 +289,15 @@ public class Utils {
     return fileChooser;
   }
 
+  public static JFileChooser createJSONZIPGPXFileChooser() {
+    JFileChooser fileChooser = new JFileChooser();
+    fileChooser.removeChoosableFileFilter(fileChooser.getFileFilter());
+    fileChooser.addChoosableFileFilter(Filter.FILTER_JSON);
+    fileChooser.addChoosableFileFilter(Filter.FILTER_ZIP);
+    fileChooser.addChoosableFileFilter(Filter.FILTER_GPX);
+    return fileChooser;
+  }
+
   public static int getStartYear(Activity activity) {
     try {
       return TIMESTAMP.parse(activity.getStartDateLocal()).getYear() + 1900;
@@ -362,7 +362,7 @@ public class Utils {
           new File(getWorkDir(), "stravaConnection.txt"),
           new File(getWorkDir(), STRAVA_ALL_JSON));
     }
-    if (file.exists()) {
+    if (hasJSONExtension(file) && file.exists()) {
       return new StravaData(file);
     }
     throw new RuntimeException("File [%s] does not exist. Unable to load the file".formatted(file.getAbsolutePath()));
@@ -508,6 +508,9 @@ public class Utils {
   }
 
   public static void deleteWorkDirectory() {
+    if (workDir == null) {
+      return;
+    }
     Utils.deleteDirectory(new File(workDir));
   }
 

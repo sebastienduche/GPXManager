@@ -37,34 +37,27 @@ import java.io.Serializable;
 
 /**
  * Represent a point in spherical system
+ *
+ * @param latitude decimal degrees
  */
-public class Point implements Serializable {
-    //decimal degrees
-    public final double latitude, longitude;
+public record Point(double latitude, double longitude) implements Serializable {
+  private Point(Coordinate latitude, Coordinate longitude) {
+    this(latitude.degrees(), longitude.degrees());
+  }
 
-    private Point(Coordinate latitude, Coordinate longitude) {
-        this.latitude = latitude.degrees();
-        this.longitude = longitude.degrees();
-    }
+  /**
+   * Create a new Point.
+   *
+   * @param latitude  latitude
+   * @param longitude longitude
+   * @return the point
+   */
+  public static Point at(Coordinate latitude, Coordinate longitude) {
+    return new Point(latitude.degrees(), longitude.degrees());
+  }
 
-    public Point(double latitude, double longitude) {
-        this.latitude = latitude;
-        this.longitude = longitude;
-    }
-
-    /**
-     * Create a new Point.
-     *
-     * @param latitude  latitude
-     * @param longitude longitude
-     * @return the point
-     */
-    public static Point at(Coordinate latitude, Coordinate longitude) {
-        return new Point(latitude.degrees(), longitude.degrees());
-    }
-
-    @Override
-    public String toString() {
-        return "Point{" + "latitude=" + latitude + ", longitude=" + longitude + '}';
-    }
+  @Override
+  public String toString() {
+    return "Point{" + "latitude=" + latitude + ", longitude=" + longitude + '}';
+  }
 }

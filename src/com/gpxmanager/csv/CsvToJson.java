@@ -10,7 +10,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.lang.reflect.Type;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.gpxmanager.csv.CsvToJsonUtil.readLinesFromFile;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 public final class CsvToJson<T> {
 
@@ -276,7 +276,7 @@ public final class CsvToJson<T> {
 
   private T[] readJsonFile(File file) {
     try {
-      String json = Files.readString(file.toPath(), StandardCharsets.UTF_8);
+      String json = Files.readString(file.toPath(), UTF_8);
       Type arrayType = TypeToken.getArray(objectClass).getType();
       return GSON.fromJson(json, arrayType);
     } catch (IOException e) {

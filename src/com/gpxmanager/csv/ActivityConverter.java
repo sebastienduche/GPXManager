@@ -11,7 +11,7 @@ import java.util.List;
 import static com.gpxmanager.Utils.TIMESTAMP;
 
 public class ActivityConverter extends CsvToJsonConverter {
-  private static final String START_DATE_LOCAL_JSOON = "start_date_local";
+  private static final String START_DATE_LOCAL_JSON = "start_date_local";
   private static final String ID_JSON = "id";
   private static final String NAME_JSON = "name";
   private static final String MAX_SPEED_JSON = "max_speed";
@@ -42,7 +42,7 @@ public class ActivityConverter extends CsvToJsonConverter {
       return ID_JSON;
     }
     if (matchFieldName(ACTIVITY_DATES, jsonFieldName)) {
-      return START_DATE_LOCAL_JSOON;
+      return START_DATE_LOCAL_JSON;
     }
     if (matchFieldName(ACTIVITY_NAMES, jsonFieldName)) {
       return NAME_JSON;
@@ -344,7 +344,7 @@ public class ActivityConverter extends CsvToJsonConverter {
   @Override
   public String mapValue(String fieldName, String value) {
     value = removeDoubleQuote(value);
-    if (fieldName.equals(START_DATE_LOCAL_JSOON)) {
+    if (fieldName.equals(START_DATE_LOCAL_JSON)) {
       Date localDateTime = Utils.parseDateHourMinuteAm(value);
       if (localDateTime == null) {
         localDateTime = Utils.parseDateMmmTime(value);
