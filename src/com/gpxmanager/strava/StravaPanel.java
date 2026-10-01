@@ -310,7 +310,6 @@ public class StravaPanel extends JPanel implements ITabListener {
       return null;
     }
     return stravaPanel.stravaConnection.getStrava().findActivity(id, true);
-
   }
 
   private void populateGearCombo() {
