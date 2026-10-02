@@ -106,7 +106,7 @@ import static com.gpxmanager.gpx.GPXUtils.getGpxParser;
 
 public final class MyGPXManager extends JFrame {
   public static final String INTERNAL_VERSION = "25.4";
-  public static final String VERSION = "7.0";
+  public static final String VERSION = "7.1";
   public static final Gson GSON = new Gson();
   private static final MyAutoHideLabel INFO_LABEL = new MyAutoHideLabel();
   static JButton stravaButton = null;
@@ -603,12 +603,12 @@ public final class MyGPXManager extends JFrame {
               getLabel("strava.errorExportFile"), getLabel("error"), JOptionPane.ERROR_MESSAGE);
           return;
         }
-        StravaArchiveData loadedStravaDataFile = loadStravaArchiveDataFile(filePanel.getFile());
+        StravaArchiveData stravaData = loadStravaArchiveDataFile(filePanel.getFile());
         getInstance().setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         var swingWorker = new SwingWorker<List<Activity>, List<Activity>>() {
           @Override
           protected List<Activity> doInBackground() {
-            return loadDataFromArchive(loadedStravaDataFile);
+            return stravaData == null ? Collections.emptyList() : loadDataFromArchive(stravaData);
           }
 
           @Override
@@ -616,7 +616,7 @@ public final class MyGPXManager extends JFrame {
             try {
               List<Activity> activities = get();
               getInstance().setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-              myTabbedPane.addTab(getLabel("menu.strava"), MyGPXManagerImage.STRAVA, new StravaPanel(null, activities, loadedStravaDataFile), true);
+              myTabbedPane.addTab(getLabel("menu.strava"), MyGPXManagerImage.STRAVA, new StravaPanel(null, activities, stravaData), true);
             } catch (InterruptedException | ExecutionException ex) {
               throw new RuntimeException(ex);
             }

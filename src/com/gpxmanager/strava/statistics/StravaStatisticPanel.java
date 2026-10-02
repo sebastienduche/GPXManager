@@ -33,10 +33,6 @@ public class StravaStatisticPanel extends JPanel implements ITabListener {
   private final JLabel labelCount = new JLabel();
   private final JLabel labelKm = new JLabel();
   private final JLabel labelCommute = new JLabel();
-  private JTable tableGlobal;
-  private JTable tableLongestRide;
-  private StravaGlobalStatisticTableModel stravaGlobalStatisticTableModel;
-  private StravaLongestRideStatisticTableModel stravaLongestRideStatisticTableModel;
 
 
   public StravaStatisticPanel(List<Activity> activities) {
@@ -52,8 +48,8 @@ public class StravaStatisticPanel extends JPanel implements ITabListener {
       Map<Integer, List<Activity>> activitiesPerYear = activities
           .stream()
           .collect(groupingBy(Utils::getStartYear));
-      stravaGlobalStatisticTableModel = new StravaGlobalStatisticTableModel();
-      stravaLongestRideStatisticTableModel = new StravaLongestRideStatisticTableModel();
+      var stravaGlobalStatisticTableModel = new StravaGlobalStatisticTableModel();
+      var stravaLongestRideStatisticTableModel = new StravaLongestRideStatisticTableModel();
       List<StravaGlobalStatistic> statisticList = new ArrayList<>();
       activitiesPerYear.keySet()
           .forEach(year -> {
@@ -77,9 +73,9 @@ public class StravaStatisticPanel extends JPanel implements ITabListener {
           .sorted(Comparator.comparing(Activity::getDistance).reversed())
           .collect(Collectors.toList());
       stravaGlobalStatisticTableModel.setStatistics(statisticList);
-      tableGlobal = new JTable(stravaGlobalStatisticTableModel, new StravaGlobalStatisticTableModel.StravaGlobalStatisticTableColumnModel());
+      var tableGlobal = new JTable(stravaGlobalStatisticTableModel, new StravaGlobalStatisticTableModel.StravaGlobalStatisticTableColumnModel());
       stravaLongestRideStatisticTableModel.setStatistics(longestRidesList);
-      tableLongestRide = new JTable(stravaLongestRideStatisticTableModel, new StravaLongestRideStatisticTableModel.StravaLongestRideStatisticTableColumnModel());
+      var tableLongestRide = new JTable(stravaLongestRideStatisticTableModel, new StravaLongestRideStatisticTableModel.StravaLongestRideStatisticTableColumnModel());
       setStatisticsPerYear(activities);
       JPanel panelTableGlobal = new JPanel();
       panelTableGlobal.setLayout(new MigLayout("", "0px[800:800:800]0px", "[grow]0px"));
